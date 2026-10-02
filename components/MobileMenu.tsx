@@ -44,63 +44,120 @@ type PopoverPosition = {
 };
 
 /* =========================================================
-   MENU
+   MENU GROUPS
+
+   🖥️ รายการพัสดุ
+   - รายการพัสดุทั้งหมด
+   - รายการรับเข้า
+   - รายการเบิกจ่าย
+
+   🏢 หน่วยงาน
+   - ผู้จำหน่าย
+   - กลุ่มงาน
+
+   ℹ️ เกี่ยวกับเรา
+   - ผู้ใช้งานระบบ
 ========================================================= */
 
 const menus: MenuGroup[] = [
   {
     title: "รายการพัสดุ",
-    emoji: "📦",
+    emoji: "🖥️",
+
     items: [
       {
-        name: "รายการพัสดุทั้งหมด",
-        href: "/materials",
-        emoji: "🗃️",
+        name:
+          "รายการพัสดุทั้งหมด",
+
+        href:
+          "/materials",
+
+        emoji:
+          "🗃️",
       },
+
       {
-        name: "รายการรับเข้า",
-        href: "/receive",
-        emoji: "📥",
-        adminOnly: true,
+        name:
+          "รายการรับเข้า",
+
+        href:
+          "/receive",
+
+        emoji:
+          "📥",
+
+        adminOnly:
+          true,
       },
+
       {
-        name: "รายการเบิกจ่าย",
-        href: "/issue",
-        emoji: "📤",
-      },
-      {
-        name: "บัญชีคุมพัสดุ",
-        href: "/stock-card",
-        emoji: "📒",
+        name:
+          "รายการเบิกจ่าย",
+
+        href:
+          "/issue",
+
+        emoji:
+          "📤",
       },
     ],
   },
+
   {
-    title: "หน่วยงาน",
-    emoji: "🏢",
+    title:
+      "หน่วยงาน",
+
+    emoji:
+      "🏢",
+
     items: [
       {
-        name: "ผู้จำหน่าย",
-        href: "/vendors",
-        emoji: "🚚",
-        adminOnly: true,
+        name:
+          "ผู้จำหน่าย",
+
+        href:
+          "/vendors",
+
+        emoji:
+          "🚚",
+
+        adminOnly:
+          true,
       },
+
       {
-        name: "กลุ่มงาน",
-        href: "/departments",
-        emoji: "🏛️",
+        name:
+          "กลุ่มงาน",
+
+        href:
+          "/departments",
+
+        emoji:
+          "🏛️",
       },
     ],
   },
+
   {
-    title: "เกี่ยวกับเรา",
-    emoji: "ℹ️",
-    adminOnly: true,
+    title:
+      "เกี่ยวกับเรา",
+
+    emoji:
+      "ℹ️",
+
+    adminOnly:
+      true,
+
     items: [
       {
-        name: "ผู้ใช้งานระบบ",
-        href: "/users",
-        emoji: "👥",
+        name:
+          "ผู้ใช้งานระบบ",
+
+        href:
+          "/users",
+
+        emoji:
+          "👥",
       },
     ],
   },
@@ -113,7 +170,12 @@ const menus: MenuGroup[] = [
 export default function MobileMenu({
   role,
 }: MobileMenuProps) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
+
+  /* =======================================================
+     REFS
+  ======================================================= */
 
   const rootRef =
     useRef<HTMLDivElement | null>(
@@ -133,31 +195,39 @@ export default function MobileMenu({
       null
     );
 
+  /* =======================================================
+     STATE
+  ======================================================= */
+
   const [
     selectedGroup,
     setSelectedGroup,
-  ] = useState<string | null>(
-    null
-  );
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     notificationCount,
     setNotificationCount,
-  ] = useState(0);
+  ] =
+    useState(0);
 
   const [
     mounted,
     setMounted,
-  ] = useState(false);
+  ] =
+    useState(false);
 
   const [
     popoverPosition,
     setPopoverPosition,
-  ] = useState<PopoverPosition>({
-    left: 8,
-    top: 0,
-    width: 320,
-  });
+  ] =
+    useState<PopoverPosition>({
+      left: 8,
+      top: 0,
+      width: 320,
+    });
 
   /* =======================================================
      MOUNT
@@ -168,11 +238,12 @@ export default function MobileMenu({
   }, []);
 
   /* =======================================================
-     NOTIFICATION
+     NOTIFICATIONS
   ======================================================= */
 
   useEffect(() => {
-    let active = true;
+    let active =
+      true;
 
     const loadNotifications =
       async () => {
@@ -181,11 +252,14 @@ export default function MobileMenu({
             await fetch(
               "/api/notifications",
               {
-                cache: "no-store",
+                cache:
+                  "no-store",
               }
             );
 
-          if (!response.ok) {
+          if (
+            !response.ok
+          ) {
             return;
           }
 
@@ -195,11 +269,14 @@ export default function MobileMenu({
           if (active) {
             setNotificationCount(
               Number(
-                data.count ?? 0
+                data.count ??
+                  0
               )
             );
           }
-        } catch (error) {
+        } catch (
+          error
+        ) {
           console.error(
             "ไม่สามารถโหลดจำนวนการแจ้งเตือนได้:",
             error
@@ -218,7 +295,8 @@ export default function MobileMenu({
       );
 
     return () => {
-      active = false;
+      active =
+        false;
 
       window.clearInterval(
         interval
@@ -231,52 +309,76 @@ export default function MobileMenu({
   ======================================================= */
 
   const visibleMenus =
-    useMemo(() => {
-      return menus
-        .filter(
-          (group) =>
-            !group.adminOnly ||
-            role === "ADMIN"
-        )
-        .map(
-          (group) => ({
-            ...group,
+    useMemo(
+      () => {
+        return menus
+          .filter(
+            (
+              group
+            ) =>
+              !group.adminOnly ||
+              role ===
+                "ADMIN"
+          )
+          .map(
+            (
+              group
+            ) => ({
+              ...group,
 
-            items:
-              group.items
-                .map(
-                  (item) => {
-                    if (
-                      item.name ===
-                      "รายการพัสดุทั้งหมด"
-                    ) {
-                      return {
-                        ...item,
+              items:
+                group.items
+                  .map(
+                    (
+                      item
+                    ) => {
+                      /*
+                       * USER / VIEWER
+                       * รายการพัสดุทั้งหมด
+                       * ให้ไปหน้า summary
+                       */
 
-                        href:
-                          role ===
-                          "ADMIN"
-                            ? "/materials"
-                            : "/materials/summary",
-                      };
+                      if (
+                        item.name ===
+                        "รายการพัสดุทั้งหมด"
+                      ) {
+                        return {
+                          ...item,
+
+                          href:
+                            role ===
+                            "ADMIN"
+                              ? "/materials"
+                              : "/materials/summary",
+                        };
+                      }
+
+                      return item;
                     }
-
-                    return item;
-                  }
-                )
-                .filter(
-                  (item) =>
-                    !item.adminOnly ||
-                    role === "ADMIN"
-                ),
-          })
-        )
-        .filter(
-          (group) =>
-            group.items.length >
-            0
-        );
-    }, [role]);
+                  )
+                  .filter(
+                    (
+                      item
+                    ) =>
+                      !item.adminOnly ||
+                      role ===
+                        "ADMIN"
+                  ),
+            })
+          )
+          .filter(
+            (
+              group
+            ) =>
+              group.items
+                .length >
+              0
+          );
+      },
+      [
+        role,
+      ]
+    );
 
   /* =======================================================
      ACTIVE
@@ -285,12 +387,18 @@ export default function MobileMenu({
   function isActive(
     href: string
   ) {
-    if (href === "/") {
-      return pathname === "/";
+    if (
+      href === "/"
+    ) {
+      return (
+        pathname ===
+        "/"
+      );
     }
 
     return (
-      pathname === href ||
+      pathname ===
+        href ||
       pathname.startsWith(
         `${href}/`
       )
@@ -301,31 +409,41 @@ export default function MobileMenu({
     group: MenuGroup
   ) {
     return group.items.some(
-      (item) =>
-        isActive(item.href)
+      (
+        item
+      ) =>
+        isActive(
+          item.href
+        )
     );
   }
 
   const activeGroup =
     visibleMenus.find(
-      (group) =>
+      (
+        group
+      ) =>
         group.title ===
         selectedGroup
-    ) ?? null;
+    ) ??
+    null;
 
   /* =======================================================
-     POSITION
+     POPOVER POSITION
   ======================================================= */
 
   function updatePopoverPosition(
     groupTitle: string
   ) {
     const trigger =
-      triggerRefs.current[
+      triggerRefs
+        .current[
         groupTitle
       ];
 
-    if (!trigger) {
+    if (
+      !trigger
+    ) {
       return;
     }
 
@@ -335,65 +453,86 @@ export default function MobileMenu({
     const viewportWidth =
       window.innerWidth;
 
-    const margin = 8;
+    const margin =
+      8;
 
     const width =
       Math.min(
         420,
+
         viewportWidth -
-          margin * 2
+          margin *
+            2
       );
 
     let left =
       rect.left +
-      rect.width / 2 -
-      width / 2;
+      rect.width /
+        2 -
+      width /
+        2;
 
-    left = Math.max(
-      margin,
-      Math.min(
+    left =
+      Math.max(
+        margin,
+
+        Math.min(
+          left,
+
+          viewportWidth -
+            width -
+            margin
+        )
+      );
+
+    setPopoverPosition(
+      {
         left,
-        viewportWidth -
-          width -
-          margin
-      )
-    );
 
-    setPopoverPosition({
-      left,
-      top: rect.bottom + 8,
-      width,
-    });
-  }
+        top:
+          rect.bottom +
+          8,
 
-  function toggleGroup(
-    title: string
-  ) {
-    setSelectedGroup(
-      (current) => {
-        if (current === title) {
-          return null;
-        }
-
-        window.requestAnimationFrame(
-          () => {
-            updatePopoverPosition(
-              title
-            );
-          }
-        );
-
-        return title;
+        width,
       }
     );
   }
 
   /* =======================================================
-     ROUTE
+     TOGGLE GROUP
+  ======================================================= */
+
+  function toggleGroup(
+    title: string
+  ) {
+    if (
+      selectedGroup ===
+      title
+    ) {
+      setSelectedGroup(
+        null
+      );
+
+      return;
+    }
+
+    updatePopoverPosition(
+      title
+    );
+
+    setSelectedGroup(
+      title
+    );
+  }
+
+  /* =======================================================
+     CLOSE ON ROUTE CHANGE
   ======================================================= */
 
   useEffect(() => {
-    setSelectedGroup(null);
+    setSelectedGroup(
+      null
+    );
   }, [pathname]);
 
   /* =======================================================
@@ -401,15 +540,18 @@ export default function MobileMenu({
   ======================================================= */
 
   useEffect(() => {
-    if (!selectedGroup) {
+    if (
+      !selectedGroup
+    ) {
       return;
     }
 
-    const update = () => {
-      updatePopoverPosition(
-        selectedGroup
-      );
-    };
+    const update =
+      () => {
+        updatePopoverPosition(
+          selectedGroup
+        );
+      };
 
     update();
 
@@ -436,50 +578,65 @@ export default function MobileMenu({
         true
       );
     };
-  }, [selectedGroup]);
+  }, [
+    selectedGroup,
+  ]);
 
   /* =======================================================
-     OUTSIDE / ESC
+     CLICK OUTSIDE / ESC
   ======================================================= */
 
   useEffect(() => {
-    if (!selectedGroup) {
+    if (
+      !selectedGroup
+    ) {
       return;
     }
 
-    const handlePointerDown = (
-      event: MouseEvent
-    ) => {
-      const target =
-        event.target as Node;
+    const handlePointerDown =
+      (
+        event: MouseEvent
+      ) => {
+        const target =
+          event.target as Node;
 
-      const clickedRoot =
-        rootRef.current?.contains(
-          target
-        ) ?? false;
+        const clickedRoot =
+          rootRef.current
+            ?.contains(
+              target
+            ) ??
+          false;
 
-      const clickedPopover =
-        popoverRef.current?.contains(
-          target
-        ) ?? false;
+        const clickedPopover =
+          popoverRef.current
+            ?.contains(
+              target
+            ) ??
+          false;
 
-      if (
-        !clickedRoot &&
-        !clickedPopover
-      ) {
-        setSelectedGroup(null);
-      }
-    };
+        if (
+          !clickedRoot &&
+          !clickedPopover
+        ) {
+          setSelectedGroup(
+            null
+          );
+        }
+      };
 
-    const handleKeyDown = (
-      event: KeyboardEvent
-    ) => {
-      if (
-        event.key === "Escape"
-      ) {
-        setSelectedGroup(null);
-      }
-    };
+    const handleKeyDown =
+      (
+        event: KeyboardEvent
+      ) => {
+        if (
+          event.key ===
+          "Escape"
+        ) {
+          setSelectedGroup(
+            null
+          );
+        }
+      };
 
     document.addEventListener(
       "mousedown",
@@ -502,11 +659,12 @@ export default function MobileMenu({
         handleKeyDown
       );
     };
-  }, [selectedGroup]);
+  }, [
+    selectedGroup,
+  ]);
 
   /* =======================================================
-     ICON STYLE
-     ไม่มีกรอบ / ไม่มีพื้นหลัง
+     ICON BUTTON CLASS
   ======================================================= */
 
   function iconButtonClass() {
@@ -522,6 +680,8 @@ export default function MobileMenu({
       items-center
       justify-center
 
+      rounded-[14px]
+
       border-0
 
       bg-transparent
@@ -530,11 +690,14 @@ export default function MobileMenu({
 
       outline-none
 
-      transition-transform
+      transition-all
       duration-200
       ease-out
 
+      hover:bg-white/55
+
       active:scale-[0.90]
+      active:bg-white/65
     `;
   }
 
@@ -547,25 +710,20 @@ export default function MobileMenu({
     activeGroup
       ? createPortal(
           <div
-            ref={popoverRef}
+            ref={
+              popoverRef
+            }
             className="
               fixed
               z-[99999]
-
-              origin-top
-
-              animate-in
-              fade-in
-              slide-in-from-top-2
-              zoom-in-[0.98]
-
-              duration-200
             "
             style={{
               left:
                 popoverPosition.left,
+
               top:
                 popoverPosition.top,
+
               width:
                 popoverPosition.width,
             }}
@@ -573,7 +731,7 @@ export default function MobileMenu({
             <div
               className="
                 grid
-                grid-cols-2
+                grid-cols-1
                 gap-2
 
                 rounded-[22px]
@@ -592,10 +750,14 @@ export default function MobileMenu({
 
                 backdrop-blur-2xl
                 backdrop-saturate-150
+
+                min-[390px]:grid-cols-2
               "
             >
               {activeGroup.items.map(
-                (item) => {
+                (
+                  item
+                ) => {
                   const active =
                     isActive(
                       item.href
@@ -603,8 +765,12 @@ export default function MobileMenu({
 
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      key={
+                        item.href
+                      }
+                      href={
+                        item.href
+                      }
                       prefetch
                       onClick={() =>
                         setSelectedGroup(
@@ -615,7 +781,7 @@ export default function MobileMenu({
                         group/item
 
                         flex
-                        min-h-[62px]
+                        min-h-[60px]
                         min-w-0
 
                         items-center
@@ -663,7 +829,9 @@ export default function MobileMenu({
                           leading-none
                         "
                       >
-                        {item.emoji}
+                        {
+                          item.emoji
+                        }
                       </span>
 
                       <span
@@ -683,7 +851,9 @@ export default function MobileMenu({
                           }
                         `}
                       >
-                        {item.name}
+                        {
+                          item.name
+                        }
                       </span>
                     </Link>
                   );
@@ -691,6 +861,7 @@ export default function MobileMenu({
               )}
             </div>
           </div>,
+
           document.body
         )
       : null;
@@ -702,7 +873,9 @@ export default function MobileMenu({
   return (
     <>
       <div
-        ref={rootRef}
+        ref={
+          rootRef
+        }
         className="
           relative
           z-[5200]
@@ -713,6 +886,10 @@ export default function MobileMenu({
           bg-transparent
         "
       >
+        {/* =================================================
+            GLASS MENU CONTAINER
+        ================================================= */}
+
         <nav
           aria-label="เมนูสำหรับมือถือ"
           className="
@@ -725,6 +902,7 @@ export default function MobileMenu({
 
             items-center
             justify-around
+
             gap-1
 
             overflow-x-auto
@@ -753,7 +931,9 @@ export default function MobileMenu({
             [&::-webkit-scrollbar]:hidden
           "
         >
-          {/* HOME */}
+          {/* =================================================
+              1. HOME
+          ================================================= */}
 
           <Link
             href="/"
@@ -765,7 +945,9 @@ export default function MobileMenu({
                 null
               )
             }
-            className={iconButtonClass()}
+            className={
+              iconButtonClass()
+            }
           >
             <span
               aria-hidden="true"
@@ -777,7 +959,8 @@ export default function MobileMenu({
               🏠
             </span>
 
-            {pathname === "/" && (
+            {pathname ===
+              "/" && (
               <span
                 aria-hidden="true"
                 className="
@@ -798,7 +981,9 @@ export default function MobileMenu({
             )}
           </Link>
 
-          {/* NOTIFICATION */}
+          {/* =================================================
+              2. NOTIFICATION
+          ================================================= */}
 
           <Link
             href="/notifications"
@@ -810,7 +995,9 @@ export default function MobileMenu({
                 null
               )
             }
-            className={iconButtonClass()}
+            className={
+              iconButtonClass()
+            }
           >
             <span
               className="
@@ -888,19 +1075,120 @@ export default function MobileMenu({
             )}
           </Link>
 
-          {/* ASSETS */}
+          {/* =================================================
+              3. MATERIALS
+
+              🖥️
+              รายการพัสดุทั้งหมด
+              รายการรับเข้า
+              รายการเบิกจ่าย
+          ================================================= */}
+
+          {visibleMenus
+            .filter(
+              (
+                group
+              ) =>
+                group.title ===
+                "รายการพัสดุ"
+            )
+            .map(
+              (
+                group
+              ) => {
+                const active =
+                  isGroupActive(
+                    group
+                  );
+
+                const open =
+                  selectedGroup ===
+                  group.title;
+
+                return (
+                  <button
+                    key={
+                      group.title
+                    }
+                    ref={(
+                      element
+                    ) => {
+                      triggerRefs.current[
+                        group.title
+                      ] =
+                        element;
+                    }}
+                    type="button"
+                    title={
+                      group.title
+                    }
+                    aria-label={
+                      group.title
+                    }
+                    aria-expanded={
+                      open
+                    }
+                    onClick={() =>
+                      toggleGroup(
+                        group.title
+                      )
+                    }
+                    className={
+                      iconButtonClass()
+                    }
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="
+                        text-[24px]
+                        leading-none
+                      "
+                    >
+                      🖥️
+                    </span>
+
+                    {(active ||
+                      open) && (
+                      <span
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          -bottom-0.5
+                          left-1/2
+
+                          h-[3px]
+                          w-5
+
+                          -translate-x-1/2
+
+                          rounded-full
+
+                          bg-emerald-500
+                        "
+                      />
+                    )}
+                  </button>
+                );
+              }
+            )}
+
+          {/* =================================================
+              4. STOCK CARD
+          ================================================= */}
 
           <Link
-            href="/assets"
+            href="/stock-card"
             prefetch
-            title="ทะเบียนคุมครุภัณฑ์"
-            aria-label="ทะเบียนคุมครุภัณฑ์"
+            title="บัญชีคุมพัสดุ"
+            aria-label="บัญชีคุมพัสดุ"
             onClick={() =>
               setSelectedGroup(
                 null
               )
             }
-            className={iconButtonClass()}
+            className={
+              iconButtonClass()
+            }
           >
             <span
               aria-hidden="true"
@@ -909,10 +1197,12 @@ export default function MobileMenu({
                 leading-none
               "
             >
-              🖥️
+              📒
             </span>
 
-            {isActive("/assets") && (
+            {isActive(
+              "/stock-card"
+            ) && (
               <span
                 aria-hidden="true"
                 className="
@@ -933,76 +1223,189 @@ export default function MobileMenu({
             )}
           </Link>
 
-          {/* GROUPS */}
+          {/* =================================================
+              5. DEPARTMENT
+          ================================================= */}
 
-          {visibleMenus.map(
-            (group) => {
-              const active =
-                isGroupActive(
-                  group
-                );
+          {visibleMenus
+            .filter(
+              (
+                group
+              ) =>
+                group.title ===
+                "หน่วยงาน"
+            )
+            .map(
+              (
+                group
+              ) => {
+                const active =
+                  isGroupActive(
+                    group
+                  );
 
-              const open =
-                selectedGroup ===
-                group.title;
+                const open =
+                  selectedGroup ===
+                  group.title;
 
-              return (
-                <button
-                  key={group.title}
-                  ref={(element) => {
-                    triggerRefs.current[
+                return (
+                  <button
+                    key={
                       group.title
-                    ] = element;
-                  }}
-                  type="button"
-                  title={group.title}
-                  aria-label={
-                    group.title
-                  }
-                  aria-expanded={
-                    open
-                  }
-                  onClick={() =>
-                    toggleGroup(
+                    }
+                    ref={(
+                      element
+                    ) => {
+                      triggerRefs.current[
+                        group.title
+                      ] =
+                        element;
+                    }}
+                    type="button"
+                    title={
                       group.title
-                    )
-                  }
-                  className={iconButtonClass()}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="
-                      text-[24px]
-                      leading-none
-                    "
+                    }
+                    aria-label={
+                      group.title
+                    }
+                    aria-expanded={
+                      open
+                    }
+                    onClick={() =>
+                      toggleGroup(
+                        group.title
+                      )
+                    }
+                    className={
+                      iconButtonClass()
+                    }
                   >
-                    {group.emoji}
-                  </span>
-
-                  {(active ||
-                    open) && (
                     <span
                       aria-hidden="true"
                       className="
-                        absolute
-                        -bottom-0.5
-                        left-1/2
-
-                        h-[3px]
-                        w-5
-
-                        -translate-x-1/2
-
-                        rounded-full
-
-                        bg-emerald-500
+                        text-[24px]
+                        leading-none
                       "
-                    />
-                  )}
-                </button>
-              );
-            }
-          )}
+                    >
+                      🏢
+                    </span>
+
+                    {(active ||
+                      open) && (
+                      <span
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          -bottom-0.5
+                          left-1/2
+
+                          h-[3px]
+                          w-5
+
+                          -translate-x-1/2
+
+                          rounded-full
+
+                          bg-emerald-500
+                        "
+                      />
+                    )}
+                  </button>
+                );
+              }
+            )}
+
+          {/* =================================================
+              6. ABOUT
+          ================================================= */}
+
+          {visibleMenus
+            .filter(
+              (
+                group
+              ) =>
+                group.title ===
+                "เกี่ยวกับเรา"
+            )
+            .map(
+              (
+                group
+              ) => {
+                const active =
+                  isGroupActive(
+                    group
+                  );
+
+                const open =
+                  selectedGroup ===
+                  group.title;
+
+                return (
+                  <button
+                    key={
+                      group.title
+                    }
+                    ref={(
+                      element
+                    ) => {
+                      triggerRefs.current[
+                        group.title
+                      ] =
+                        element;
+                    }}
+                    type="button"
+                    title={
+                      group.title
+                    }
+                    aria-label={
+                      group.title
+                    }
+                    aria-expanded={
+                      open
+                    }
+                    onClick={() =>
+                      toggleGroup(
+                        group.title
+                      )
+                    }
+                    className={
+                      iconButtonClass()
+                    }
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="
+                        text-[24px]
+                        leading-none
+                      "
+                    >
+                      ℹ️
+                    </span>
+
+                    {(active ||
+                      open) && (
+                      <span
+                        aria-hidden="true"
+                        className="
+                          absolute
+                          -bottom-0.5
+                          left-1/2
+
+                          h-[3px]
+                          w-5
+
+                          -translate-x-1/2
+
+                          rounded-full
+
+                          bg-emerald-500
+                        "
+                      />
+                    )}
+                  </button>
+                );
+              }
+            )}
         </nav>
       </div>
 
