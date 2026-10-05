@@ -14,66 +14,316 @@ import AppCard from "@/components/AppCard";
 import IssueForm from "./IssueForm";
 
 /* =========================================================
-   THAI YEAR
+   FORCE FRESH DATA
+
+   เลขที่เอกสารต้องคำนวณใหม่ทุกครั้งที่เปิดหน้า
 ========================================================= */
 
-function getThaiYear() {
-  return String(
-    new Date().getFullYear() + 543
-  ).slice(-2);
+export const dynamic =
+  "force-dynamic";
+
+export const revalidate = 0;
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type ThailandDateParts = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+type FiscalYearInfo = {
+  fiscalYearGregorian: number;
+  fiscalYearThai: number;
+  fiscalYearThaiShort: string;
+
+  startDate: Date;
+  endDate: Date;
+};
+
+/* =========================================================
+   THAILAND DATE PARTS
+
+   Vercel อาจทำงานด้วย UTC
+   จึงต้องอ่านวันที่ปัจจุบันด้วย timezone Asia/Bangkok
+========================================================= */
+
+function getThailandDateParts(
+  value: Date
+): ThailandDateParts {
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      }
+    );
+
+  const parts =
+    formatter.formatToParts(
+      value
+    );
+
+  const year =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "year"
+      )?.value
+    );
+
+  const month =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "month"
+      )?.value
+    );
+
+  const day =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "day"
+      )?.value
+    );
+
+  return {
+    year,
+    month,
+    day,
+  };
+}
+
+/* =========================================================
+   FISCAL YEAR
+
+   ปีงบประมาณไทย:
+   1 ต.ค. - 30 ก.ย.
+
+   ตัวอย่าง
+
+   30 ก.ย. 2569
+   => FY 2569
+
+   1 ต.ค. 2569
+   => FY 2570
+========================================================= */
+
+function getFiscalYearInfo(
+  value: Date = new Date()
+): FiscalYearInfo {
+  const thailand =
+    getThailandDateParts(
+      value
+    );
+
+  /*
+   * เดือน ต.ค.-ธ.ค.
+   * ปีงบประมาณเป็นปีถัดไป
+   *
+   * เดือน ม.ค.-ก.ย.
+   * ปีงบประมาณเป็นปีปัจจุบัน
+   */
+
+  const fiscalYearGregorian =
+    thailand.month >= 10
+      ? thailand.year + 1
+      : thailand.year;
+
+  const fiscalYearThai =
+    fiscalYearGregorian +
+    543;
+
+  const fiscalYearThaiShort =
+    String(
+      fiscalYearThai
+    ).slice(
+      -2
+    );
+
+  /*
+   * ตัวอย่าง FY 2570
+   *
+   * เริ่ม:
+   * 1 ต.ค. 2569
+   * = 1 ต.ค. 2026 00:00 Asia/Bangkok
+   *
+   * สิ้นสุดแบบ exclusive:
+   * 1 ต.ค. 2570
+   * = 1 ต.ค. 2027 00:00 Asia/Bangkok
+   *
+   * เวลาไทย 00:00
+   * = UTC 17:00 ของวันก่อนหน้า
+   */
+
+  const startDate =
+    new Date(
+      Date.UTC(
+        fiscalYearGregorian -
+          1,
+        8,
+        30,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  const endDate =
+    new Date(
+      Date.UTC(
+        fiscalYearGregorian,
+        8,
+        30,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  return {
+    fiscalYearGregorian,
+    fiscalYearThai,
+    fiscalYearThaiShort,
+
+    startDate,
+    endDate,
+  };
 }
 
 /* =========================================================
    GENERATE ISSUE DOCUMENT NUMBER
+
+   รูปแบบเดิม:
+   จ.01/70
+
+   กติกาใหม่:
+   - แบ่งตามปีงบประมาณ
+   - 1 ต.ค. เริ่มเลข 01 ใหม่
+   - ใช้ issueDate ของข้อมูลจริงในการแบ่งปี
+   - ไม่เปลี่ยนเลขเอกสารเก่าย้อนหลัง
 ========================================================= */
 
 async function generateIssueNo() {
-  const year = getThaiYear();
+  const fiscal =
+    getFiscalYearInfo();
+
+  /* =======================================================
+     LOAD CURRENT FISCAL YEAR
+
+     จำกัด query เฉพาะเอกสารเบิกจ่าย
+     ที่อยู่ในปีงบประมาณปัจจุบัน
+  ======================================================= */
 
   const issues =
     await prisma.issue.findMany({
       where: {
+        issueDate: {
+          gte:
+            fiscal.startDate,
+
+          lt:
+            fiscal.endDate,
+        },
+
         documentNo: {
-          startsWith: "จ.",
+          startsWith:
+            "จ.",
         },
       },
 
       select: {
-        documentNo: true,
+        documentNo:
+          true,
       },
     });
 
-  let running = 1;
+  /* =======================================================
+     FIND HIGHEST RUNNING NUMBER
 
-  for (const issue of issues) {
+     รองรับเลขเก่า:
+     จ.1/70
+     จ.01/70
+     จ.001/70
+     จ.01/2570
+  ======================================================= */
+
+  let maxRunning =
+    0;
+
+  for (
+    const issue of
+      issues
+  ) {
+    const documentNo =
+      String(
+        issue.documentNo ??
+          ""
+      ).trim();
+
     const match =
-      issue.documentNo.match(
-        /^จ\.(\d+)\/(\d+)$/
+      documentNo.match(
+        /^จ\.(\d+)\/(\d{2}|\d{4})$/
       );
 
     if (!match) {
       continue;
     }
 
-    const lastNumber = Number(
-      match[1]
-    );
-
-    const lastYear =
-      match[2];
+    const running =
+      Number(
+        match[1]
+      );
 
     if (
-      lastYear === year &&
-      lastNumber >= running
+      !Number.isInteger(
+        running
+      ) ||
+      running <= 0
     ) {
-      running =
-        lastNumber + 1;
+      continue;
+    }
+
+    if (
+      running >
+      maxRunning
+    ) {
+      maxRunning =
+        running;
     }
   }
 
+  /* =======================================================
+     NEXT
+  ======================================================= */
+
+  const nextRunning =
+    maxRunning + 1;
+
   return `จ.${String(
-    running
-  ).padStart(2, "0")}/${year}`;
+    nextRunning
+  ).padStart(
+    2,
+    "0"
+  )}/${fiscal.fiscalYearThaiShort}`;
 }
 
 /* =========================================================
@@ -81,6 +331,13 @@ async function generateIssueNo() {
 ========================================================= */
 
 export default async function CreateIssuePage() {
+  /* =======================================================
+     FISCAL YEAR
+  ======================================================= */
+
+  const fiscal =
+    getFiscalYearInfo();
+
   /* =======================================================
      SESSION
   ======================================================= */
@@ -104,7 +361,8 @@ export default async function CreateIssuePage() {
           token
         );
     } catch {
-      session = null;
+      session =
+        null;
     }
   }
 
@@ -113,34 +371,39 @@ export default async function CreateIssuePage() {
   ======================================================= */
 
   let userDepartmentId =
-    session?.departmentId ?? null;
+    session?.departmentId ??
+    null;
 
   /*
-   * ผู้ใช้งานทั่วไป
-   * ต้องใช้กลุ่มงานของตนเอง
+   * USER
+   * ต้องใช้กลุ่มงานของตัวเอง
    *
-   * ถ้าใน Session ไม่มี departmentId
-   * ให้ตรวจจาก User ในฐานข้อมูลอีกครั้ง
+   * ถ้า Session ไม่มี departmentId
+   * ให้ตรวจจากฐานข้อมูลอีกครั้ง
    */
 
   if (
     session &&
-    session.role !== "ADMIN" &&
+    session.role !==
+      "ADMIN" &&
     !userDepartmentId
   ) {
     const currentUser =
       await prisma.user.findUnique({
         where: {
-          id: session.id,
+          id:
+            session.id,
         },
 
         select: {
-          departmentId: true,
+          departmentId:
+            true,
         },
       });
 
     userDepartmentId =
-      currentUser?.departmentId ??
+      currentUser
+        ?.departmentId ??
       null;
   }
 
@@ -154,147 +417,169 @@ export default async function CreateIssuePage() {
     departments,
     officers,
     documentNo,
-  ] = await Promise.all([
-    /* =====================================================
-       MATERIALS
-    ===================================================== */
+  ] =
+    await Promise.all([
+      /* =====================================================
+         MATERIALS
+      ===================================================== */
 
-    prisma.material.findMany({
-      orderBy: [
-        {
-          category: "asc",
+      prisma.material.findMany({
+        orderBy: [
+          {
+            category:
+              "asc",
+          },
+          {
+            code:
+              "asc",
+          },
+        ],
+      }),
+
+      /* =====================================================
+         RECEIVE LOTS
+
+         ใช้เฉพาะล็อตที่ยังมีคงเหลือ
+      ===================================================== */
+
+      prisma.receiveItem.findMany({
+        where: {
+          balance: {
+            gt:
+              0,
+          },
         },
-        {
-          code: "asc",
+
+        select: {
+          id:
+            true,
+
+          materialId:
+            true,
+
+          balance:
+            true,
+
+          manufacture:
+            true,
+
+          expiry:
+            true,
         },
-      ],
-    }),
 
-    /* =====================================================
-       RECEIVE LOTS
+        orderBy: [
+          {
+            expiry:
+              "asc",
+          },
 
-       โหลดเฉพาะล็อตที่ยังมีจำนวนคงเหลือ
-    ===================================================== */
+          {
+            manufacture:
+              "asc",
+          },
 
-    prisma.receiveItem.findMany({
-      where: {
-        balance: {
-          gt: 0,
+          {
+            id:
+              "asc",
+          },
+        ],
+      }),
+
+      /* =====================================================
+         DEPARTMENTS
+
+         ADMIN
+         - เห็นทั้งหมด
+         - เปลี่ยนได้
+
+         USER
+         - เห็นเฉพาะกลุ่มตัวเอง
+      ===================================================== */
+
+      prisma.department.findMany({
+        where:
+          session?.role ===
+          "ADMIN"
+            ? undefined
+            : userDepartmentId
+              ? {
+                  id:
+                    userDepartmentId,
+                }
+              : {
+                  id:
+                    -1,
+                },
+
+        orderBy: {
+          name:
+            "asc",
         },
-      },
+      }),
 
-      select: {
-        id: true,
-        materialId: true,
-        balance: true,
-        manufacture: true,
-        expiry: true,
-      },
+      /* =====================================================
+         OFFICERS
+      ===================================================== */
 
-      orderBy: [
-        {
-          expiry: "asc",
-        },
-        {
-          manufacture: "asc",
-        },
-        {
-          id: "asc",
-        },
-      ],
-    }),
-
-    /* =====================================================
-       DEPARTMENTS
-
-       ADMIN
-       - เห็นทุกกลุ่มงาน
-       - เปลี่ยนกลุ่มงานได้
-
-       USER
-       - เห็นเฉพาะกลุ่มงานตัวเอง
-       - เปลี่ยนกลุ่มงานไม่ได้
-    ===================================================== */
-
-    prisma.department.findMany({
-      where:
-        session?.role === "ADMIN"
-          ? undefined
-          : userDepartmentId
-            ? {
-                id: userDepartmentId,
-              }
-            : {
-                id: -1,
-              },
-
-      orderBy: {
-        name: "asc",
-      },
-    }),
-
-    /* =====================================================
-       OFFICERS
-
-       ADMIN
-       - โหลดทั้งหมด
-
-       USER
-       - โหลดเฉพาะบุคลากร
-         ภายในกลุ่มงานของตนเอง
-    ===================================================== */
-
-    prisma.officer.findMany({
-      where:
-        session?.role === "ADMIN"
-          ? undefined
-          : userDepartmentId
-            ? {
-                OR: [
-                  {
-                    departmentId:
-                      userDepartmentId,
-                  },
-                  {
-                    section: {
+      prisma.officer.findMany({
+        where:
+          session?.role ===
+          "ADMIN"
+            ? undefined
+            : userDepartmentId
+              ? {
+                  OR: [
+                    {
                       departmentId:
                         userDepartmentId,
                     },
-                  },
-                ],
-              }
-            : {
-                id: -1,
-              },
+                    {
+                      section: {
+                        departmentId:
+                          userDepartmentId,
+                      },
+                    },
+                  ],
+                }
+              : {
+                  id:
+                    -1,
+                },
 
-      include: {
-        section: true,
-        department: true,
-      },
+        include: {
+          section:
+            true,
 
-      orderBy: [
-        {
-          firstName: "asc",
+          department:
+            true,
         },
-        {
-          lastName: "asc",
-        },
-      ],
-    }),
 
-    /* =====================================================
-       DOCUMENT NUMBER
-    ===================================================== */
+        orderBy: [
+          {
+            firstName:
+              "asc",
+          },
+          {
+            lastName:
+              "asc",
+          },
+        ],
+      }),
 
-    generateIssueNo(),
-  ]);
+      /* =====================================================
+         DOCUMENT NUMBER
+      ===================================================== */
+
+      generateIssueNo(),
+    ]);
 
   /* =========================================================
      INITIAL DEPARTMENT
   ========================================================= */
 
   const initialDepartmentId =
-    session?.role === "ADMIN"
+    session?.role ===
+    "ADMIN"
       ? ""
       : userDepartmentId
         ? String(
@@ -304,16 +589,11 @@ export default async function CreateIssuePage() {
 
   /* =========================================================
      PERMISSION
-
-     ADMIN
-     - เปลี่ยนกลุ่มงานได้
-
-     USER
-     - ใช้กลุ่มงานตัวเองเท่านั้น
   ========================================================= */
 
   const canChangeDepartment =
-    session?.role === "ADMIN";
+    session?.role ===
+    "ADMIN";
 
   /* =========================================================
      UI
@@ -323,15 +603,12 @@ export default async function CreateIssuePage() {
     <AppPage>
       {/* =====================================================
           HEADER
-
-          ใช้ Component กลาง
-          รูปแบบเดียวกับ receive/create/page.tsx
       ===================================================== */}
 
       <AppPageHeader
         icon="📤"
         title="บันทึกการเบิกจ่ายพัสดุ"
-        subtitle="เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ"
+        subtitle={`เพิ่มรายการเบิกจ่ายพัสดุออกจากระบบ • ปีงบประมาณ ${fiscal.fiscalYearThai}`}
         actions={
           <AppButton
             href="/issue"
@@ -352,9 +629,6 @@ export default async function CreateIssuePage() {
 
       {/* =====================================================
           ISSUE FORM CARD
-
-          ใช้ AppCard กลางของระบบ
-          รูปแบบเดียวกับ receive/create
       ===================================================== */}
 
       <AppCard
@@ -373,10 +647,6 @@ export default async function CreateIssuePage() {
           lg:p-6
         "
       >
-        {/* ===================================================
-            ISSUE FORM
-        =================================================== */}
-
         <div
           className="
             relative

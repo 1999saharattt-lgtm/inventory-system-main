@@ -10,8 +10,19 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
+import AppCard from "@/components/AppCard";
 
 import DeleteButton from "./DeleteButton";
+
+/* =========================================================
+   FORCE FRESH DATA
+========================================================= */
+
+export const dynamic =
+  "force-dynamic";
+
+export const revalidate =
+  0;
 
 /* =========================================================
    TYPES
@@ -19,9 +30,13 @@ import DeleteButton from "./DeleteButton";
 
 type Issue = {
   id: number;
+
   issueDate: Date;
+
   documentNo: string;
+
   remark: string | null;
+
   status: string;
 
   department: {
@@ -35,7 +50,9 @@ type Issue = {
 
   items: {
     id: number;
+
     qty: number;
+
     manufacture: Date | null;
     expiry: Date | null;
 
@@ -51,12 +68,28 @@ type IssuePageProps = {
   searchParams: Promise<{
     date?: string;
     period?: string;
+    fiscalYear?: string;
   }>;
 };
 
+type ThailandDateParts = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+type FiscalYearRange = {
+  fiscalYearThai: number;
+
+  fiscalYearGregorian: number;
+
+  startDate: Date;
+
+  endDate: Date;
+};
+
 /* =========================================================
-   THAI SHORT DATE
-   ตัวอย่าง 23 ก.ย. 69
+   THAI SHORT MONTHS
 ========================================================= */
 
 const thaiShortMonths = [
@@ -74,8 +107,87 @@ const thaiShortMonths = [
   "ธ.ค.",
 ];
 
+/* =========================================================
+   THAILAND DATE PARTS
+
+   อ่านวันจริงตาม Asia/Bangkok
+
+   ไม่อิง timezone ของ Vercel
+========================================================= */
+
+function getThailandDateParts(
+  value: Date
+): ThailandDateParts {
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      }
+    );
+
+  const parts =
+    formatter.formatToParts(
+      value
+    );
+
+  const year =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "year"
+      )?.value
+    );
+
+  const month =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "month"
+      )?.value
+    );
+
+  const day =
+    Number(
+      parts.find(
+        (part) =>
+          part.type ===
+          "day"
+      )?.value
+    );
+
+  return {
+    year,
+    month,
+    day,
+  };
+}
+
+/* =========================================================
+   THAI SHORT DATE
+
+   ตัวอย่าง:
+   23 ก.ย. 69
+========================================================= */
+
 function formatThaiShortDate(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "-";
@@ -84,24 +196,66 @@ function formatThaiShortDate(
   const date =
     value instanceof Date
       ? value
-      : new Date(value);
+      : new Date(
+          value
+        );
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "-";
   }
 
-  const day = date.getDate();
+  const parts =
+    getThailandDateParts(
+      date
+    );
 
   const month =
     thaiShortMonths[
-      date.getMonth()
+      parts.month -
+        1
     ];
 
-  const buddhistYear = String(
-    date.getFullYear() + 543
-  ).slice(-2);
+  const buddhistYear =
+    String(
+      parts.year +
+        543
+    ).slice(
+      -2
+    );
 
-  return `${day} ${month} ${buddhistYear}`;
+  return `${parts.day} ${month} ${buddhistYear}`;
+}
+
+/* =========================================================
+   THAI FULL DATE
+
+   ตัวอย่าง:
+   1 ต.ค. 2569
+========================================================= */
+
+function formatThaiFullDate(
+  value: Date
+) {
+  const parts =
+    getThailandDateParts(
+      value
+    );
+
+  const month =
+    thaiShortMonths[
+      parts.month -
+        1
+    ];
+
+  const buddhistYear =
+    parts.year +
+    543;
+
+  return `${parts.day} ${month} ${buddhistYear}`;
 }
 
 /* =========================================================
@@ -122,8 +276,259 @@ function getStatusLabel(
       return "ไม่อนุมัติ";
 
     default:
-      return status || "-";
+      return (
+        status ||
+        "-"
+      );
   }
+}
+
+/* =========================================================
+   CURRENT FISCAL YEAR
+
+   ปีงบประมาณไทย:
+
+   1 ต.ค. - 30 ก.ย.
+
+   ตัวอย่าง:
+
+   30 ก.ย. 2569
+   =>
+   FY 2569
+
+   1 ต.ค. 2569
+   =>
+   FY 2570
+========================================================= */
+
+function getCurrentFiscalYearThai(
+  value: Date =
+    new Date()
+) {
+  const parts =
+    getThailandDateParts(
+      value
+    );
+
+  const fiscalGregorianYear =
+    parts.month >= 10
+      ? parts.year + 1
+      : parts.year;
+
+  return (
+    fiscalGregorianYear +
+    543
+  );
+}
+
+/* =========================================================
+   FISCAL YEAR FROM DATE
+========================================================= */
+
+function getFiscalYearThaiFromDate(
+  value: Date
+) {
+  const parts =
+    getThailandDateParts(
+      value
+    );
+
+  const fiscalGregorianYear =
+    parts.month >= 10
+      ? parts.year + 1
+      : parts.year;
+
+  return (
+    fiscalGregorianYear +
+    543
+  );
+}
+
+/* =========================================================
+   FISCAL YEAR RANGE
+
+   FY 2570:
+
+   start:
+   1 ต.ค. 2569 00:00 ไทย
+
+   end exclusive:
+   1 ต.ค. 2570 00:00 ไทย
+
+   ไทย UTC+7
+
+   00:00 ไทย
+   =
+   17:00 UTC ของวันก่อนหน้า
+========================================================= */
+
+function getFiscalYearRange(
+  fiscalYearThai:
+    number
+): FiscalYearRange {
+  const fiscalYearGregorian =
+    fiscalYearThai -
+    543;
+
+  const startGregorianYear =
+    fiscalYearGregorian -
+    1;
+
+  const startDate =
+    new Date(
+      Date.UTC(
+        startGregorianYear,
+        8,
+        30,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  const endDate =
+    new Date(
+      Date.UTC(
+        fiscalYearGregorian,
+        8,
+        30,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  return {
+    fiscalYearThai,
+
+    fiscalYearGregorian,
+
+    startDate,
+
+    endDate,
+  };
+}
+
+/* =========================================================
+   DISPLAY END DATE
+
+   Query:
+   < 1 ต.ค. ปีถัดไป
+
+   แต่แสดง:
+   30 ก.ย.
+========================================================= */
+
+function getFiscalDisplayEndDate(
+  range:
+    FiscalYearRange
+) {
+  return new Date(
+    range.endDate.getTime() -
+      1000
+  );
+}
+
+/* =========================================================
+   TODAY RANGE - THAILAND
+========================================================= */
+
+function getThailandTodayRange() {
+  const parts =
+    getThailandDateParts(
+      new Date()
+    );
+
+  /*
+   * วันนี้ 00:00 ไทย
+   *
+   * = วันก่อนหน้า
+   *   17:00 UTC
+   */
+
+  const startDate =
+    new Date(
+      Date.UTC(
+        parts.year,
+        parts.month -
+          1,
+        parts.day -
+          1,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  const endDate =
+    new Date(
+      startDate.getTime() +
+        24 *
+          60 *
+          60 *
+          1000
+    );
+
+  return {
+    startDate,
+    endDate,
+  };
+}
+
+/* =========================================================
+   CURRENT MONTH RANGE - THAILAND
+========================================================= */
+
+function getThailandCurrentMonthRange() {
+  const parts =
+    getThailandDateParts(
+      new Date()
+    );
+
+  /*
+   * วันที่ 1 ของเดือนปัจจุบัน
+   * เวลา 00:00 ไทย
+   */
+
+  const startDate =
+    new Date(
+      Date.UTC(
+        parts.year,
+        parts.month -
+          1,
+        0,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  /*
+   * วันที่ 1 ของเดือนถัดไป
+   * เวลา 00:00 ไทย
+   */
+
+  const endDate =
+    new Date(
+      Date.UTC(
+        parts.year,
+        parts.month,
+        0,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  return {
+    startDate,
+    endDate,
+  };
 }
 
 /* =========================================================
@@ -163,149 +568,319 @@ export default async function IssuePage({
           token
         );
     } catch {
-      session = null;
+      session =
+        null;
     }
   }
 
   /* =======================================================
      DEPARTMENT PERMISSION
+
+     ADMIN
+     - ดูทุกหน่วยงาน
+
+     USER
+     - ดูเฉพาะหน่วยงานของตัวเอง
   ======================================================= */
 
   const issueDepartmentWhere =
-    session?.role === "ADMIN"
+    session?.role ===
+    "ADMIN"
       ? {}
-      : session?.departmentId
+      : session
+          ?.departmentId
         ? {
             departmentId:
               session.departmentId,
           }
         : {
-            departmentId: -1,
+            departmentId:
+              -1,
           };
 
   /* =======================================================
-     DATE FILTER
+     CURRENT FISCAL YEAR
   ======================================================= */
 
-  const now = new Date();
+  const currentFiscalYear =
+    getCurrentFiscalYearThai();
 
-  let startDate:
-    | Date
-    | undefined;
+  /* =======================================================
+     SELECTED FISCAL YEAR
+  ======================================================= */
 
-  let endDate:
-    | Date
-    | undefined;
+  const requestedFiscalYear =
+    Number(
+      params.fiscalYear
+    );
+
+  const selectedFiscalYear =
+    Number.isInteger(
+      requestedFiscalYear
+    ) &&
+    requestedFiscalYear >=
+      2400 &&
+    requestedFiscalYear <=
+      3000
+      ? requestedFiscalYear
+      : currentFiscalYear;
+
+  const fiscalRange =
+    getFiscalYearRange(
+      selectedFiscalYear
+    );
+
+  /* =======================================================
+     AVAILABLE FISCAL YEARS
+
+     ใช้ Issue ที่ผู้ใช้มีสิทธิ์เห็น
+     เพื่อสร้างรายการปีงบประมาณย้อนหลัง
+
+     ADMIN:
+     ทุกปีที่มีข้อมูล
+
+     USER:
+     เฉพาะปีที่หน่วยงานของตัวเองมีข้อมูล
+  ======================================================= */
+
+  const issueDates =
+    await prisma.issue.findMany({
+      where:
+        issueDepartmentWhere,
+
+      select: {
+        issueDate:
+          true,
+      },
+
+      orderBy: {
+        issueDate:
+          "desc",
+      },
+    });
+
+  const fiscalYearSet =
+    new Set<number>();
+
+  /*
+   * ต้องมีปีปัจจุบันเสมอ
+   */
+
+  fiscalYearSet.add(
+    currentFiscalYear
+  );
+
+  /*
+   * ถ้าเปิด URL ปีเก่าโดยตรง
+   * ต้องให้ปีนั้นยังอยู่ในตัวเลือก
+   */
+
+  fiscalYearSet.add(
+    selectedFiscalYear
+  );
+
+  for (
+    const issue of
+      issueDates
+  ) {
+    fiscalYearSet.add(
+      getFiscalYearThaiFromDate(
+        issue.issueDate
+      )
+    );
+  }
+
+  const availableFiscalYears =
+    Array.from(
+      fiscalYearSet
+    ).sort(
+      (
+        a,
+        b
+      ) =>
+        b -
+        a
+    );
+
+  /* =======================================================
+     DATE FILTER
+
+     ค่าเริ่มต้น:
+     ทั้งปีงบประมาณที่เลือก
+  ======================================================= */
+
+  let filterStartDate =
+    fiscalRange.startDate;
+
+  let filterEndDate =
+    fiscalRange.endDate;
 
   /* =======================================================
      TODAY
   ======================================================= */
 
-  if (params.date === "today") {
-    startDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-      0
-    );
+  if (
+    params.date ===
+    "today"
+  ) {
+    const today =
+      getThailandTodayRange();
 
-    endDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0,
-      0,
-      0,
-      0
-    );
+    filterStartDate =
+      new Date(
+        Math.max(
+          fiscalRange
+            .startDate
+            .getTime(),
+
+          today
+            .startDate
+            .getTime()
+        )
+      );
+
+    filterEndDate =
+      new Date(
+        Math.min(
+          fiscalRange
+            .endDate
+            .getTime(),
+
+          today
+            .endDate
+            .getTime()
+        )
+      );
   }
 
   /* =======================================================
      CURRENT MONTH
   ======================================================= */
 
-  if (params.period === "month") {
-    startDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1,
-      0,
-      0,
-      0,
-      0
-    );
+  if (
+    params.period ===
+    "month"
+  ) {
+    const monthRange =
+      getThailandCurrentMonthRange();
 
-    endDate = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      1,
-      0,
-      0,
-      0,
-      0
-    );
+    filterStartDate =
+      new Date(
+        Math.max(
+          fiscalRange
+            .startDate
+            .getTime(),
+
+          monthRange
+            .startDate
+            .getTime()
+        )
+      );
+
+    filterEndDate =
+      new Date(
+        Math.min(
+          fiscalRange
+            .endDate
+            .getTime(),
+
+          monthRange
+            .endDate
+            .getTime()
+        )
+      );
   }
+
+  /* =======================================================
+     VALID RANGE
+
+     ตัวอย่าง:
+     เลือก FY 2569
+     แต่กด "วันนี้" ซึ่งอยู่ FY 2570
+
+     ต้องให้ผล = 0
+     ไม่ใช่ query ช่วงวันที่กลับด้าน
+  ======================================================= */
+
+  const hasValidDateRange =
+    filterStartDate.getTime() <
+    filterEndDate.getTime();
 
   /* =======================================================
      WHERE
   ======================================================= */
 
-  const issueWhere = {
-    ...issueDepartmentWhere,
-
-    ...(startDate && endDate
+  const issueWhere =
+    hasValidDateRange
       ? {
+          ...issueDepartmentWhere,
+
           issueDate: {
-            gte: startDate,
-            lt: endDate,
+            gte:
+              filterStartDate,
+
+            lt:
+              filterEndDate,
           },
         }
-      : {}),
-  };
+      : null;
 
   /* =======================================================
      LOAD ISSUES
 
      เรียง:
-     1. วันที่ล่าสุดอยู่ด้านบน
-     2. วันที่เก่าอยู่ด้านล่าง
-     3. ถ้าวันเดียวกัน ID ใหม่กว่าอยู่ด้านบน
+     1. วันที่ล่าสุดอยู่บน
+     2. วันเดียวกัน ID ใหม่กว่าก่อน
   ======================================================= */
 
-  const issues =
-    await prisma.issue.findMany({
-      where: issueWhere,
+  const issues:
+    Issue[] =
+    issueWhere
+      ? await prisma.issue.findMany({
+          where:
+            issueWhere,
 
-      orderBy: [
-        {
-          issueDate: "desc",
-        },
-        {
-          id: "desc",
-        },
-      ],
+          orderBy: [
+            {
+              issueDate:
+                "desc",
+            },
 
-      include: {
-        department: true,
-        officer: true,
+            {
+              id:
+                "desc",
+            },
+          ],
 
-        items: {
           include: {
-            material: true,
+            department:
+              true,
+
+            officer:
+              true,
+
+            items: {
+              include: {
+                material:
+                  true,
+              },
+            },
           },
-        },
-      },
-    });
+        })
+      : [];
 
   /* =======================================================
      PENDING COUNT
+
+     นับเฉพาะข้อมูลในปีงบประมาณ /
+     filter ที่กำลังเปิดดู
+
+     ADMIN ONLY
   ======================================================= */
 
   const pendingCount =
-    session?.role === "ADMIN"
+    session?.role ===
+    "ADMIN"
       ? issues.filter(
           (issue) =>
             issue.status ===
@@ -318,38 +893,68 @@ export default async function IssuePage({
   ======================================================= */
 
   let filterText =
-    "รายการเบิกจ่ายพัสดุทั้งหมด";
+    `รายการเบิกจ่ายพัสดุ ปีงบประมาณ ${selectedFiscalYear}`;
 
-  if (params.date === "today") {
-    filterText =
-      "รายการเบิกจ่ายพัสดุวันนี้";
-  } else if (
-    params.period === "month"
+  if (
+    params.date ===
+    "today"
   ) {
     filterText =
-      "รายการเบิกจ่ายพัสดุประจำเดือนนี้";
+      `รายการเบิกจ่ายพัสดุวันนี้ • ปีงบประมาณ ${selectedFiscalYear}`;
+  } else if (
+    params.period ===
+    "month"
+  ) {
+    filterText =
+      `รายการเบิกจ่ายพัสดุประจำเดือนนี้ • ปีงบประมาณ ${selectedFiscalYear}`;
   }
 
   /* =======================================================
      TABLE SUBTITLE
   ======================================================= */
 
-  let tableSubtitle =
-    "ข้อมูลการเบิกจ่ายพัสดุทั้งหมด";
+  const fiscalDisplayEndDate =
+    getFiscalDisplayEndDate(
+      fiscalRange
+    );
 
-  if (params.date === "today") {
-    tableSubtitle =
-      "ข้อมูลการเบิกจ่ายพัสดุของวันนี้";
-  } else if (
-    params.period === "month"
+  let tableSubtitle =
+    `ข้อมูลปีงบประมาณ ${selectedFiscalYear} • ${formatThaiFullDate(
+      fiscalRange.startDate
+    )} - ${formatThaiFullDate(
+      fiscalDisplayEndDate
+    )}`;
+
+  if (
+    params.date ===
+    "today"
   ) {
     tableSubtitle =
-      "ข้อมูลการเบิกจ่ายพัสดุประจำเดือนนี้";
+      `ข้อมูลเบิกจ่ายของวันนี้ • ปีงบประมาณ ${selectedFiscalYear}`;
+  } else if (
+    params.period ===
+    "month"
+  ) {
+    tableSubtitle =
+      `ข้อมูลเบิกจ่ายประจำเดือนนี้ • ปีงบประมาณ ${selectedFiscalYear}`;
   }
 
   /* =======================================================
-     UI
+     URL HELPERS
   ======================================================= */
+
+  const allFiscalYearHref =
+    `/issue?fiscalYear=${selectedFiscalYear}`;
+
+  const todayHref =
+    `/issue?fiscalYear=${selectedFiscalYear}&date=today`;
+
+  const monthHref =
+    `/issue?fiscalYear=${selectedFiscalYear}&period=month`;
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <AppPage>
@@ -360,19 +965,19 @@ export default async function IssuePage({
       <AppPageHeader
         icon="📤"
         title="รายการเบิกจ่ายพัสดุ"
-        subtitle={filterText}
+        subtitle={
+          filterText
+        }
         actions={
           <>
-            {/* ===============================================
-                ADD ISSUE
-            =============================================== */}
-
             <AppButton
               href="/issue/create"
               variant="primary"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   ＋
                 </span>
               }
@@ -380,16 +985,14 @@ export default async function IssuePage({
               เพิ่มรายการ
             </AppButton>
 
-            {/* ===============================================
-                BACK TO HOME
-            =============================================== */}
-
             <AppButton
               href="/"
               variant="back"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   ←
                 </span>
               }
@@ -401,108 +1004,416 @@ export default async function IssuePage({
       />
 
       {/* =====================================================
-          PENDING ALERT
-          ADMIN ONLY
+          FISCAL YEAR FILTER
       ===================================================== */}
 
-      {session?.role === "ADMIN" &&
-        pendingCount > 0 && (
-          <div
+      <AppCard
+        className="
+          w-full
+          min-w-0
+
+          overflow-visible
+
+          p-4
+
+          sm:p-5
+        "
+      >
+        <div
+          className="
+            flex
+            min-w-0
+            flex-col
+
+            gap-4
+
+            lg:flex-row
+            lg:items-end
+            lg:justify-between
+          "
+        >
+          {/* =================================================
+              FISCAL YEAR SELECT
+          ================================================= */}
+
+          <form
+            method="get"
+            action="/issue"
             className="
-              w-full
+              flex
               min-w-0
+              flex-col
 
-              rounded-[24px]
+              gap-3
 
-              border
-              border-amber-200
-
-              bg-amber-50
-
-              p-4
-
-              shadow-[0_12px_30px_-22px_rgba(146,64,14,0.25)]
-
-              sm:p-5
+              sm:flex-row
+              sm:items-end
             "
           >
             <div
               className="
-                flex
                 min-w-0
-                flex-col
-                gap-3
 
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
+                sm:w-[260px]
               "
             >
-              <div className="min-w-0">
-                <p
-                  className="
-                    text-base
-                    font-extrabold
-                    !text-amber-900
-
-                    sm:text-lg
-                  "
-                >
-                  🔔 มีรายการรอเบิกจ่าย
-                </p>
-
-                <p
-                  className="
-                    mt-1
-
-                    text-sm
-                    font-semibold
-                    leading-relaxed
-                    !text-amber-800
-                  "
-                >
-                  มีใบเบิกจำนวน{" "}
-                  {pendingCount.toLocaleString(
-                    "th-TH"
-                  )}{" "}
-                  รายการ
-                  รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
-                </p>
-              </div>
-
-              <span
+              <label
+                htmlFor="fiscalYear"
                 className="
-                  inline-flex
-                  shrink-0
-                  items-center
-                  justify-center
+                  mb-2
+                  block
 
-                  whitespace-nowrap
+                  text-sm
+                  font-extrabold
 
-                  rounded-full
+                  !text-slate-800
+                "
+              >
+                ปีงบประมาณ
+              </label>
 
-                  border
-                  border-amber-300
+              <select
+                id="fiscalYear"
+                name="fiscalYear"
+                defaultValue={
+                  String(
+                    selectedFiscalYear
+                  )
+                }
+                className="
+                  h-[48px]
+                  w-full
+
+                  rounded-[14px]
+
+                  border-2
+                  !border-black
 
                   bg-white
 
                   px-4
-                  py-2
 
-                  text-sm
+                  text-base
                   font-extrabold
-                  !text-amber-900
+
+                  !text-slate-900
+
+                  outline-none
+
+                  transition-all
+
+                  focus:ring-4
+                  focus:ring-blue-100
                 "
               >
-                รอ{" "}
+                {availableFiscalYears.map(
+                  (
+                    fiscalYear
+                  ) => (
+                    <option
+                      key={
+                        fiscalYear
+                      }
+                      value={
+                        fiscalYear
+                      }
+                    >
+                      ปีงบประมาณ{" "}
+                      {
+                        fiscalYear
+                      }
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+
+            {/* ===============================================
+                PRESERVE CURRENT FILTER
+            =============================================== */}
+
+            {params.date ? (
+              <input
+                type="hidden"
+                name="date"
+                value={
+                  params.date
+                }
+              />
+            ) : null}
+
+            {params.period ? (
+              <input
+                type="hidden"
+                name="period"
+                value={
+                  params.period
+                }
+              />
+            ) : null}
+
+            <AppButton
+              type="submit"
+              variant="primary"
+              size="md"
+            >
+              แสดงข้อมูล
+            </AppButton>
+          </form>
+
+          {/* =================================================
+              FISCAL YEAR INFORMATION
+          ================================================= */}
+
+          <div
+            className="
+              min-w-0
+
+              rounded-[18px]
+
+              border
+              border-slate-200
+
+              bg-slate-50/80
+
+              px-4
+              py-3
+
+              shadow-sm
+            "
+          >
+            <p
+              className="
+                text-sm
+                font-extrabold
+
+                !text-slate-900
+              "
+            >
+              ปีงบประมาณ{" "}
+              {
+                selectedFiscalYear
+              }
+            </p>
+
+            <p
+              className="
+                mt-1
+
+                text-sm
+                font-semibold
+
+                !text-slate-500
+              "
+            >
+              {formatThaiFullDate(
+                fiscalRange.startDate
+              )}{" "}
+              -{" "}
+              {formatThaiFullDate(
+                fiscalDisplayEndDate
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* ===================================================
+            QUICK FILTERS
+        =================================================== */}
+
+        <div
+          className="
+            mt-4
+
+            flex
+            flex-wrap
+            items-center
+
+            gap-2
+
+            border-t
+            border-slate-200
+
+            pt-4
+          "
+        >
+          <span
+            className="
+              mr-1
+
+              text-sm
+              font-extrabold
+
+              !text-slate-600
+            "
+          >
+            แสดง:
+          </span>
+
+          <AppButton
+            href={
+              allFiscalYearHref
+            }
+            variant={
+              !params.date &&
+              !params.period
+                ? "primary"
+                : "secondary"
+            }
+            size="sm"
+          >
+            ทั้งปีงบประมาณ
+          </AppButton>
+
+          <AppButton
+            href={
+              todayHref
+            }
+            variant={
+              params.date ===
+              "today"
+                ? "primary"
+                : "secondary"
+            }
+            size="sm"
+          >
+            วันนี้
+          </AppButton>
+
+          <AppButton
+            href={
+              monthHref
+            }
+            variant={
+              params.period ===
+              "month"
+                ? "primary"
+                : "secondary"
+            }
+            size="sm"
+          >
+            เดือนนี้
+          </AppButton>
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          PENDING ALERT
+
+          ADMIN ONLY
+      ===================================================== */}
+
+      {session?.role ===
+        "ADMIN" &&
+      pendingCount >
+        0 ? (
+        <div
+          className="
+            w-full
+            min-w-0
+
+            rounded-[24px]
+
+            border
+            border-amber-200
+
+            bg-amber-50
+
+            p-4
+
+            shadow-[0_12px_30px_-22px_rgba(146,64,14,0.25)]
+
+            sm:p-5
+          "
+        >
+          <div
+            className="
+              flex
+              min-w-0
+              flex-col
+
+              gap-3
+
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div
+              className="
+                min-w-0
+              "
+            >
+              <p
+                className="
+                  text-base
+                  font-extrabold
+
+                  !text-amber-900
+
+                  sm:text-lg
+                "
+              >
+                🔔 มีรายการรอเบิกจ่าย
+              </p>
+
+              <p
+                className="
+                  mt-1
+
+                  text-sm
+                  font-semibold
+                  leading-relaxed
+
+                  !text-amber-800
+                "
+              >
+                มีใบเบิกจำนวน{" "}
                 {pendingCount.toLocaleString(
                   "th-TH"
                 )}{" "}
-                รายการ
-              </span>
+                รายการ ในปีงบประมาณ{" "}
+                {
+                  selectedFiscalYear
+                }{" "}
+                รอเจ้าหน้าที่พัสดุตรวจสอบและลงจำนวนเบิกจ่ายจริง
+              </p>
             </div>
+
+            <span
+              className="
+                inline-flex
+                shrink-0
+                items-center
+                justify-center
+
+                whitespace-nowrap
+
+                rounded-full
+
+                border
+                border-amber-300
+
+                bg-white
+
+                px-4
+                py-2
+
+                text-sm
+                font-extrabold
+
+                !text-amber-900
+              "
+            >
+              รอ{" "}
+              {pendingCount.toLocaleString(
+                "th-TH"
+              )}{" "}
+              รายการ
+            </span>
           </div>
-        )}
+        </div>
+      ) : null}
 
       {/* =====================================================
           TABLE CARD
@@ -510,7 +1421,9 @@ export default async function IssuePage({
 
       <AppTableCard
         title="รายการเอกสารเบิกจ่าย"
-        subtitle={tableSubtitle}
+        subtitle={
+          tableSubtitle
+        }
         badge={`${issues.length.toLocaleString(
           "th-TH"
         )} รายการ`}
@@ -519,10 +1432,6 @@ export default async function IssuePage({
           min-w-0
         "
       >
-        {/* ===================================================
-            TABLE SCROLL
-        =================================================== */}
-
         <div
           className="
             w-full
@@ -560,9 +1469,13 @@ export default async function IssuePage({
                   "รายละเอียด",
                   "จัดการ",
                 ].map(
-                  (tableTitle) => (
+                  (
+                    tableTitle
+                  ) => (
                     <th
-                      key={tableTitle}
+                      key={
+                        tableTitle
+                      }
                       className="
                         whitespace-nowrap
 
@@ -579,12 +1492,15 @@ export default async function IssuePage({
                         text-center
                         text-base
                         font-extrabold
+
                         !text-white
 
                         sm:text-lg
                       "
                     >
-                      {tableTitle}
+                      {
+                        tableTitle
+                      }
                     </th>
                   )
                 )}
@@ -596,17 +1512,25 @@ export default async function IssuePage({
             ================================================= */}
 
             <tbody>
-              {issues.length > 0 ? (
+              {issues.length >
+              0 ? (
                 issues.map(
                   (
-                    issue: Issue,
-                    index: number
+                    issue:
+                      Issue,
+
+                    index:
+                      number
                   ) => (
                     <tr
-                      key={issue.id}
+                      key={
+                        issue.id
+                      }
                       className={`
                         ${
-                          index % 2 === 0
+                          index %
+                            2 ===
+                          0
                             ? "bg-white"
                             : "bg-slate-50/60"
                         }
@@ -634,11 +1558,13 @@ export default async function IssuePage({
                           text-center
                           font-extrabold
                           tabular-nums
+
                           !text-slate-900
                         "
                       >
                         {(
-                          index + 1
+                          index +
+                          1
                         ).toLocaleString(
                           "th-TH"
                         )}
@@ -661,6 +1587,7 @@ export default async function IssuePage({
                           text-center
                           font-bold
                           tabular-nums
+
                           !text-slate-700
                         "
                       >
@@ -686,6 +1613,7 @@ export default async function IssuePage({
 
                           text-center
                           font-extrabold
+
                           !text-slate-900
                         "
                       >
@@ -708,11 +1636,14 @@ export default async function IssuePage({
                           py-3.5
 
                           font-extrabold
+
                           !text-slate-900
                         "
                       >
-                        {issue.department
-                          ?.name ?? "-"}
+                        {issue
+                          .department
+                          ?.name ??
+                          "-"}
                       </td>
 
                       {/* =======================================
@@ -730,6 +1661,7 @@ export default async function IssuePage({
                           py-3.5
 
                           font-extrabold
+
                           !text-slate-900
                         "
                       >
@@ -775,6 +1707,7 @@ export default async function IssuePage({
 
                               text-xs
                               font-extrabold
+
                               !text-amber-800
                             "
                           >
@@ -799,6 +1732,7 @@ export default async function IssuePage({
 
                               text-xs
                               font-extrabold
+
                               !text-emerald-800
                             "
                           >
@@ -823,6 +1757,7 @@ export default async function IssuePage({
 
                               text-xs
                               font-extrabold
+
                               !text-red-800
                             "
                           >
@@ -846,6 +1781,7 @@ export default async function IssuePage({
 
                               text-xs
                               font-extrabold
+
                               !text-slate-700
                             "
                           >
@@ -912,6 +1848,7 @@ export default async function IssuePage({
                             flex
                             items-center
                             justify-center
+
                             gap-2
                           "
                         >
@@ -931,7 +1868,9 @@ export default async function IssuePage({
                           </AppButton>
 
                           <DeleteButton
-                            id={issue.id}
+                            id={
+                              issue.id
+                            }
                           />
                         </div>
                       </td>
@@ -939,14 +1878,11 @@ export default async function IssuePage({
                   )
                 )
               ) : (
-                /* =============================================
-                   EMPTY STATE
-                   ไม่มีปุ่มเพิ่มรายการด้านล่าง
-                ============================================= */
-
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={
+                      8
+                    }
                     className="
                       border
                       border-black
@@ -966,6 +1902,7 @@ export default async function IssuePage({
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                         justify-center
                       "
@@ -977,6 +1914,7 @@ export default async function IssuePage({
                           grid
                           h-16
                           w-16
+
                           place-items-center
 
                           text-3xl
@@ -995,16 +1933,23 @@ export default async function IssuePage({
                           text-lg
                           font-extrabold
                           tracking-tight
+
                           !text-slate-900
                         "
                       >
                         {params.date ===
                         "today"
-                          ? "วันนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
+                          ? selectedFiscalYear ===
+                            currentFiscalYear
+                            ? "วันนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
+                            : `วันนี้ไม่มีข้อมูลในปีงบประมาณ ${selectedFiscalYear}`
                           : params.period ===
                               "month"
-                            ? "เดือนนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
-                            : "ยังไม่มีรายการเบิกจ่ายพัสดุ"}
+                            ? selectedFiscalYear ===
+                              currentFiscalYear
+                              ? "เดือนนี้ยังไม่มีรายการเบิกจ่ายพัสดุ"
+                              : `เดือนนี้ไม่มีข้อมูลในปีงบประมาณ ${selectedFiscalYear}`
+                            : `ยังไม่มีรายการเบิกจ่ายพัสดุในปีงบประมาณ ${selectedFiscalYear}`}
                       </p>
 
                       {/* DESCRIPTION */}
@@ -1016,11 +1961,11 @@ export default async function IssuePage({
                           text-sm
                           font-semibold
                           leading-relaxed
+
                           !text-slate-500
                         "
                       >
-                        เมื่อมีการบันทึกรายการเบิกจ่าย
-                        ข้อมูลจะแสดงในตารางนี้
+                        สามารถเลือกปีงบประมาณอื่นเพื่อดูข้อมูลย้อนหลังได้
                       </p>
                     </div>
                   </td>
