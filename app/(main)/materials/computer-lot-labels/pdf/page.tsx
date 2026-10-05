@@ -6,7 +6,9 @@ import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
    FORCE FRESH DATA
 ========================================================= */
 
-export const dynamic = "force-dynamic";
+export const dynamic =
+  "force-dynamic";
+
 export const revalidate = 0;
 
 /* =========================================================
@@ -24,10 +26,15 @@ type LotLabel = {
 
   balance: number;
 
-  manufacture: string | null;
-  expiry: string | null;
+  manufacture:
+    string | null;
 
-  receiveDate: string | null;
+  expiry:
+    string | null;
+
+  receiveDate:
+    string | null;
+
   documentNo: string;
 };
 
@@ -41,26 +48,25 @@ function normalizeSearchText(
   return value
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, " ");
+    .replace(
+      /\s+/g,
+      " "
+    );
 }
 
 /* =========================================================
    THAILAND DATE ONLY
 
-   สำคัญมาก:
+   Date ในฐานข้อมูล
+   ->
+   YYYY-MM-DD ตาม Asia/Bangkok
 
-   ระบบหน้ารับเข้าแสดงวันตามเวลาไทย
-   ดังนั้นตอนส่งไปสร้าง PDF
-   ต้องดึงวัน/เดือน/ปีด้วย timezone Asia/Bangkok เช่นกัน
+   รองรับทั้ง:
+   - ข้อมูลเก่าที่เคยบันทึกเป็นเวลาไทย
+   - ข้อมูลใหม่ที่บันทึก UTC 00:00
 
-   ห้ามใช้:
-   date.toISOString().slice(0, 10)
-
-   เพราะ ISO = UTC
-   และข้อมูลที่เคยบันทึกเป็นเวลาไทยอาจเลื่อนไปวันก่อนหน้า
-
-   ผลลัพธ์:
-   YYYY-MM-DD (ค.ศ.)
+   ไม่ใช้ toISOString().slice(0,10)
+   เพราะอาจทำวันที่เดิมของข้อมูลเก่าเลื่อนได้
 ========================================================= */
 
 function toThailandDateOnly(
@@ -335,14 +341,13 @@ function isPrinterConsumable(
 
 export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
-     LOAD RECEIVE ITEMS
+     CURRENT RECEIVE ITEMS
 
-     ใช้ ReceiveItem.balance จริง
+     จำนวนป้ายต้องอิง:
+     ReceiveItem.balance > 0
 
-     เงื่อนไข:
-     - ต้อง balance > 0
-     - COMPUTER / PRINTING เท่านั้น
-     - ไม่ใช้ Material.balance มาสร้างจำนวนป้าย
+     ไม่ใช้ qty เดิม
+     ไม่ใช้ Material.balance เพื่อกระจายล็อต
   ======================================================= */
 
   const receiveItems =
@@ -365,28 +370,41 @@ export default async function ComputerLotLabelsPdfPage() {
       select: {
         id: true,
 
-        receiveId: true,
-        materialId: true,
+        receiveId:
+          true,
 
-        qty: true,
-        balance: true,
+        materialId:
+          true,
 
-        manufacture: true,
-        expiry: true,
+        balance:
+          true,
+
+        manufacture:
+          true,
+
+        expiry:
+          true,
 
         material: {
           select: {
-            code: true,
-            name: true,
-            unit: true,
-            category: true,
+            code:
+              true,
+
+            name:
+              true,
+
+            unit:
+              true,
           },
         },
 
         receive: {
           select: {
-            receiveDate: true,
-            documentNo: true,
+            receiveDate:
+              true,
+
+            documentNo:
+              true,
           },
         },
       },
@@ -410,7 +428,7 @@ export default async function ComputerLotLabelsPdfPage() {
     });
 
   /* =======================================================
-     FILTER PRINTER CONSUMABLES
+     FILTER
   ======================================================= */
 
   const printerConsumables =
@@ -425,13 +443,15 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      SERIALIZE
 
-     วันที่ทุกตัวส่งแบบ:
-     YYYY-MM-DD
+     ไม่รวมล็อตตรงนี้
 
-     โดยอ้างอิงวันตามประเทศไทย
+     ส่ง ReceiveItem ปัจจุบันทุกตัว
+     ไปให้ ComputerLotLabelsPdf.tsx
+     เป็นผู้รวม logical lot
   ======================================================= */
 
-  const lots: LotLabel[] =
+  const lots:
+    LotLabel[] =
     printerConsumables.map(
       (item) => ({
         receiveItemId:
@@ -457,7 +477,8 @@ export default async function ComputerLotLabelsPdfPage() {
             0,
             Math.floor(
               Number(
-                item.balance ?? 0
+                item.balance ??
+                  0
               )
             )
           ),

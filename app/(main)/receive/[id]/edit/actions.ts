@@ -3,6 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type ReceiveRow = {
   receiveItemId: number | null;
   materialId: number;
@@ -14,37 +18,163 @@ type ReceiveRow = {
 
 /* =========================================================
    FORM ROW COUNT
+
    ต้องตรงกับจำนวนแถวใน EditReceiveForm
 ========================================================= */
 
 const RECEIVE_ROW_COUNT = 20;
 
+/* =========================================================
+   DATE ONLY
+
+   รับค่าจาก input type="date"
+   ในรูป YYYY-MM-DD
+
+   ไม่ใช้:
+   new Date("YYYY-MM-DD")
+
+   เพื่อป้องกัน timezone ทำวันเลื่อน
+
+   เก็บเป็น UTC 00:00
+   แล้วตอนแสดงผลให้แปลงด้วย Asia/Bangkok
+========================================================= */
+
+function parseDateOnly(
+  value: string
+): Date | null {
+  const trimmed =
+    value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const match =
+    trimmed.match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const year =
+    Number(match[1]);
+
+  const month =
+    Number(match[2]);
+
+  const day =
+    Number(match[3]);
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
+
+  if (
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      Date.UTC(
+        year,
+        month - 1,
+        day,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+  /*
+   * ป้องกันวันที่ที่ไม่มีจริง เช่น
+   * 31 ก.พ.
+   */
+
+  if (
+    date.getUTCFullYear() !==
+      year ||
+    date.getUTCMonth() !==
+      month - 1 ||
+    date.getUTCDate() !==
+      day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+/* =========================================================
+   UPDATE RECEIVE
+========================================================= */
+
 export async function updateReceive(
   formData: FormData
 ) {
-  const receiveId = Number(
-    formData.get("receiveId")
-  );
+  /* =======================================================
+     HEADER
+  ======================================================= */
+
+  const receiveId =
+    Number(
+      formData.get(
+        "receiveId"
+      )
+    );
 
   const receiveDateValue =
-    (formData.get("receiveDate") as string) || "";
+    String(
+      formData.get(
+        "receiveDate"
+      ) ?? ""
+    ).trim();
 
-  const receiveDate = new Date(
-    receiveDateValue
-  );
+  const receiveDate =
+    parseDateOnly(
+      receiveDateValue
+    );
 
   const documentNo =
-    (formData.get("documentNo") as string) || "";
+    String(
+      formData.get(
+        "documentNo"
+      ) ?? ""
+    ).trim();
 
-  const vendorId = Number(
-    formData.get("vendorId")
-  );
+  const vendorId =
+    Number(
+      formData.get(
+        "vendorId"
+      )
+    );
 
   const remark =
-    (formData.get("remark") as string) || "";
+    String(
+      formData.get(
+        "remark"
+      ) ?? ""
+    ).trim();
+
+  /* =======================================================
+     BASIC VALIDATION
+  ======================================================= */
 
   if (
-    !Number.isInteger(receiveId) ||
+    !Number.isInteger(
+      receiveId
+    ) ||
     receiveId <= 0
   ) {
     throw new Error(
@@ -53,9 +183,8 @@ export async function updateReceive(
   }
 
   if (
-    Number.isNaN(
-      receiveDate.getTime()
-    )
+    !receiveDateValue ||
+    !receiveDate
   ) {
     throw new Error(
       "วันที่รับเข้าไม่ถูกต้อง"
@@ -63,7 +192,17 @@ export async function updateReceive(
   }
 
   if (
-    !Number.isInteger(vendorId) ||
+    !documentNo
+  ) {
+    throw new Error(
+      "กรุณาระบุเลขที่เอกสาร"
+    );
+  }
+
+  if (
+    !Number.isInteger(
+      vendorId
+    ) ||
     vendorId <= 0
   ) {
     throw new Error(
@@ -71,14 +210,26 @@ export async function updateReceive(
     );
   }
 
-  const items: ReceiveRow[] = [];
+  /* =======================================================
+     ITEMS
+  ======================================================= */
 
-  /* =====================================================
+  const items:
+    ReceiveRow[] = [];
+
+  /* =======================================================
      อ่านรายการรับเข้าจาก FormData จำนวน 20 แถว
 
-     receiveItemId มีค่า  = แถวเดิม / ล็อตเดิม
-     receiveItemId ว่าง   = แถวใหม่ / ล็อตใหม่
-  ===================================================== */
+     receiveItemId มีค่า
+     = แถวเดิม / ReceiveItem เดิม
+
+     receiveItemId ว่าง
+     = แถวใหม่ / ReceiveItem ใหม่
+
+     สำคัญ:
+     ไม่ merge ReceiveItem ในฐานข้อมูล
+     เพราะ ReceiveItem.id อาจมีประวัติการเบิกอ้างถึงอยู่
+  ======================================================= */
 
   for (
     let i = 0;
@@ -86,79 +237,111 @@ export async function updateReceive(
     i++
   ) {
     const receiveItemIdValue =
-      (formData.get(
-        `items[${i}].receiveItemId`
-      ) as string) || "";
+      String(
+        formData.get(
+          `items[${i}].receiveItemId`
+        ) ?? ""
+      ).trim();
 
     const parsedReceiveItemId =
       receiveItemIdValue
-        ? Number(receiveItemIdValue)
+        ? Number(
+            receiveItemIdValue
+          )
         : null;
 
     const receiveItemId =
-      parsedReceiveItemId !== null &&
+      parsedReceiveItemId !==
+        null &&
       Number.isInteger(
         parsedReceiveItemId
       ) &&
-      parsedReceiveItemId > 0
+      parsedReceiveItemId >
+        0
         ? parsedReceiveItemId
         : null;
 
-    const materialId = Number(
-      formData.get(
-        `items[${i}].materialId`
-      )
-    );
+    const materialId =
+      Number(
+        formData.get(
+          `items[${i}].materialId`
+        )
+      );
 
-    const qty = Number(
-      formData.get(
-        `items[${i}].qty`
-      )
-    );
+    const qty =
+      Number(
+        formData.get(
+          `items[${i}].qty`
+        )
+      );
 
-    const unitPrice = Number(
-      formData.get(
-        `items[${i}].unitPrice`
-      )
-    );
+    const unitPrice =
+      Number(
+        formData.get(
+          `items[${i}].unitPrice`
+        )
+      );
 
     const manufactureValue =
-      (formData.get(
-        `items[${i}].manufacture`
-      ) as string) || "";
+      String(
+        formData.get(
+          `items[${i}].manufacture`
+        ) ?? ""
+      ).trim();
 
     const expiryValue =
-      (formData.get(
-        `items[${i}].expiry`
-      ) as string) || "";
+      String(
+        formData.get(
+          `items[${i}].expiry`
+        ) ?? ""
+      ).trim();
 
     const manufacture =
       manufactureValue
-        ? new Date(manufactureValue)
+        ? parseDateOnly(
+            manufactureValue
+          )
         : null;
 
     const expiry =
       expiryValue
-        ? new Date(expiryValue)
+        ? parseDateOnly(
+            expiryValue
+          )
         : null;
 
-    /* แถวว่าง */
+    /* =====================================================
+       EMPTY ROW
+    ===================================================== */
+
     if (
-      !materialId ||
+      !materialId &&
       !qty
     ) {
       continue;
     }
 
+    /* =====================================================
+       MATERIAL
+    ===================================================== */
+
     if (
-      !Number.isInteger(materialId) ||
+      !Number.isInteger(
+        materialId
+      ) ||
       materialId <= 0
     ) {
       continue;
     }
 
+    /* =====================================================
+       QTY
+    ===================================================== */
+
     if (
-      !Number.isInteger(qty) ||
+      !Number.isInteger(
+        qty
+      ) ||
       qty <= 0
     ) {
       throw new Error(
@@ -166,8 +349,14 @@ export async function updateReceive(
       );
     }
 
+    /* =====================================================
+       UNIT PRICE
+    ===================================================== */
+
     if (
-      !Number.isFinite(unitPrice) ||
+      !Number.isFinite(
+        unitPrice
+      ) ||
       unitPrice < 0
     ) {
       throw new Error(
@@ -175,25 +364,51 @@ export async function updateReceive(
       );
     }
 
+    /* =====================================================
+       MANUFACTURE
+    ===================================================== */
+
     if (
-      manufacture &&
-      Number.isNaN(
-        manufacture.getTime()
-      )
+      manufactureValue &&
+      !manufacture
     ) {
       throw new Error(
-        "วันผลิตไม่ถูกต้อง"
+        `วันผลิตของรายการที่ ${
+          i + 1
+        } ไม่ถูกต้อง`
       );
     }
 
+    /* =====================================================
+       EXPIRY
+    ===================================================== */
+
     if (
-      expiry &&
-      Number.isNaN(
-        expiry.getTime()
-      )
+      expiryValue &&
+      !expiry
     ) {
       throw new Error(
-        "วันหมดอายุไม่ถูกต้อง"
+        `วันหมดอายุของรายการที่ ${
+          i + 1
+        } ไม่ถูกต้อง`
+      );
+    }
+
+    /*
+     * ถ้ามีทั้งวันผลิตและวันหมดอายุ
+     * วันหมดอายุต้องไม่ก่อนวันผลิต
+     */
+
+    if (
+      manufacture &&
+      expiry &&
+      expiry.getTime() <
+        manufacture.getTime()
+    ) {
+      throw new Error(
+        `วันหมดอายุของรายการที่ ${
+          i + 1
+        } ต้องไม่ก่อนวันผลิต`
       );
     }
 
@@ -207,15 +422,20 @@ export async function updateReceive(
     });
   }
 
-  if (items.length === 0) {
+  if (
+    items.length === 0
+  ) {
     throw new Error(
       "กรุณาเลือกรายการรับเข้า"
     );
   }
 
-  /* =====================================================
-     ReceiveItem เดิม 1 ID ต้องปรากฏเพียง 1 แถว
-  ===================================================== */
+  /* =======================================================
+     EXISTING ID DUPLICATE
+
+     ReceiveItem เดิม 1 ID
+     ต้องปรากฏเพียง 1 แถว
+  ======================================================= */
 
   const submittedExistingIds =
     items
@@ -241,16 +461,21 @@ export async function updateReceive(
     );
   }
 
+  /* =======================================================
+     TRANSACTION
+  ======================================================= */
+
   await prisma.$transaction(
     async (tx: any) => {
       /* =================================================
-         ตรวจสอบใบรับเดิม
+         RECEIVE
       ================================================= */
 
       const receive =
         await tx.receive.findUnique({
           where: {
-            id: receiveId,
+            id:
+              receiveId,
           },
         });
 
@@ -261,7 +486,7 @@ export async function updateReceive(
       }
 
       /* =================================================
-         ดึง ReceiveItem เดิมของใบรับนี้ทั้งหมด
+         OLD RECEIVE ITEMS
       ================================================= */
 
       const oldItems =
@@ -269,26 +494,38 @@ export async function updateReceive(
           where: {
             receiveId,
           },
+
           orderBy: {
-            id: "asc",
+            id:
+              "asc",
           },
         });
 
       const oldItemMap =
-        new Map<number, any>(
+        new Map<
+          number,
+          any
+        >(
           oldItems.map(
-            (oldItem: any) => [
+            (
+              oldItem: any
+            ) => [
               oldItem.id,
               oldItem,
             ]
           )
         );
 
+      /* =================================================
+         AFFECTED MATERIAL
+      ================================================= */
+
       const affectedMaterialIds =
         new Set<number>();
 
       for (
-        const oldItem of oldItems
+        const oldItem of
+          oldItems
       ) {
         affectedMaterialIds.add(
           oldItem.materialId
@@ -296,7 +533,8 @@ export async function updateReceive(
       }
 
       for (
-        const item of items
+        const item of
+          items
       ) {
         affectedMaterialIds.add(
           item.materialId
@@ -304,34 +542,45 @@ export async function updateReceive(
       }
 
       /* =================================================
-         ตรวจจำนวนที่เคยเบิกจริงของแต่ละ ReceiveItem
+         ACTUAL USED QTY
 
-         ใช้ยอดที่ถูกตัดออกจากล็อตจริง:
-         issuedQty = qty เดิม - balance ปัจจุบัน
+         ใช้ยอดที่ถูกตัดออกจาก ReceiveItem จริง
 
-         วิธีนี้แม่นยำกว่าการย้อนดู IssueItem เพราะ
-         IssueItem.receiveItemId เก็บได้เพียงล็อตแรก
-         ในกรณีที่การเบิก 1 รายการกินหลายล็อต
+         issuedQty =
+         qty เดิม - balance ปัจจุบัน
+
+         ไม่ใช้ IssueItem.receiveItemId
+         เพราะการเบิกหนึ่งรายการอาจกินหลายล็อต
       ================================================= */
 
       const oldItemUsage =
-        new Map<number, number>();
+        new Map<
+          number,
+          number
+        >();
 
       for (
-        const oldItem of oldItems
+        const oldItem of
+          oldItems
       ) {
-        const oldQty = Number(
-          oldItem.qty ?? 0
-        );
+        const oldQty =
+          Number(
+            oldItem.qty ??
+              0
+          );
 
-        const oldBalance = Number(
-          oldItem.balance ?? 0
-        );
+        const oldBalance =
+          Number(
+            oldItem.balance ??
+              0
+          );
 
-        const issuedQty = Math.max(
-          0,
-          oldQty - oldBalance
-        );
+        const issuedQty =
+          Math.max(
+            0,
+            oldQty -
+              oldBalance
+          );
 
         oldItemUsage.set(
           oldItem.id,
@@ -340,13 +589,15 @@ export async function updateReceive(
       }
 
       /* =================================================
-         แก้หัวเอกสาร
+         UPDATE HEADER
       ================================================= */
 
       await tx.receive.update({
         where: {
-          id: receiveId,
+          id:
+            receiveId,
         },
+
         data: {
           receiveDate,
           documentNo,
@@ -361,18 +612,25 @@ export async function updateReceive(
         );
 
       /* =================================================
-         อัปเดตล็อตเดิมด้วย ReceiveItem.id โดยตรง
+         UPDATE OLD RECEIVE ITEMS
 
-         ไม่มีการจับคู่จาก materialId
-         ไม่มีการจับคู่จาก manufacture / expiry
-         จึงไม่สลับล็อต
+         ใช้ ReceiveItem.id โดยตรง
+
+         ไม่จับคู่ด้วย:
+         - materialId
+         - manufacture
+         - expiry
+
+         จึงไม่ทำให้ล็อตสลับ ID
       ================================================= */
 
       for (
-        const item of items
+        const item of
+          items
       ) {
         if (
-          item.receiveItemId === null
+          item.receiveItemId ===
+          null
         ) {
           continue;
         }
@@ -394,9 +652,13 @@ export async function updateReceive(
           ) ?? 0;
 
         /*
-         * ล็อตที่ถูกเบิกแล้วห้ามเปลี่ยนชนิดวัสดุ
-         * เพราะ IssueItem เดิมอ้างถึง ReceiveItem นี้อยู่
+         * ReceiveItem ที่ถูกเบิกแล้ว
+         * ห้ามเปลี่ยนเป็น Material อื่น
+         *
+         * เพราะมีประวัติการตัด stock
+         * ของ ReceiveItem นี้อยู่
          */
+
         if (
           oldIssueQty > 0 &&
           item.materialId !==
@@ -408,12 +670,10 @@ export async function updateReceive(
         }
 
         /*
-         * ตัวอย่างเคสที่ต้องผ่าน:
-         * เดิม qty = 6
-         * เบิกแล้ว = 5
-         * แก้ qty = 5
-         * => 5 < 5 เป็น false จึงผ่าน
+         * จำนวนใหม่ต้องไม่ต่ำกว่า
+         * จำนวนที่เคยถูกเบิกจริง
          */
+
         if (
           item.qty <
           oldIssueQty
@@ -429,19 +689,26 @@ export async function updateReceive(
 
         await tx.receiveItem.update({
           where: {
-            id: oldItem.id,
+            id:
+              oldItem.id,
           },
+
           data: {
             materialId:
               item.materialId,
+
             qty:
               item.qty,
+
             balance:
               newBalance,
+
             unitPrice:
               item.unitPrice,
+
             manufacture:
               item.manufacture,
+
             expiry:
               item.expiry,
           },
@@ -449,14 +716,15 @@ export async function updateReceive(
       }
 
       /* =================================================
-         ล็อตเดิมที่ถูกเอาออกจากฟอร์ม
+         REMOVED OLD ITEMS
 
-         - ยังไม่เคยเบิก: ลบได้
-         - เคยเบิกแล้ว: ห้ามลบ
+         - ไม่เคยถูกเบิก -> ลบได้
+         - เคยถูกเบิก -> ห้ามลบ
       ================================================= */
 
       for (
-        const oldItem of oldItems
+        const oldItem of
+          oldItems
       ) {
         if (
           submittedIdSet.has(
@@ -481,22 +749,31 @@ export async function updateReceive(
 
         await tx.receiveItem.delete({
           where: {
-            id: oldItem.id,
+            id:
+              oldItem.id,
           },
         });
       }
 
       /* =================================================
-         สร้างล็อตใหม่
+         CREATE NEW RECEIVE ITEMS
 
-         receiveItemId ว่าง = แถวใหม่ในใบรับเดิม
+         receiveItemId ว่าง
+         = รายการใหม่ในใบรับเดิม
+
+         ไม่รวมกับ ReceiveItem เดิมในฐานข้อมูล
+
+         การรวม "ล็อตสำหรับป้าย"
+         จะทำเฉพาะตอนสร้าง PDF
       ================================================= */
 
       for (
-        const item of items
+        const item of
+          items
       ) {
         if (
-          item.receiveItemId !== null
+          item.receiveItemId !==
+          null
         ) {
           continue;
         }
@@ -504,16 +781,22 @@ export async function updateReceive(
         await tx.receiveItem.create({
           data: {
             receiveId,
+
             materialId:
               item.materialId,
+
             qty:
               item.qty,
+
             balance:
               item.qty,
+
             unitPrice:
               item.unitPrice,
+
             manufacture:
               item.manufacture,
+
             expiry:
               item.expiry,
           },
@@ -521,33 +804,43 @@ export async function updateReceive(
       }
 
       /* =================================================
-         คำนวณ Material.balance ใหม่จาก ReceiveItem จริง
+         RECALCULATE MATERIAL BALANCE
+
+         Material.balance
+         =
+         sum ReceiveItem.balance
       ================================================= */
 
       for (
         const materialId of
-        affectedMaterialIds
+          affectedMaterialIds
       ) {
         const totalBalance =
           await tx.receiveItem.aggregate({
             where: {
               materialId,
             },
+
             _sum: {
-              balance: true,
+              balance:
+                true,
             },
           });
 
         const newMaterialBalance =
           Number(
-            totalBalance._sum
-              .balance ?? 0
+            totalBalance
+              ._sum
+              .balance ??
+              0
           );
 
         await tx.material.update({
           where: {
-            id: materialId,
+            id:
+              materialId,
           },
+
           data: {
             balance:
               newMaterialBalance,
@@ -556,14 +849,18 @@ export async function updateReceive(
       }
 
       /* =================================================
-         อัปเดต latestPrice
+         LATEST PRICE
       ================================================= */
 
       const latestPriceByMaterial =
-        new Map<number, number>();
+        new Map<
+          number,
+          number
+        >();
 
       for (
-        const item of items
+        const item of
+          items
       ) {
         latestPriceByMaterial.set(
           item.materialId,
@@ -576,12 +873,14 @@ export async function updateReceive(
           materialId,
           latestPrice,
         ] of
-        latestPriceByMaterial
+          latestPriceByMaterial
       ) {
         await tx.material.update({
           where: {
-            id: materialId,
+            id:
+              materialId,
           },
+
           data: {
             latestPrice,
           },
@@ -589,10 +888,15 @@ export async function updateReceive(
       }
     },
     {
-      maxWait: 30000,
-      timeout: 60000,
+      maxWait:
+        30000,
+
+      timeout:
+        60000,
     }
   );
 
-  redirect("/receive");
+  redirect(
+    "/receive"
+  );
 }
