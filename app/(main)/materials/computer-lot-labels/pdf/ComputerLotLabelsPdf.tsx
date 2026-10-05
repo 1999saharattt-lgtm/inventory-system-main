@@ -78,6 +78,7 @@ const thaiMonths = [
   "พ.ค.",
   "มิ.ย.",
   "ก.ค.",
+  "ส.ค.",
   "ก.ย.",
   "ต.ค.",
   "พ.ย.",
@@ -87,8 +88,11 @@ const thaiMonths = [
 /* =========================================================
    DATE ONLY
 
+   ข้อมูลจาก Server:
+   YYYY-MM-DD
+
    ไม่ใช้ new Date()
-   เพื่อป้องกัน timezone ทำวันที่เปลี่ยน
+   ไม่ใช้ timezone ในฝั่ง Client
 ========================================================= */
 
 function parseDateOnly(
@@ -102,7 +106,7 @@ function parseDateOnly(
     value
       .trim()
       .match(
-        /^(\d{4})-(\d{2})-(\d{2})/
+        /^(\d{4})-(\d{2})-(\d{2})$/
       );
 
   if (!match) {
@@ -110,13 +114,19 @@ function parseDateOnly(
   }
 
   const year =
-    Number(match[1]);
+    Number(
+      match[1]
+    );
 
   const month =
-    Number(match[2]);
+    Number(
+      match[2]
+    );
 
   const day =
-    Number(match[3]);
+    Number(
+      match[3]
+    );
 
   if (
     !Number.isInteger(year) ||
@@ -127,9 +137,20 @@ function parseDateOnly(
   }
 
   if (
-    year <= 0 ||
+    year < 1900 ||
+    year > 3000
+  ) {
+    return null;
+  }
+
+  if (
     month < 1 ||
-    month > 12 ||
+    month > 12
+  ) {
+    return null;
+  }
+
+  if (
     day < 1 ||
     day > 31
   ) {
@@ -146,9 +167,15 @@ function parseDateOnly(
 /* =========================================================
    DATE VALUE
 
-   YYYY-MM-DD
-   ->
-   YYYYMMDD
+   ใช้เรียงลำดับเท่านั้น
+
+   2026-01-12
+   =>
+   20260112
+
+   ไม่มีวันที่
+   =>
+   อยู่ท้าย
 ========================================================= */
 
 function dateValue(
@@ -164,14 +191,22 @@ function dateValue(
   }
 
   return (
-    date.year * 10000 +
-    date.month * 100 +
+    date.year *
+      10000 +
+    date.month *
+      100 +
     date.day
   );
 }
 
 /* =========================================================
    FORMAT THAI DATE
+
+   2026-01-12
+   =>
+   12 ม.ค. 2569
+
+   เพิ่ม 543 เพียงครั้งเดียว
 ========================================================= */
 
 function formatThaiDate(
@@ -434,6 +469,12 @@ function compareMaterialCode(
 
 /* =========================================================
    FEFO
+
+   1. วันหมดอายุ
+   2. วันผลิต
+   3. วันรับเข้า
+   4. receiveId
+   5. receiveItemId
 ========================================================= */
 
 function compareFefo(
@@ -500,6 +541,16 @@ function compareFefo(
     );
   }
 
+  if (
+    a.receiveId !==
+    b.receiveId
+  ) {
+    return (
+      a.receiveId -
+      b.receiveId
+    );
+  }
+
   return (
     a.receiveItemId -
     b.receiveItemId
@@ -507,10 +558,7 @@ function compareFefo(
 }
 
 /* =========================================================
-   SANITIZE LOTS
-
-   เอาเฉพาะ ReceiveItem
-   ที่ยังมีของจริง
+   SANITIZE CURRENT STOCK
 ========================================================= */
 
 function sanitizeLots(
@@ -542,34 +590,29 @@ function sanitizeLots(
 /* =========================================================
    BUILD LOGICAL LOTS
 
-   จุดแก้สำคัญ
+   กฎของระบบนี้:
 
-   เดิม:
-   1 ReceiveItem = 1 ล็อต
-
-   ใหม่:
-   materialId + receiveId
+   materialId เดียวกัน
+   +
+   receiveId เดียวกัน
    =
-   1 ล็อตจริง
+   1 ล็อต
 
-   ตัวอย่างจากเคสปัจจุบัน:
+   เหตุผล:
+   รายการเดิมที่ถูกแก้/แยกในใบรับเดียวกัน
+   อาจมี ReceiveItem มากกว่า 1 record
 
-   Receive เดียวกัน
-   ReceiveItem A balance 1
-   ReceiveItem B balance 2
+   ตัวอย่าง:
+   record A balance = 1
+   record B balance = 2
 
+   receiveId เดียวกัน
    =>
-   ล็อตเดียว balance 3
+   ล็อตเดียว = 3
 
-   อีก Receive
-   ReceiveItem C balance 7
-
+   อีก receiveId balance = 7
    =>
-   อีกล็อต balance 7
-
-   ผลลัพธ์:
-   ล็อต 1 = 3
-   ล็อต 2 = 7
+   ล็อตถัดไป = 7
 ========================================================= */
 
 function buildLogicalLots(
@@ -617,15 +660,12 @@ function buildLogicalLots(
       continue;
     }
 
-    /*
-     * เรียง ReceiveItem.id มาก -> น้อย
-     *
-     * record ที่ ID สูงกว่า
-     * คือรายการที่สร้าง/แก้ทีหลัง
-     *
-     * ใช้เป็นข้อมูลหลักของวันที่
-     * เพื่อไม่ดึง record เก่าที่ค้างอยู่
-     */
+    /* =====================================================
+       เรียง record ล่าสุดก่อน
+
+       ใช้สำหรับเลือกวันที่ที่ผู้ใช้แก้ล่าสุด
+    ===================================================== */
+
     const newestFirst =
       [
         ...groupedItems,
@@ -638,27 +678,32 @@ function buildLogicalLots(
     const newest =
       newestFirst[0];
 
-    /*
-     * ยอดคงเหลือของล็อตจริง
-     * =
-     * ผลรวม balance ของ ReceiveItem
-     * ภายในใบรับเดียวกัน
-     */
+    if (!newest) {
+      continue;
+    }
+
+    /* =====================================================
+       BALANCE ของล็อต
+    ===================================================== */
+
     const totalBalance =
       groupedItems.reduce(
         (
           total,
           item
-        ) =>
-          total +
-          Math.max(
-            0,
-            Math.floor(
-              Number(
-                item.balance
-              ) || 0
+        ) => {
+          return (
+            total +
+            Math.max(
+              0,
+              Math.floor(
+                Number(
+                  item.balance
+                ) || 0
+              )
             )
-          ),
+          );
+        },
         0
       );
 
@@ -668,41 +713,32 @@ function buildLogicalLots(
       continue;
     }
 
-    /*
-     * วันผลิต / วันหมดอายุ
-     *
-     * ใช้ค่าจาก ReceiveItem ล่าสุดก่อน
-     *
-     * ถ้ารายการล่าสุดไม่มีค่า
-     * ค่อยย้อนหาค่าที่มีอยู่
-     */
+    /* =====================================================
+       DATE
+
+       ใช้ข้อมูลจาก record ล่าสุดของใบรับก่อน
+
+       ถ้าตัวล่าสุดไม่มีวันที่
+       ค่อยหาค่าล่าสุดที่ไม่ว่าง
+    ===================================================== */
+
     const manufacture =
+      newest.manufacture ??
       newestFirst.find(
         (item) =>
-          Boolean(
-            item.manufacture
-          )
+          item.manufacture !==
+          null
       )?.manufacture ??
       null;
 
     const expiry =
+      newest.expiry ??
       newestFirst.find(
         (item) =>
-          Boolean(
-            item.expiry
-          )
+          item.expiry !==
+          null
       )?.expiry ??
       null;
-
-    /*
-     * receiveDate + documentNo
-     * เป็นข้อมูลระดับ Receive อยู่แล้ว
-     */
-    const receiveDate =
-      newest.receiveDate;
-
-    const documentNo =
-      newest.documentNo;
 
     result.push({
       ...newest,
@@ -713,10 +749,6 @@ function buildLogicalLots(
       manufacture,
 
       expiry,
-
-      receiveDate,
-
-      documentNo,
 
       sourceReceiveItemIds:
         groupedItems
@@ -735,13 +767,7 @@ function buildLogicalLots(
 }
 
 /* =========================================================
-   BUILD LOT NUMBER
-
-   Group ตาม materialId
-
-   ภายใน Material:
-   เรียง FEFO แล้วค่อยให้
-   ล็อต 1, 2, 3...
+   BUILD LOT NUMBERS
 ========================================================= */
 
 function buildRankedLots(
@@ -826,9 +852,7 @@ function buildRankedLots(
 /* =========================================================
    EXPAND PHYSICAL LABELS
 
-   LogicalLot.balance = 3
-   =>
-   3 ป้าย
+   balance = จำนวนป้าย
 ========================================================= */
 
 function expandPrintableLabels(
@@ -1045,7 +1069,7 @@ export default function ComputerLotLabelsPdf({
   lots,
 }: Props) {
   /* =======================================================
-     CURRENT RECEIVE ITEMS
+     CURRENT STOCK
   ======================================================= */
 
   const currentLots =
@@ -1058,9 +1082,7 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     LOGICAL LOTS
-
-     รวม ReceiveItem ที่อยู่ในใบรับเดียวกัน
+     MERGE RECEIVE ITEM RECORDS
   ======================================================= */
 
   const logicalLots =
@@ -1099,7 +1121,7 @@ export default function ComputerLotLabelsPdf({
     );
 
   /* =======================================================
-     PRODUCT GROUPS
+     PRODUCT GROUP
   ======================================================= */
 
   const productGroups =
@@ -1277,10 +1299,9 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            count.toLocaleString(
+            `${count.toLocaleString(
               "th-TH"
-            ) +
-              " ป้าย",
+            )} ป้าย`,
 
             pageWidth -
               marginX,
@@ -1331,9 +1352,7 @@ export default function ComputerLotLabelsPdf({
           x: number,
           y: number
         ) {
-          /* -----------------------------------------------
-             BORDER
-          ----------------------------------------------- */
+          /* BORDER */
 
           doc.setDrawColor(
             30,
@@ -1363,13 +1382,14 @@ export default function ComputerLotLabelsPdf({
             "normal"
           );
 
-          /* -----------------------------------------------
-             CODE
-          ----------------------------------------------- */
+          /* CODE */
+
+          const codeText =
+            `รหัส ${label.code}`;
 
           fitSingleLineText(
             doc,
-            `รหัส ${label.code}`,
+            codeText,
             cardWidth -
               4,
             9.5,
@@ -1377,7 +1397,7 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            `รหัส ${label.code}`,
+            codeText,
 
             x +
               cardWidth /
@@ -1392,9 +1412,7 @@ export default function ComputerLotLabelsPdf({
             }
           );
 
-          /* -----------------------------------------------
-             NAME
-          ----------------------------------------------- */
+          /* NAME */
 
           fitSingleLineText(
             doc,
@@ -1421,9 +1439,7 @@ export default function ComputerLotLabelsPdf({
             }
           );
 
-          /* -----------------------------------------------
-             LOT
-          ----------------------------------------------- */
+          /* LOT */
 
           doc.setFontSize(
             11
@@ -1445,9 +1461,7 @@ export default function ComputerLotLabelsPdf({
             }
           );
 
-          /* -----------------------------------------------
-             DIVIDER
-          ----------------------------------------------- */
+          /* DIVIDER */
 
           doc.setDrawColor(
             165,
@@ -1460,32 +1474,40 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.line(
-            x + 2,
-            y + 13,
+            x +
+              2,
+
+            y +
+              13,
 
             x +
               cardWidth -
               2,
 
-            y + 13
+            y +
+              13
           );
 
-          /* -----------------------------------------------
-             DATE POSITION
-          ----------------------------------------------- */
+          /* DATE POSITIONS */
 
           const dateLabelX =
-            x + 3;
+            x +
+            3;
 
           const colonX =
-            x + 18;
+            x +
+            18;
 
           const dateValueX =
-            x + 21;
+            x +
+            21;
 
-          /* -----------------------------------------------
-             MANUFACTURE
-          ----------------------------------------------- */
+          /* MANUFACTURE */
+
+          const manufactureText =
+            formatThaiDate(
+              label.manufacture
+            );
 
           doc.setFontSize(
             11
@@ -1494,20 +1516,20 @@ export default function ComputerLotLabelsPdf({
           doc.text(
             "วันผลิต",
             dateLabelX,
-            y + 18.3
+            y +
+              18.3
           );
 
           doc.text(
             ":",
             colonX,
-            y + 18.3
+            y +
+              18.3
           );
 
           fitSingleLineText(
             doc,
-            formatThaiDate(
-              label.manufacture
-            ),
+            manufactureText,
             cardWidth -
               23,
             11,
@@ -1515,16 +1537,18 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            formatThaiDate(
-              label.manufacture
-            ),
+            manufactureText,
             dateValueX,
-            y + 18.3
+            y +
+              18.3
           );
 
-          /* -----------------------------------------------
-             EXPIRY
-          ----------------------------------------------- */
+          /* EXPIRY */
+
+          const expiryText =
+            formatThaiDate(
+              label.expiry
+            );
 
           doc.setFontSize(
             11
@@ -1533,20 +1557,20 @@ export default function ComputerLotLabelsPdf({
           doc.text(
             "วันหมดอายุ",
             dateLabelX,
-            y + 24
+            y +
+              24
           );
 
           doc.text(
             ":",
             colonX,
-            y + 24
+            y +
+              24
           );
 
           fitSingleLineText(
             doc,
-            formatThaiDate(
-              label.expiry
-            ),
+            expiryText,
             cardWidth -
               23,
             11,
@@ -1554,11 +1578,10 @@ export default function ComputerLotLabelsPdf({
           );
 
           doc.text(
-            formatThaiDate(
-              label.expiry
-            ),
+            expiryText,
             dateValueX,
-            y + 24
+            y +
+              24
           );
         }
 
@@ -1610,16 +1633,21 @@ export default function ComputerLotLabelsPdf({
 
               drawGroupHeader(
                 `${group.title} (ต่อ)`,
+
                 group.labels.length
               );
             }
 
             for (
-              let column = 0;
+              let column =
+                0;
+
               column <
                 columns &&
               labelIndex <
-                group.labels.length;
+                group.labels
+                  .length;
+
               column++
             ) {
               const x =

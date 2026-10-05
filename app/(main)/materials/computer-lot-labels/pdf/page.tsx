@@ -45,18 +45,25 @@ function normalizeSearchText(
 }
 
 /* =========================================================
-   DATE ONLY
+   THAILAND DATE ONLY
 
-   สำคัญ:
-   ไม่ใช้ toISOString()
-   เพราะ toISOString จะแปลง timezone เป็น UTC
-   และอาจทำให้วันที่บน PDF เลื่อนได้
+   สำคัญมาก:
+
+   ระบบหน้ารับเข้าแสดงวันตามเวลาไทย
+   ดังนั้นตอนส่งไปสร้าง PDF
+   ต้องดึงวัน/เดือน/ปีด้วย timezone Asia/Bangkok เช่นกัน
+
+   ห้ามใช้:
+   date.toISOString().slice(0, 10)
+
+   เพราะ ISO = UTC
+   และข้อมูลที่เคยบันทึกเป็นเวลาไทยอาจเลื่อนไปวันก่อนหน้า
 
    ผลลัพธ์:
-   YYYY-MM-DD
+   YYYY-MM-DD (ค.ศ.)
 ========================================================= */
 
-function toDateOnly(
+function toThailandDateOnly(
   value: Date | null
 ): string | null {
   if (!value) {
@@ -71,34 +78,63 @@ function toDateOnly(
     return null;
   }
 
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      }
+    );
+
+  const parts =
+    formatter.formatToParts(
+      value
+    );
+
   const year =
-    value.getUTCFullYear();
+    parts.find(
+      (part) =>
+        part.type ===
+        "year"
+    )?.value;
 
   const month =
-    String(
-      value.getUTCMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
+    parts.find(
+      (part) =>
+        part.type ===
+        "month"
+    )?.value;
 
   const day =
-    String(
-      value.getUTCDate()
-    ).padStart(
-      2,
-      "0"
-    );
+    parts.find(
+      (part) =>
+        part.type ===
+        "day"
+    )?.value;
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return null;
+  }
 
   return `${year}-${month}-${day}`;
 }
 
 /* =========================================================
    PRINTER CONSUMABLE CHECK
-
-   ตรวจทั้ง:
-   - ชื่อรายการ
-   - รหัสวัสดุ
 ========================================================= */
 
 function isPrinterConsumable(
@@ -117,10 +153,6 @@ function isPrinterConsumable(
 
   const searchText =
     `${normalizedCode} ${normalizedName}`;
-
-  /* -------------------------------------------------------
-     DIRECT KEYWORDS
-  ------------------------------------------------------- */
 
   const keywords = [
     "หมึก",
@@ -160,9 +192,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     CANON
-  ------------------------------------------------------- */
+  /* CANON */
 
   if (
     /\bcli[\s-]?\d+[a-z]*\b/i.test(
@@ -196,9 +226,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     HP / CANON LASER
-  ------------------------------------------------------- */
+  /* HP / CANON LASER */
 
   if (
     /\b(?:cf|ce|cc|q)[\s-]?\d+[a-z]*\b/i.test(
@@ -216,9 +244,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     BROTHER
-  ------------------------------------------------------- */
+  /* BROTHER */
 
   if (
     /\btn[\s-]?\d+[a-z]*\b/i.test(
@@ -244,9 +270,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     SAMSUNG
-  ------------------------------------------------------- */
+  /* SAMSUNG */
 
   if (
     /\bmlt[\s-]?[a-z0-9-]+\b/i.test(
@@ -256,9 +280,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     EPSON
-  ------------------------------------------------------- */
+  /* EPSON */
 
   if (
     /\bt[a-z0-9]{3,}\b/i.test(
@@ -276,9 +298,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     RICOH / FUJI / XEROX
-  ------------------------------------------------------- */
+  /* RICOH / FUJI / XEROX */
 
   if (
     /\bsp[\s-]?\d{3,}[a-z]*\b/i.test(
@@ -296,9 +316,7 @@ function isPrinterConsumable(
     return true;
   }
 
-  /* -------------------------------------------------------
-     KYOCERA
-  ------------------------------------------------------- */
+  /* KYOCERA */
 
   if (
     /\btk[\s-]?\d+[a-z]*\b/i.test(
@@ -319,13 +337,12 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      LOAD RECEIVE ITEMS
 
-     ใช้ ReceiveItem.balance โดยตรง
+     ใช้ ReceiveItem.balance จริง
 
-     หลัก:
-     - balance > 0 เท่านั้น
-     - 1 ReceiveItem = 1 ล็อตจริง
-     - จำนวนป้าย = balance ปัจจุบันของล็อตนั้น
-     - วันผลิต/หมดอายุอ่านจาก ReceiveItem เดียวกัน
+     เงื่อนไข:
+     - ต้อง balance > 0
+     - COMPUTER / PRINTING เท่านั้น
+     - ไม่ใช้ Material.balance มาสร้างจำนวนป้าย
   ======================================================= */
 
   const receiveItems =
@@ -381,6 +398,11 @@ export default async function ComputerLotLabelsPdfPage() {
         },
 
         {
+          receiveId:
+            "asc",
+        },
+
+        {
           id:
             "asc",
         },
@@ -403,12 +425,10 @@ export default async function ComputerLotLabelsPdfPage() {
   /* =======================================================
      SERIALIZE
 
-     สำคัญ:
-     ห้ามใช้ toISOString()
+     วันที่ทุกตัวส่งแบบ:
+     YYYY-MM-DD
 
-     ส่งวันแบบ YYYY-MM-DD เท่านั้น
-     เพื่อไม่ให้ Browser/Vercel timezone
-     เปลี่ยนวัน เดือน หรือปี
+     โดยอ้างอิงวันตามประเทศไทย
   ======================================================= */
 
   const lots: LotLabel[] =
@@ -433,22 +453,27 @@ export default async function ComputerLotLabelsPdfPage() {
           item.material.unit,
 
         balance:
-          Number(
-            item.balance ?? 0
+          Math.max(
+            0,
+            Math.floor(
+              Number(
+                item.balance ?? 0
+              )
+            )
           ),
 
         manufacture:
-          toDateOnly(
+          toThailandDateOnly(
             item.manufacture
           ),
 
         expiry:
-          toDateOnly(
+          toThailandDateOnly(
             item.expiry
           ),
 
         receiveDate:
-          toDateOnly(
+          toThailandDateOnly(
             item.receive
               ?.receiveDate ??
               null
