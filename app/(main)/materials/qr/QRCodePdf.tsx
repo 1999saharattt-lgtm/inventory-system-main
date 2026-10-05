@@ -2,11 +2,19 @@
 
 import "@/lib/fonts/THSarabunNew-normal";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import QRCode from "qrcode";
 import jsPDF from "jspdf";
 
 import AppButton from "@/components/AppButton";
+
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Material = {
   id: number;
@@ -15,18 +23,50 @@ type Material = {
   category: string;
 };
 
+type NumberedMaterial =
+  Material & {
+    sequence: number;
+  };
+
+type MaterialGroup = {
+  category: string;
+  materials: NumberedMaterial[];
+};
+
 type Props = {
   materials: Material[];
 };
 
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const categoryName: Record<
+  string,
+  string
+> = {
+  OFFICE:
+    "วัสดุสำนักงาน",
+
+  COMPUTER:
+    "วัสดุคอมพิวเตอร์",
+
+  ELECTRIC:
+    "วัสดุไฟฟ้าและวิทยุ",
+
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
+
+  VEHICLE:
+    "วัสดุยานพาหนะ",
+
+  PRINTING:
+    "วัสดุสื่อสิ่งพิมพ์",
 };
+
+/* =========================================================
+   CATEGORY ORDER
+========================================================= */
 
 const categoryOrder = [
   "OFFICE",
@@ -44,10 +84,208 @@ const categoryOrder = [
 const QR_SIZE_PX = 300;
 
 const QR_OPTIONS = {
-  width: QR_SIZE_PX,
-  margin: 1,
-  errorCorrectionLevel: "H" as const,
+  width:
+    QR_SIZE_PX,
+
+  margin:
+    1,
+
+  errorCorrectionLevel:
+    "H" as const,
 };
+
+/* =========================================================
+   NORMALIZE CODE
+========================================================= */
+
+function normalizeCode(
+  value: string
+) {
+  return String(
+    value ?? ""
+  )
+    .trim()
+    .toUpperCase();
+}
+
+/* =========================================================
+   NATURAL MATERIAL SORT
+
+   สำคัญ:
+   ใช้เพื่อ "เรียงรายการ" เท่านั้น
+
+   ไม่ใช้ตัวเลขในรหัสเป็นเลขลำดับ
+
+   ตัวอย่าง:
+   COM-1
+   COM-2
+   COM-9
+   COM-10
+   COM-11
+
+   จะเรียงถูกต้อง
+
+   แต่ลำดับ PDF จะเป็น:
+   1
+   2
+   3
+   4
+   5
+
+   ไม่ใช่:
+   1
+   2
+   9
+   10
+   11
+========================================================= */
+
+function compareMaterialCode(
+  a: Material,
+  b: Material
+) {
+  const codeA =
+    normalizeCode(
+      a.code
+    );
+
+  const codeB =
+    normalizeCode(
+      b.code
+    );
+
+  const compare =
+    codeA.localeCompare(
+      codeB,
+      "th",
+      {
+        numeric: true,
+        sensitivity:
+          "base",
+      }
+    );
+
+  if (
+    compare !== 0
+  ) {
+    return compare;
+  }
+
+  /* =======================================================
+     ถ้ารหัสเหมือนกัน
+     เรียงชื่อ
+  ======================================================= */
+
+  const nameCompare =
+    a.name.localeCompare(
+      b.name,
+      "th",
+      {
+        numeric: true,
+        sensitivity:
+          "base",
+      }
+    );
+
+  if (
+    nameCompare !== 0
+  ) {
+    return nameCompare;
+  }
+
+  /* =======================================================
+     LAST FALLBACK
+
+     ใช้ ID เฉพาะกันผล sort ไม่แน่นอน
+     ไม่เกี่ยวกับเลขลำดับที่แสดง
+  ======================================================= */
+
+  return (
+    a.id -
+    b.id
+  );
+}
+
+/* =========================================================
+   BUILD MATERIAL GROUPS
+
+   จุดแก้หลัก:
+
+   แต่ละหมวดจะสร้าง sequence ใหม่เอง
+
+   OFFICE
+   1..n
+
+   COMPUTER
+   1..n
+
+   ELECTRIC
+   1..n
+
+   HOUSEHOLD
+   1..n
+
+   VEHICLE
+   1..n
+
+   PRINTING
+   1..n
+========================================================= */
+
+function buildMaterialGroups(
+  materials: Material[]
+): MaterialGroup[] {
+  return categoryOrder
+    .map(
+      (
+        category
+      ): MaterialGroup => {
+        const categoryMaterials =
+          materials
+            .filter(
+              (
+                material
+              ) =>
+                material.category ===
+                category
+            )
+            .sort(
+              compareMaterialCode
+            )
+            .map(
+              (
+                material,
+                index
+              ) => ({
+                ...material,
+
+                /* =========================================
+                   ลำดับใหม่จริงของหมวด
+
+                   ไม่ใช้:
+                   - material.id
+                   - เลขใน material.code
+                   - index ของ array รวม
+                ========================================= */
+
+                sequence:
+                  index + 1,
+              })
+            );
+
+        return {
+          category,
+          materials:
+            categoryMaterials,
+        };
+      }
+    )
+    .filter(
+      (group) =>
+        group.materials
+          .length > 0
+    );
+}
 
 /* =========================================================
    COMPONENT
@@ -56,23 +294,36 @@ const QR_OPTIONS = {
 export default function QRCodePdf({
   materials,
 }: Props) {
-  const [error, setError] = useState("");
+  const [
+    error,
+    setError,
+  ] =
+    useState("");
+
+  /* =======================================================
+     CREATE PDF
+  ======================================================= */
 
   useEffect(() => {
-    let objectUrl: string | null = null;
-    let cancelled = false;
+    let objectUrl:
+      string | null =
+      null;
+
+    let cancelled =
+      false;
 
     async function createPdf() {
       try {
         setError("");
 
-        /* =====================================================
+        /* =================================================
            VALIDATE
-        ===================================================== */
+        ================================================= */
 
         if (
           !materials ||
-          materials.length === 0
+          materials.length ===
+            0
         ) {
           setError(
             "ยังไม่มีรายการพัสดุสำหรับสร้าง QR Code"
@@ -81,206 +332,203 @@ export default function QRCodePdf({
           return;
         }
 
-        /* =====================================================
-           PDF CONFIGURATION
-        ===================================================== */
+        /* =================================================
+           GROUP + SORT + SEQUENCE
 
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4",
-          compress: true,
-        });
+           ทำก่อนสร้าง PDF
+
+           เลข sequence จะต่อเนื่อง
+           แยกใหม่ทุกหมวด
+        ================================================= */
+
+        const groupedMaterials =
+          buildMaterialGroups(
+            materials
+          );
+
+        if (
+          groupedMaterials.length ===
+          0
+        ) {
+          setError(
+            "ไม่พบรายการพัสดุสำหรับสร้าง QR Code"
+          );
+
+          return;
+        }
+
+        /* =================================================
+           PDF CONFIGURATION
+        ================================================= */
+
+        const doc =
+          new jsPDF({
+            orientation:
+              "portrait",
+
+            unit:
+              "mm",
+
+            format:
+              "a4",
+
+            compress:
+              true,
+          });
 
         doc.setFont(
           "2.3.2 THSarabunNew",
           "normal"
         );
 
-        const pageWidth = 210;
+        /* =================================================
+           PAGE SIZE
+        ================================================= */
 
-        const marginX = 10;
-        const marginY = 10;
+        const pageWidth =
+          210;
 
-        const columns = 4;
+        const marginX =
+          10;
 
-        const gapX = 3;
-        const gapY = 5;
+        const marginY =
+          10;
+
+        /* =================================================
+           GRID
+        ================================================= */
+
+        const columns =
+          4;
+
+        const gapX =
+          3;
+
+        const gapY =
+          5;
 
         const cardWidth =
-          (pageWidth -
-            marginX * 2 -
-            gapX * (columns - 1)) /
+          (
+            pageWidth -
+            marginX *
+              2 -
+            gapX *
+              (
+                columns -
+                1
+              )
+          ) /
           columns;
 
-        const cardHeight = 58;
+        /*
+         * เดิม 58 mm
+         *
+         * เพิ่มเล็กน้อยเพื่อรองรับ
+         * "ลำดับ" + "รหัสพัสดุ"
+         */
 
-        const itemsPerPage = 16;
+        const cardHeight =
+          61;
 
-        /* =====================================================
-           GROUP MATERIALS
-           เรียงหมวดตามลำดับเดิม
-        ===================================================== */
+        const itemsPerPage =
+          16;
 
-        const groupedMaterials =
-          categoryOrder
-            .map((category) => ({
-              category,
+        const qrSize =
+          35;
 
-              materials: materials
-                .filter(
-                  (material) =>
-                    material.category ===
-                    category
-                )
-                .sort((a, b) => {
-                  /* ===========================================
-                     ดึงตัวเลขจากรหัส
-                  =========================================== */
+        let isFirstPage =
+          true;
 
-                  const aNumberText =
-                    a.code.replace(
-                      /\D/g,
-                      ""
-                    );
+        /* =================================================
+           CREATE CATEGORY BY CATEGORY
+        ================================================= */
 
-                  const bNumberText =
-                    b.code.replace(
-                      /\D/g,
-                      ""
-                    );
-
-                  const aCode =
-                    aNumberText
-                      ? Number(
-                          aNumberText
-                        )
-                      : Number.NaN;
-
-                  const bCode =
-                    bNumberText
-                      ? Number(
-                          bNumberText
-                        )
-                      : Number.NaN;
-
-                  /* ===========================================
-                     เรียงรหัสตัวเลขจริง
-                     1, 2, 9, 10, 110, 111
-                  =========================================== */
-
-                  if (
-                    !Number.isNaN(
-                      aCode
-                    ) &&
-                    !Number.isNaN(
-                      bCode
-                    )
-                  ) {
-                    if (
-                      aCode !== bCode
-                    ) {
-                      return (
-                        aCode - bCode
-                      );
-                    }
-
-                    return a.id - b.id;
-                  }
-
-                  /* ===========================================
-                     FALLBACK NATURAL SORT
-                  =========================================== */
-
-                  const codeCompare =
-                    a.code.localeCompare(
-                      b.code,
-                      "th",
-                      {
-                        numeric: true,
-                        sensitivity:
-                          "base",
-                      }
-                    );
-
-                  if (
-                    codeCompare !== 0
-                  ) {
-                    return codeCompare;
-                  }
-
-                  return a.id - b.id;
-                }),
-            }))
-            .filter(
-              (group) =>
-                group.materials
-                  .length > 0
-            );
-
-        let isFirstPage = true;
-
-        /* =====================================================
-           CREATE PDF
-        ===================================================== */
-
-        for (const group of groupedMaterials) {
-          if (cancelled) {
+        for (
+          const group of
+            groupedMaterials
+        ) {
+          if (
+            cancelled
+          ) {
             return;
           }
 
           const category =
             categoryName[
               group.category
-            ] ?? group.category;
+            ] ??
+            group.category;
 
           const categoryMaterials =
             group.materials;
 
-          let itemIndex = 0;
+          let itemIndex =
+            0;
 
-          /* ===================================================
-             16 รายการ / หน้า
+          /* =================================================
+             16 ITEMS / PAGE
              4 COLUMNS x 4 ROWS
-          =================================================== */
+          ================================================= */
 
           while (
             itemIndex <
             categoryMaterials.length
           ) {
-            if (cancelled) {
+            if (
+              cancelled
+            ) {
               return;
             }
 
-            if (!isFirstPage) {
+            /* ===============================================
+               NEW PAGE
+            =============================================== */
+
+            if (
+              !isFirstPage
+            ) {
               doc.addPage();
             }
 
-            isFirstPage = false;
+            isFirstPage =
+              false;
 
-            /* =================================================
-               CATEGORY HEADER
-            ================================================= */
+            /* ===============================================
+               CATEGORY TITLE
+            =============================================== */
 
             doc.setFont(
               "2.3.2 THSarabunNew",
               "normal"
             );
 
-            doc.setFontSize(18);
+            doc.setFontSize(
+              18
+            );
 
             doc.text(
               category,
               pageWidth / 2,
               7,
               {
-                align: "center",
+                align:
+                  "center",
               }
             );
 
-            /* =================================================
-               MATERIALS FOR CURRENT PAGE
-            ================================================= */
+            /* ===============================================
+               CURRENT PAGE
+
+               sequence ถูกสร้างไว้ก่อนแล้ว
+               ดังนั้นเปลี่ยนหน้าแล้วไม่เริ่มใหม่
+
+               เช่น:
+               หน้า 1 = 1-16
+               หน้า 2 = 17-32
+
+               แต่เมื่อเปลี่ยน category:
+               เริ่ม 1 ใหม่
+            =============================================== */
 
             const pageMaterials =
               categoryMaterials.slice(
@@ -289,24 +537,28 @@ export default function QRCodePdf({
                   itemsPerPage
               );
 
-            /* =================================================
+            /* ===============================================
                GENERATE QR CODES IN PARALLEL
-
-               เดิม:
-               await ทีละ QR
-
-               ใหม่:
-               สร้าง QR สูงสุด 16 รายการพร้อมกัน
-            ================================================= */
+            =============================================== */
 
             const qrResults =
               await Promise.all(
                 pageMaterials.map(
-                  async (material) => {
+                  async (
+                    material
+                  ) => {
+                    /* =====================================
+                       QR URL
+
+                       ใช้ material.id จริง
+                       ไม่ใช้ sequence
+                    ===================================== */
+
                     const materialUrl =
                       new URL(
                         `/stock-card/material/${material.id}/pdf`,
-                        window.location
+                        window
+                          .location
                           .origin
                       ).toString();
 
@@ -324,49 +576,67 @@ export default function QRCodePdf({
                 )
               );
 
-            if (cancelled) {
+            if (
+              cancelled
+            ) {
               return;
             }
 
-            /* =================================================
+            /* ===============================================
                DRAW MATERIAL CARDS
-            ================================================= */
+            =============================================== */
 
             for (
-              let position = 0;
+              let position =
+                0;
+
               position <
               qrResults.length;
+
               position++
             ) {
               const {
                 material,
                 qrDataUrl,
               } =
-                qrResults[position];
+                qrResults[
+                  position
+                ];
+
+              /* =============================================
+                 POSITION
+              ============================================= */
 
               const column =
-                position % columns;
+                position %
+                columns;
 
-              const row = Math.floor(
-                position / columns
-              );
+              const row =
+                Math.floor(
+                  position /
+                    columns
+                );
 
               const x =
                 marginX +
                 column *
-                  (cardWidth +
-                    gapX);
+                  (
+                    cardWidth +
+                    gapX
+                  );
 
               const y =
                 marginY +
                 5 +
                 row *
-                  (cardHeight +
-                    gapY);
+                  (
+                    cardHeight +
+                    gapY
+                  );
 
-              /* ===============================================
+              /* =============================================
                  CARD BORDER
-              =============================================== */
+              ============================================= */
 
               doc.setDrawColor(
                 0,
@@ -385,19 +655,52 @@ export default function QRCodePdf({
                 cardHeight
               );
 
-              /* ===============================================
-                 QR CODE
-              =============================================== */
+              /* =============================================
+                 SEQUENCE
 
-              const qrSize = 35;
+                 เลขลำดับใหม่
+                 ต่อเนื่องเฉพาะภายในหมวด
+
+                 ตัวอย่าง:
+                 COMPUTER 1,2,3...
+                 PRINTING 1,2,3...
+              ============================================= */
+
+              doc.setFont(
+                "2.3.2 THSarabunNew",
+                "normal"
+              );
+
+              doc.setFontSize(
+                11
+              );
+
+              doc.text(
+                `ลำดับ ${material.sequence}`,
+                x +
+                  cardWidth /
+                    2,
+                y + 4,
+                {
+                  align:
+                    "center",
+                }
+              );
+
+              /* =============================================
+                 QR CODE
+              ============================================= */
 
               const qrX =
                 x +
-                (cardWidth -
-                  qrSize) /
+                (
+                  cardWidth -
+                  qrSize
+                ) /
                   2;
 
-              const qrY = y + 3;
+              const qrY =
+                y + 6;
 
               doc.addImage(
                 qrDataUrl,
@@ -410,16 +713,21 @@ export default function QRCodePdf({
                 "FAST"
               );
 
-              /* ===============================================
+              /* =============================================
                  MATERIAL CODE
-              =============================================== */
+
+                 รหัสจริงจาก Database
+                 ห้ามแก้ตาม sequence
+              ============================================= */
 
               doc.setFont(
                 "2.3.2 THSarabunNew",
                 "normal"
               );
 
-              doc.setFontSize(11);
+              doc.setFontSize(
+                11
+              );
 
               doc.text(
                 `รหัสพัสดุ : ${
@@ -427,25 +735,30 @@ export default function QRCodePdf({
                   "-"
                 }`,
                 x +
-                  cardWidth / 2,
-                y + 42,
+                  cardWidth /
+                    2,
+                y + 44,
                 {
-                  align: "center",
+                  align:
+                    "center",
                 }
               );
 
-              /* ===============================================
+              /* =============================================
                  MATERIAL NAME
-              =============================================== */
+              ============================================= */
 
-              doc.setFontSize(9);
+              doc.setFontSize(
+                9
+              );
 
               const name =
                 material.name ||
                 "-";
 
               const maxWidth =
-                cardWidth - 4;
+                cardWidth -
+                4;
 
               const lines =
                 doc.splitTextToSize(
@@ -454,25 +767,39 @@ export default function QRCodePdf({
                 );
 
               doc.text(
-                lines.slice(0, 2),
+                lines.slice(
+                  0,
+                  2
+                ),
                 x +
-                  cardWidth / 2,
-                y + 48,
+                  cardWidth /
+                    2,
+                y + 50,
                 {
-                  align: "center",
+                  align:
+                    "center",
                 }
               );
             }
 
+            /* ===============================================
+               NEXT PAGE
+
+               itemIndex ใช้แค่แบ่งหน้า
+               ไม่ได้ใช้สร้างเลขลำดับ
+            =============================================== */
+
             itemIndex +=
               itemsPerPage;
 
-            /* =================================================
-               เปิดโอกาสให้ Browser render ระหว่างสร้างหลายหน้า
-            ================================================= */
+            /* ===============================================
+               ALLOW BROWSER TO RENDER
+            =============================================== */
 
             await new Promise<void>(
-              (resolve) => {
+              (
+                resolve
+              ) => {
                 setTimeout(
                   resolve,
                   0
@@ -482,32 +809,39 @@ export default function QRCodePdf({
           }
         }
 
-        /* =====================================================
+        /* =================================================
            CANCEL CHECK
-        ===================================================== */
+        ================================================= */
 
-        if (cancelled) {
+        if (
+          cancelled
+        ) {
           return;
         }
 
-        /* =====================================================
+        /* =================================================
            CREATE PDF BLOB
-        ===================================================== */
+        ================================================= */
 
         const blob =
-          doc.output("blob");
+          doc.output(
+            "blob"
+          );
+
+        if (
+          cancelled
+        ) {
+          return;
+        }
 
         objectUrl =
           URL.createObjectURL(
             blob
           );
 
-        /* =====================================================
+        /* =================================================
            OPEN GENERATED PDF
-
-           ใช้ replace เหมือนเดิม
-           ไม่เพิ่ม history ซ้ำ
-        ===================================================== */
+        ================================================= */
 
         window.location.replace(
           objectUrl
@@ -518,7 +852,9 @@ export default function QRCodePdf({
           err
         );
 
-        if (!cancelled) {
+        if (
+          !cancelled
+        ) {
           setError(
             "ไม่สามารถสร้าง QR Code PDF ได้ กรุณาลองใหม่อีกครั้ง"
           );
@@ -526,25 +862,29 @@ export default function QRCodePdf({
       }
     }
 
-    createPdf();
+    void createPdf();
 
-    /* =======================================================
+    /* =====================================================
        CLEANUP
-    ======================================================= */
+    ===================================================== */
 
     return () => {
-      cancelled = true;
+      cancelled =
+        true;
 
-      if (objectUrl) {
-        URL.revokeObjectURL(
-          objectUrl
-        );
-      }
+      /*
+       * ไม่ revoke ก่อน browser เปิด blob
+       *
+       * document จะถูก unload
+       * หลัง window.location.replace()
+       */
     };
-  }, [materials]);
+  }, [
+    materials,
+  ]);
 
   /* =========================================================
-     LOADING / ERROR SCREEN
+     LOADING / ERROR
   ========================================================= */
 
   return (
@@ -553,8 +893,11 @@ export default function QRCodePdf({
         flex
         min-h-[calc(100vh-180px)]
         w-full
+        min-w-0
+
         items-center
         justify-center
+
         px-4
         py-10
       "
@@ -562,23 +905,33 @@ export default function QRCodePdf({
       <div
         className="
           relative
+
           w-full
           max-w-md
+
           overflow-hidden
+
           rounded-[30px]
+
           border
           border-white/80
+
           bg-white/80
+
           p-7
+
           text-center
+
           shadow-[0_24px_70px_-32px_rgba(15,23,42,0.4)]
+
           backdrop-blur-2xl
+
           sm:p-9
         "
       >
-        {/* ===================================================
+        {/* =================================================
             AMBIENT GLOW
-        =================================================== */}
+        ================================================= */}
 
         <div
           aria-hidden="true"
@@ -587,10 +940,14 @@ export default function QRCodePdf({
             absolute
             -right-16
             -top-16
+
             h-40
             w-40
+
             rounded-full
+
             bg-blue-400/10
+
             blur-3xl
           "
         />
@@ -602,17 +959,21 @@ export default function QRCodePdf({
             absolute
             -bottom-20
             -left-16
+
             h-44
             w-44
+
             rounded-full
+
             bg-cyan-400/10
+
             blur-3xl
           "
         />
 
-        {/* ===================================================
+        {/* =================================================
             TOP HIGHLIGHT
-        =================================================== */}
+        ================================================= */}
 
         <div
           aria-hidden="true"
@@ -621,11 +982,14 @@ export default function QRCodePdf({
             absolute
             inset-x-8
             top-0
+
             h-px
+
             bg-gradient-to-r
             from-transparent
             via-white
             to-transparent
+
             opacity-90
           "
         />
@@ -633,24 +997,32 @@ export default function QRCodePdf({
         <div className="relative">
           {error ? (
             <>
-              {/* ===============================================
+              {/* =============================================
                   ERROR ICON
-              =============================================== */}
+              ============================================= */}
 
               <div
                 className="
                   mx-auto
+
                   flex
                   h-20
                   w-20
+
                   items-center
                   justify-center
+
                   rounded-[24px]
+
                   border
                   border-red-100
+
                   bg-red-50/90
+
                   text-4xl
+
                   shadow-[0_14px_30px_-20px_rgba(239,68,68,0.5)]
+
                   backdrop-blur-xl
                 "
               >
@@ -660,9 +1032,11 @@ export default function QRCodePdf({
               <h1
                 className="
                   mt-6
+
                   text-2xl
                   font-black
                   tracking-tight
+
                   !text-slate-900
                 "
               >
@@ -673,22 +1047,21 @@ export default function QRCodePdf({
               <p
                 className="
                   mt-2
+
                   text-base
                   font-semibold
                   leading-relaxed
+
                   !text-slate-500
                 "
               >
                 {error}
               </p>
 
-              {/* ===============================================
-                  BACK BUTTON
-              =============================================== */}
-
               <div
                 className="
                   mt-6
+
                   flex
                   justify-center
                 "
@@ -698,7 +1071,9 @@ export default function QRCodePdf({
                   variant="back"
                   size="md"
                   icon={
-                    <span>←</span>
+                    <span>
+                      ←
+                    </span>
                   }
                 >
                   กลับ
@@ -707,24 +1082,31 @@ export default function QRCodePdf({
             </>
           ) : (
             <>
-              {/* ===============================================
+              {/* =============================================
                   QR ICON
-              =============================================== */}
+              ============================================= */}
 
               <div
                 className="
                   mx-auto
+
                   flex
                   h-20
                   w-20
+
                   items-center
                   justify-center
+
                   rounded-[24px]
+
                   bg-gradient-to-br
                   from-slate-800
                   to-slate-950
+
                   text-4xl
+
                   shadow-[0_18px_38px_-20px_rgba(15,23,42,0.7)]
+
                   ring-1
                   ring-white/20
                 "
@@ -735,9 +1117,11 @@ export default function QRCodePdf({
               <h1
                 className="
                   mt-6
+
                   text-2xl
                   font-black
                   tracking-tight
+
                   !text-slate-900
                 "
               >
@@ -748,9 +1132,11 @@ export default function QRCodePdf({
               <p
                 className="
                   mt-2
+
                   text-base
                   font-semibold
                   leading-relaxed
+
                   !text-slate-500
                 "
               >
@@ -759,17 +1145,19 @@ export default function QRCodePdf({
                 สำหรับรายการพัสดุทั้งหมด
               </p>
 
-              {/* ===============================================
-                  PROGRESS
-              =============================================== */}
+              {/* =============================================
+                  LOADING
+              ============================================= */}
 
               <div
                 className="
                   mx-auto
                   mt-6
+
                   flex
                   items-center
                   justify-center
+
                   gap-2
                 "
               >
@@ -777,9 +1165,13 @@ export default function QRCodePdf({
                   className="
                     h-2.5
                     w-2.5
+
                     animate-bounce
+
                     rounded-full
+
                     bg-slate-900
+
                     [animation-delay:-0.3s]
                   "
                 />
@@ -788,9 +1180,13 @@ export default function QRCodePdf({
                   className="
                     h-2.5
                     w-2.5
+
                     animate-bounce
+
                     rounded-full
+
                     bg-slate-600
+
                     [animation-delay:-0.15s]
                   "
                 />
@@ -799,34 +1195,48 @@ export default function QRCodePdf({
                   className="
                     h-2.5
                     w-2.5
+
                     animate-bounce
+
                     rounded-full
+
                     bg-slate-400
                   "
                 />
               </div>
 
-              {/* ===============================================
+              {/* =============================================
                   MATERIAL COUNT
-              =============================================== */}
+              ============================================= */}
 
               <div
                 className="
                   mt-6
+
                   rounded-[16px]
+
                   border
                   border-slate-200/80
+
                   bg-slate-50/80
+
                   px-4
                   py-3
+
                   text-sm
                   font-bold
+
                   !text-slate-500
+
                   shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]
+
                   backdrop-blur-xl
                 "
               >
-                พบ {materials.length}{" "}
+                พบ{" "}
+                {materials.length.toLocaleString(
+                  "th-TH"
+                )}{" "}
                 รายการ
               </div>
             </>
