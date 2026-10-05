@@ -19,6 +19,9 @@ type Props = {
   category: string;
   defaultSearch?: string;
   resultCount?: number;
+
+  fiscalYear:
+    number;
 };
 
 /* =========================================================
@@ -29,37 +32,64 @@ export default function SearchStockCard({
   category,
   defaultSearch = "",
   resultCount,
+  fiscalYear,
 }: Props) {
-  const router = useRouter();
+  const router =
+    useRouter();
 
   const [
     search,
     setSearch,
-  ] = useState(defaultSearch);
+  ] =
+    useState(
+      defaultSearch
+    );
 
   /* =======================================================
      SYNC DEFAULT SEARCH
   ======================================================= */
 
-  useEffect(() => {
-    setSearch(defaultSearch);
-  }, [defaultSearch]);
+  useEffect(
+    () => {
+      setSearch(
+        defaultSearch
+      );
+    },
+    [
+      defaultSearch,
+    ]
+  );
+
+  /* =======================================================
+     BASE URL
+
+     ต้องรักษา fiscalYear ไว้เสมอ
+
+     เช่น:
+     /stock-card/COMPUTER?fiscalYear=2570
+  ======================================================= */
+
+  const baseUrl =
+    `/stock-card/${category}?fiscalYear=${fiscalYear}`;
 
   /* =======================================================
      SUBMIT
   ======================================================= */
 
   function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>
+    event:
+      React.FormEvent<HTMLFormElement>
   ) {
     event.preventDefault();
 
     const keyword =
       search.trim();
 
-    if (keyword) {
+    if (
+      keyword
+    ) {
       router.push(
-        `/stock-card/${category}?search=${encodeURIComponent(
+        `${baseUrl}&search=${encodeURIComponent(
           keyword
         )}`
       );
@@ -68,19 +98,24 @@ export default function SearchStockCard({
     }
 
     router.push(
-      `/stock-card/${category}`
+      baseUrl
     );
   }
 
   /* =======================================================
      CLEAR
+
+     ล้างเฉพาะ search
+     แต่ต้องคง fiscalYear เดิม
   ======================================================= */
 
   function handleClear() {
-    setSearch("");
+    setSearch(
+      ""
+    );
 
     router.push(
-      `/stock-card/${category}`
+      baseUrl
     );
   }
 
@@ -90,7 +125,9 @@ export default function SearchStockCard({
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="
         w-full
         min-w-0
@@ -103,8 +140,10 @@ export default function SearchStockCard({
       <div
         className="
           relative
+
           w-full
           min-w-0
+
           overflow-hidden
 
           rounded-[22px]
@@ -129,7 +168,9 @@ export default function SearchStockCard({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
+
             -left-20
             -top-24
 
@@ -148,7 +189,9 @@ export default function SearchStockCard({
           aria-hidden="true"
           className="
             pointer-events-none
+
             absolute
+
             -bottom-24
             right-0
 
@@ -184,7 +227,6 @@ export default function SearchStockCard({
         >
           {/* ===============================================
               SEARCH INPUT
-              ไม่มีไอคอนในช่อง
           =============================================== */}
 
           <div
@@ -196,14 +238,18 @@ export default function SearchStockCard({
             <input
               id="stock-card-search"
               type="search"
-              value={search}
+              value={
+                search
+              }
               autoComplete="off"
               aria-label="ค้นหารหัสพัสดุหรือรายการพัสดุ"
               onChange={(
                 event
               ) =>
                 setSearch(
-                  event.target.value
+                  event
+                    .target
+                    .value
                 )
               }
               placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
@@ -214,8 +260,8 @@ export default function SearchStockCard({
 
                 rounded-[14px]
 
-                border
-                border-slate-300
+                border-2
+                !border-black
 
                 bg-white
 
@@ -223,6 +269,7 @@ export default function SearchStockCard({
 
                 text-sm
                 font-bold
+
                 !text-slate-900
 
                 shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
@@ -235,7 +282,7 @@ export default function SearchStockCard({
                 placeholder:font-semibold
                 placeholder:!text-slate-400
 
-                hover:border-slate-400
+                hover:border-slate-700
 
                 focus:border-blue-500
                 focus:bg-white
@@ -282,9 +329,11 @@ export default function SearchStockCard({
             <div
               className="
                 inline-flex
+
                 h-11
                 w-full
                 shrink-0
+
                 items-center
                 justify-center
 
@@ -301,6 +350,7 @@ export default function SearchStockCard({
 
                 text-xs
                 font-extrabold
+
                 !text-slate-600
 
                 shadow-sm
@@ -315,8 +365,10 @@ export default function SearchStockCard({
               <span
                 className="
                   inline-flex
+
                   h-7
                   min-w-7
+
                   items-center
                   justify-center
 
@@ -332,6 +384,7 @@ export default function SearchStockCard({
                   text-[11px]
                   font-black
                   tabular-nums
+
                   !text-slate-800
 
                   shadow-sm
@@ -342,7 +395,11 @@ export default function SearchStockCard({
                 )}
               </span>
 
-              <span className="whitespace-nowrap">
+              <span
+                className="
+                  whitespace-nowrap
+                "
+              >
                 รายการ
               </span>
             </div>
@@ -378,6 +435,70 @@ export default function SearchStockCard({
               ล้าง
             </AppButton>
           )}
+        </div>
+
+        {/* =================================================
+            CURRENT FISCAL YEAR
+        ================================================= */}
+
+        <div
+          className="
+            relative
+
+            mt-3
+
+            flex
+            flex-wrap
+            items-center
+
+            gap-2
+
+            border-t
+            border-slate-200/80
+
+            pt-3
+          "
+        >
+          <span
+            className="
+              text-xs
+              font-extrabold
+
+              !text-slate-500
+
+              sm:text-sm
+            "
+          >
+            กำลังค้นหาใน:
+          </span>
+
+          <span
+            className="
+              inline-flex
+
+              items-center
+              justify-center
+
+              rounded-full
+
+              bg-slate-100
+
+              px-3
+              py-1.5
+
+              text-xs
+              font-extrabold
+
+              !text-slate-700
+
+              sm:text-sm
+            "
+          >
+            ปีงบประมาณ{" "}
+            {
+              fiscalYear
+            }
+          </span>
         </div>
       </div>
     </form>
