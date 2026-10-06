@@ -152,7 +152,7 @@ const CATEGORY_NAMES:
 };
 
 /* =========================================================
-   PDF PAGE
+   PDF
 ========================================================= */
 
 const PAGE_WIDTH =
@@ -168,15 +168,23 @@ const MARGIN_X =
   ) /
   2;
 
+/*
+ * หัวกระดาษ 3 บรรทัด
+ */
 const TABLE_START_Y =
-  22;
+  30;
 
+/*
+ * ให้กรรมการอยู่ใกล้ตาราง
+ * แต่เว้นช่องไฟ 6 มม.
+ */
 const SIGNATURE_GAP =
-  10;
+  6;
 
-const SIGNATURE_MIN_START_Y =
-  170;
-
+/*
+ * จำนวนรายการจริงต่อหน้า
+ * แถวชื่อหมวดไม่ถูกนับ
+ */
 const ROWS_PER_PAGE =
   15;
 
@@ -238,7 +246,7 @@ const COLUMN_WIDTHS = {
 } as const;
 
 /* =========================================================
-   DATE
+   THAI MONTH
 ========================================================= */
 
 const THAI_MONTHS = [
@@ -256,56 +264,72 @@ const THAI_MONTHS = [
   "ธันวาคม",
 ];
 
-function formatThaiDate(
-  value:
-    string
-) {
-  if (
-    !value
-  ) {
-    return "";
-  }
+/* =========================================================
+   CURRENT THAI MONTH / YEAR
+   Asia/Bangkok
+========================================================= */
+
+function getCurrentThaiMonthYear() {
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "numeric",
+      }
+    );
 
   const parts =
-    value
-      .split("-")
-      .map(
-        Number
-      );
+    formatter.formatToParts(
+      new Date()
+    );
 
-  if (
-    parts.length !==
-      3 ||
-    parts.some(
-      Number.isNaN
-    )
-  ) {
-    return "";
-  }
+  const year =
+    Number(
+      parts.find(
+        (
+          part
+        ) =>
+          part.type ===
+          "year"
+      )?.value
+    );
 
-  const [
-    year,
-    month,
-    day,
-  ] =
-    parts;
+  const month =
+    Number(
+      parts.find(
+        (
+          part
+        ) =>
+          part.type ===
+          "month"
+      )?.value
+    );
 
-  return `${day} ${THAI_MONTHS[
-    month -
-      1
-  ]} ${year + 543}`;
+  return {
+    monthName:
+      THAI_MONTHS[
+        month -
+          1
+      ] ||
+      "",
+
+    buddhistYear:
+      year +
+      543,
+  };
 }
 
 /* =========================================================
-   NUMBER
+   STOCK NUMBER
 
-   ใช้เฉพาะ:
-   - ยอดยกมา
-   - รับ
-   - จ่าย
-   - คงเหลือ
-
-   ไม่มีค่า / 0 = "-"
+   0 / ไม่มีค่า = "-"
 ========================================================= */
 
 function formatStockNumber(
@@ -334,9 +358,9 @@ function formatStockNumber(
 }
 
 /* =========================================================
-   OTHER INPUT VALUE
+   OTHER VALUE
 
-   ช่องอื่นไม่มีค่า = ช่องว่าง
+   ไม่มีค่า / 0 = ช่องว่าง
 ========================================================= */
 
 function displayInputValue(
@@ -350,10 +374,21 @@ function displayInputValue(
     ).trim();
 
   if (
-    !clean ||
+    !clean
+  ) {
+    return "";
+  }
+
+  const numberValue =
     Number(
       clean
-    ) ===
+    );
+
+  if (
+    Number.isFinite(
+      numberValue
+    ) &&
+    numberValue ===
       0
   ) {
     return "";
@@ -373,6 +408,12 @@ function getOfficer(
   officers:
     Officer[]
 ) {
+  if (
+    !officerId
+  ) {
+    return undefined;
+  }
+
   return officers.find(
     (
       officer
@@ -385,26 +426,19 @@ function getOfficer(
 }
 
 /* =========================================================
-   ACCURACY
+   PDF DISPLAY ROW
 ========================================================= */
 
-function getAccuracyChecked(
-  row:
-    InspectionRow,
+type PdfCategoryRow = {
+  type:
+    "category";
 
-  value:
-    "CORRECT" |
-    "INCORRECT"
-) {
-  return row.accuracy ===
-    value
-    ? "✓"
-    : "";
-}
+  category:
+    string;
 
-/* =========================================================
-   BUILD PDF PAGES
-========================================================= */
+  label:
+    string;
+};
 
 type PdfMaterialRow = {
   type:
@@ -420,20 +454,20 @@ type PdfMaterialRow = {
     MaterialRow;
 };
 
-type PdfCategoryRow = {
-  type:
-    "category";
-
-  category:
-    string;
-
-  label:
-    string;
-};
-
 type PdfDisplayRow =
   | PdfCategoryRow
   | PdfMaterialRow;
+
+/* =========================================================
+   BUILD PAGES
+
+   กติกา:
+   - 15 รายการพัสดุต่อหน้า
+   - ชื่อหมวดขึ้นเฉพาะครั้งแรก
+   - ถ้าหมวดเดิมล้นไปหน้าถัดไป
+     ไม่เขียนชื่อหมวดซ้ำ
+   - ลำดับเริ่มใหม่เมื่อขึ้นหมวดใหม่
+========================================================= */
 
 function buildPdfPages(
   materials:
@@ -447,7 +481,7 @@ function buildPdfPages(
     PdfDisplayRow[] =
     [];
 
-  let materialCount =
+  let materialCountOnPage =
     0;
 
   CATEGORY_ORDER.forEach(
@@ -470,6 +504,13 @@ function buildPdfPages(
         return;
       }
 
+      /*
+       * ชื่อหมวดแสดงเพียงครั้งเดียว
+       * ไม่แสดงซ้ำเมื่อขึ้นหน้าใหม่
+       */
+      let categoryHeaderPrinted =
+        false;
+
       let categoryIndex =
         0;
 
@@ -478,7 +519,7 @@ function buildPdfPages(
         categoryMaterials
       ) {
         if (
-          materialCount ===
+          materialCountOnPage >=
           ROWS_PER_PAGE
         ) {
           pages.push(
@@ -488,23 +529,12 @@ function buildPdfPages(
           currentPage =
             [];
 
-          materialCount =
+          materialCountOnPage =
             0;
         }
 
-        const hasMaterialInCategory =
-          currentPage.some(
-            (
-              row
-            ) =>
-              row.type ===
-                "material" &&
-              row.category ===
-                category
-          );
-
         if (
-          !hasMaterialInCategory
+          !categoryHeaderPrinted
         ) {
           currentPage.push(
             {
@@ -520,6 +550,9 @@ function buildPdfPages(
                 category,
             }
           );
+
+          categoryHeaderPrinted =
+            true;
         }
 
         categoryIndex +=
@@ -538,7 +571,7 @@ function buildPdfPages(
           }
         );
 
-        materialCount +=
+        materialCountOnPage +=
           1;
       }
     }
@@ -564,7 +597,7 @@ export default function ExportInspectionPdf({
   fiscalYear,
   startShortYear,
   endShortYear,
-  inspectionDate,
+  inspectionDate: _inspectionDate,
   materials,
   rows,
   inspectorIds,
@@ -579,7 +612,14 @@ export default function ExportInspectionPdf({
     );
 
   /* =======================================================
-     DOCUMENT HEADER
+     HEADER
+
+     วัน = เว้นช่องว่าง
+     เดือน/ปี = เดือนและปีปัจจุบัน
+
+     ปี 30 กันยายน
+     ใช้ fiscalYear ตามปีงบประมาณที่เลือก
+     ไม่ hardcode
   ======================================================= */
 
   function drawDocumentHeader(
@@ -589,6 +629,12 @@ export default function ExportInspectionPdf({
     const center =
       PAGE_WIDTH /
       2;
+
+    const {
+      monthName,
+      buddhistYear,
+    } =
+      getCurrentThaiMonthYear();
 
     doc.setFont(
       "2.3.2 THSarabunNew",
@@ -602,15 +648,33 @@ export default function ExportInspectionPdf({
     );
 
     doc.setFontSize(
-      16
+      14
     );
 
     doc.text(
-      `ตรวจสอบเมื่อวันที่ ${formatThaiDate(
-        inspectionDate
-      )}`,
+      `ตรวจสอบเมื่อวันที่ .................... เดือน ${monthName} พ.ศ. ${buddhistYear}`,
       center,
-      12,
+      8,
+      {
+        align:
+          "center",
+      }
+    );
+
+    doc.text(
+      `เสร็จเมื่อวันที่ .................... เดือน ${monthName} พ.ศ. ${buddhistYear}`,
+      center,
+      14,
+      {
+        align:
+          "center",
+      }
+    );
+
+    doc.text(
+      `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`,
+      center,
+      20,
       {
         align:
           "center",
@@ -645,21 +709,24 @@ export default function ExportInspectionPdf({
 
       index++
     ) {
+      const selectedInspectorId =
+        inspectorIds[
+          index
+        ] ||
+        "";
+
       const officer =
         getOfficer(
-          inspectorIds[
-            index
-          ] ||
-            "",
+          selectedInspectorId,
           officers
         );
 
-      const name =
+      const inspectorName =
         officer
           ? `${officer.firstName} ${officer.lastName}`.trim()
           : "................................";
 
-      const position =
+      const inspectorPosition =
         officer
           ?.position ||
         "................................";
@@ -682,6 +749,12 @@ export default function ExportInspectionPdf({
         "normal"
       );
 
+      doc.setTextColor(
+        0,
+        0,
+        0
+      );
+
       doc.setFontSize(
         11
       );
@@ -697,7 +770,7 @@ export default function ExportInspectionPdf({
       );
 
       doc.text(
-        `(${name})`,
+        `(${inspectorName})`,
         centerX,
         startY +
           5,
@@ -708,7 +781,7 @@ export default function ExportInspectionPdf({
       );
 
       doc.text(
-        position,
+        inspectorPosition,
         centerX,
         startY +
           10,
@@ -793,688 +866,673 @@ export default function ExportInspectionPdf({
           materials
         );
 
-      pages.forEach(
-        (
-          pageRows,
-          pageIndex
-        ) => {
-          if (
-            pageIndex >
-            0
-          ) {
-            doc.addPage(
-              "a4",
-              "landscape"
-            );
-          }
-
-          drawDocumentHeader(
-            doc
-          );
-
-          const body:
-            (
-              | string
-              | {
-                  content:
-                    string;
-
-                  colSpan?:
-                    number;
-
-                  styles?:
-                    Record<
-                      string,
-                      unknown
-                    >;
-                }
-            )[][] =
-            [];
-
-          pageRows.forEach(
-            (
-              displayRow
-            ) => {
-              if (
-                displayRow.type ===
-                "category"
-              ) {
-                body.push(
-                  [
-                    {
-                      content:
-                        displayRow.label,
-
-                      colSpan:
-                        17,
-
-                      styles: {
-                        fontStyle:
-                          "bold",
-
-                        halign:
-                          "left",
-
-                        fillColor: [
-                          226,
-                          232,
-                          240,
-                        ],
-
-                        textColor: [
-                          15,
-                          23,
-                          42,
-                        ],
-
-                        fontSize:
-                          10,
-
-                        cellPadding: {
-                          top:
-                            1.1,
-
-                          right:
-                            1,
-
-                          bottom:
-                            1.1,
-
-                          left:
-                            2,
-                        },
-                      },
-                    },
-                  ]
-                );
-
-                return;
-              }
-
-              const material =
-                displayRow.material;
-
-              const row =
-                rows.find(
-                  (
-                    item
-                  ) =>
-                    item.materialId ===
-                    material.materialId
-                ) || {
-                  materialId:
-                    material.materialId,
-
-                  accuracy:
-                    "",
-
-                  shortageQty:
-                    "",
-
-                  excessQty:
-                    "",
-
-                  baht:
-                    "",
-
-                  satang:
-                    "",
-
-                  damagedQty:
-                    "",
-
-                  deterioratedQty:
-                    "",
-
-                  unnecessaryQty:
-                    "",
-
-                  remark:
-                    "",
-                };
-
-              body.push(
-                [
-                  String(
-                    displayRow.categoryIndex
-                  ),
-
-                  material.name ||
-                    "",
-
-                  material.unit ||
-                    "",
-
-                  formatStockNumber(
-                    material.openingBalance
-                  ),
-
-                  formatStockNumber(
-                    material.receiveQty
-                  ),
-
-                  formatStockNumber(
-                    material.issueQty
-                  ),
-
-                  formatStockNumber(
-                    material.closingBalance
-                  ),
-
-                  getAccuracyChecked(
-                    row,
-                    "CORRECT"
-                  ),
-
-                  getAccuracyChecked(
-                    row,
-                    "INCORRECT"
-                  ),
-
-                  displayInputValue(
-                    row.shortageQty
-                  ),
-
-                  displayInputValue(
-                    row.excessQty
-                  ),
-
-                  displayInputValue(
-                    row.baht
-                  ),
-
-                  displayInputValue(
-                    row.satang
-                  ),
-
-                  displayInputValue(
-                    row.damagedQty
-                  ),
-
-                  displayInputValue(
-                    row.deterioratedQty
-                  ),
-
-                  displayInputValue(
-                    row.unnecessaryQty
-                  ),
-
-                  row.remark?.trim() ||
-                    "",
-                ]
-              );
-            }
-          );
-
-          /* =================================================
-             HEADER TEXT
-          ================================================= */
-
-          const openingHeaderLines =
-            [
-              "คงเหลือยอดยกมา",
-              `เมื่อ 30 ก.ย. ${startShortYear}`,
-            ];
-
-          /*
-           * วันที่เหนือช่อง รับ / จ่าย
-           * อยู่บรรทัดเดียวทั้งหมด
-           */
-          const movementHeaderLines =
-            [
-              `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`,
-            ];
-
-          /* =================================================
-             TABLE
-          ================================================= */
-
-          autoTable(
-            doc,
-            {
-              startY:
-                TABLE_START_Y,
-
-              margin: {
-                left:
-                  MARGIN_X,
-
-                right:
-                  MARGIN_X,
-              },
-
-              tableWidth:
-                TABLE_WIDTH,
-
-              theme:
-                "grid",
-
-              head: [
-                [
-                  {
-                    content:
-                      "ลำดับ",
-
-                    rowSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      "รายการพัสดุ",
-
-                    rowSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      "หน่วยนับ",
-
-                    rowSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      openingHeaderLines.join(
-                        "\n"
-                      ),
-
-                    rowSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      movementHeaderLines.join(
-                        "\n"
-                      ),
-
-                    colSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      "คงเหลือ",
-
-                    colSpan:
-                      1,
-                  },
-
-                  {
-                    content:
-                      "ผลการตรวจสอบ",
-
-                    colSpan:
-                      2,
-                  },
-
-                  {
-                    content:
-                      "ถ้าไม่ถูกต้องจำนวนที่ขาด\nจำนวนที่เกินคิดเป็นร้อยละ",
-
-                    colSpan:
-                      4,
-                  },
-
-                  {
-                    content:
-                      "จำนวนที่",
-
-                    colSpan:
-                      3,
-                  },
-
-                  {
-                    content:
-                      "หมายเหตุ",
-
-                    rowSpan:
-                      2,
-                  },
-                ],
-
-                [
-                  "รับ",
-                  "จ่าย",
-                  "ยกไป",
-                  "ถูกต้อง",
-                  "ไม่ถูกต้อง",
-                  "ขาด",
-                  "เกิน",
-                  "บาท",
-                  "สต.",
-                  "ชำรุด",
-                  "เสื่อมสภาพ",
-                  "ไม่จำเป็นต้องใช้",
-                ],
-              ],
-
-              body,
-
-              styles: {
-                font:
-                  "2.3.2 THSarabunNew",
-
-                fontStyle:
-                  "normal",
-
-                fontSize:
-                  8,
-
-                textColor: [
-                  0,
-                  0,
-                  0,
-                ],
-
-                lineColor: [
-                  0,
-                  0,
-                  0,
-                ],
-
-                lineWidth:
-                  0.25,
-
-                cellPadding:
-                  0.45,
-
-                minCellHeight:
-                  6.5,
-
-                halign:
-                  "center",
-
-                valign:
-                  "middle",
-              },
-
-              headStyles: {
-                font:
-                  "2.3.2 THSarabunNew",
-
-                fontStyle:
-                  "normal",
-
-                fontSize:
-                  7.5,
-
-                fillColor: [
-                  255,
-                  255,
-                  255,
-                ],
-
-                textColor: [
-                  0,
-                  0,
-                  0,
-                ],
-
-                lineColor: [
-                  0,
-                  0,
-                  0,
-                ],
-
-                lineWidth:
-                  0.25,
-
-                halign:
-                  "center",
-
-                valign:
-                  "middle",
-              },
-
-              columnStyles: {
-                0: {
-                  cellWidth:
-                    COLUMN_WIDTHS.order,
-                },
-
-                1: {
-                  cellWidth:
-                    COLUMN_WIDTHS.item,
-
-                  halign:
-                    "left",
-                },
-
-                2: {
-                  cellWidth:
-                    COLUMN_WIDTHS.unit,
-                },
-
-                3: {
-                  cellWidth:
-                    COLUMN_WIDTHS.opening,
-                },
-
-                4: {
-                  cellWidth:
-                    COLUMN_WIDTHS.receive,
-                },
-
-                5: {
-                  cellWidth:
-                    COLUMN_WIDTHS.issue,
-                },
-
-                6: {
-                  cellWidth:
-                    COLUMN_WIDTHS.closing,
-                },
-
-                7: {
-                  cellWidth:
-                    COLUMN_WIDTHS.correct,
-                },
-
-                8: {
-                  cellWidth:
-                    COLUMN_WIDTHS.incorrect,
-                },
-
-                9: {
-                  cellWidth:
-                    COLUMN_WIDTHS.shortage,
-                },
-
-                10: {
-                  cellWidth:
-                    COLUMN_WIDTHS.excess,
-                },
-
-                11: {
-                  cellWidth:
-                    COLUMN_WIDTHS.baht,
-                },
-
-                12: {
-                  cellWidth:
-                    COLUMN_WIDTHS.satang,
-                },
-
-                13: {
-                  cellWidth:
-                    COLUMN_WIDTHS.damaged,
-                },
-
-                14: {
-                  cellWidth:
-                    COLUMN_WIDTHS.deteriorated,
-                },
-
-                15: {
-                  cellWidth:
-                    COLUMN_WIDTHS.unnecessary,
-                },
-
-                16: {
-                  cellWidth:
-                    COLUMN_WIDTHS.remark,
-                },
-              },
-
-              didParseCell: (
-                data
-              ) => {
-                if (
-                  data.section ===
-                    "body" &&
-                  (
-                    data.column.index ===
-                      7 ||
-                    data.column.index ===
-                      8
-                  ) &&
-                  typeof data.cell.raw ===
-                    "string"
-                ) {
-                  data.cell.text =
-                    [
-                      "",
-                    ];
-                }
-              },
-
-              didDrawCell: (
-                data
-              ) => {
-                if (
-                  data.section !==
-                    "body" ||
-                  (
-                    data.column.index !==
-                      7 &&
-                    data.column.index !==
-                      8
-                  )
-                ) {
-                  return;
-                }
-
-                if (
-                  String(
-                    data.cell.raw ??
-                      ""
-                  ).trim() !==
-                  "✓"
-                ) {
-                  return;
-                }
-
-                const x =
-                  data.cell.x +
-                  data.cell.width /
-                    2;
-
-                const y =
-                  data.cell.y +
-                  data.cell.height /
-                    2;
-
-                doc.setDrawColor(
-                  0,
-                  0,
-                  0
-                );
-
-                doc.setLineWidth(
-                  0.45
-                );
-
-                doc.line(
-                  x -
-                    1.8,
-                  y,
-                  x -
-                    0.4,
-                  y +
-                    1.4
-                );
-
-                doc.line(
-                  x -
-                    0.4,
-                  y +
-                    1.4,
-                  x +
-                    2.2,
-                  y -
-                    1.6
-                );
-              },
-
-              tableLineColor: [
-                0,
-                0,
-                0,
-              ],
-
-              tableLineWidth:
-                0.25,
-
-              rowPageBreak:
-                "avoid",
-            }
-          );
-
-          const lastAutoTable =
-            (
-              doc as jsPDF & {
-                lastAutoTable?: {
-                  finalY:
-                    number;
-                };
-              }
-            ).lastAutoTable;
-
-          const signatureStartY =
-            Math.max(
-              (
-                lastAutoTable
-                  ?.finalY ??
-                TABLE_START_Y
-              ) +
-                SIGNATURE_GAP,
-
-              SIGNATURE_MIN_START_Y
-            );
-
-          drawInspectors(
-            doc,
-            signatureStartY
+      for (
+        let pageIndex =
+          0;
+
+        pageIndex <
+        pages.length;
+
+        pageIndex++
+      ) {
+        if (
+          pageIndex >
+          0
+        ) {
+          doc.addPage(
+            "a4",
+            "landscape"
           );
         }
-      );
+
+        drawDocumentHeader(
+          doc
+        );
+
+        const pageRows =
+          pages[
+            pageIndex
+          ];
+
+        const body:
+          (
+            | string
+            | {
+                content:
+                  string;
+
+                colSpan?:
+                  number;
+
+                styles?:
+                  Record<
+                    string,
+                    unknown
+                  >;
+              }
+          )[][] =
+          [];
+
+        pageRows.forEach(
+          (
+            displayRow
+          ) => {
+            /* =============================================
+               CATEGORY
+
+               ใช้ TH Sarabun normal เท่านั้น
+               ป้องกันภาษาไทยเพี้ยนจาก fontStyle bold
+            ============================================= */
+
+            if (
+              displayRow.type ===
+              "category"
+            ) {
+              body.push(
+                [
+                  {
+                    content:
+                      displayRow.label,
+
+                    colSpan:
+                      17,
+
+                    styles: {
+                      font:
+                        "2.3.2 THSarabunNew",
+
+                      fontStyle:
+                        "normal",
+
+                      fontSize:
+                        11,
+
+                      halign:
+                        "left",
+
+                      valign:
+                        "middle",
+
+                      fillColor: [
+                        226,
+                        232,
+                        240,
+                      ],
+
+                      textColor: [
+                        15,
+                        23,
+                        42,
+                      ],
+
+                      cellPadding: {
+                        top:
+                          1,
+
+                        right:
+                          1,
+
+                        bottom:
+                          1,
+
+                        left:
+                          2,
+                      },
+                    },
+                  },
+                ]
+              );
+
+              return;
+            }
+
+            const material =
+              displayRow.material;
+
+            const row =
+              rows.find(
+                (
+                  item
+                ) =>
+                  item.materialId ===
+                  material.materialId
+              ) || {
+                materialId:
+                  material.materialId,
+
+                accuracy:
+                  "",
+
+                shortageQty:
+                  "",
+
+                excessQty:
+                  "",
+
+                baht:
+                  "",
+
+                satang:
+                  "",
+
+                damagedQty:
+                  "",
+
+                deterioratedQty:
+                  "",
+
+                unnecessaryQty:
+                  "",
+
+                remark:
+                  "",
+              };
+
+            /*
+             * PDF ไม่แสดงเครื่องหมายถูก
+             * ช่องถูกต้อง / ไม่ถูกต้องเป็นช่องว่าง
+             */
+            body.push(
+              [
+                String(
+                  displayRow.categoryIndex
+                ),
+
+                material.name ||
+                  "",
+
+                material.unit ||
+                  "",
+
+                formatStockNumber(
+                  material.openingBalance
+                ),
+
+                formatStockNumber(
+                  material.receiveQty
+                ),
+
+                formatStockNumber(
+                  material.issueQty
+                ),
+
+                formatStockNumber(
+                  material.closingBalance
+                ),
+
+                "",
+
+                "",
+
+                displayInputValue(
+                  row.shortageQty
+                ),
+
+                displayInputValue(
+                  row.excessQty
+                ),
+
+                displayInputValue(
+                  row.baht
+                ),
+
+                displayInputValue(
+                  row.satang
+                ),
+
+                displayInputValue(
+                  row.damagedQty
+                ),
+
+                displayInputValue(
+                  row.deterioratedQty
+                ),
+
+                displayInputValue(
+                  row.unnecessaryQty
+                ),
+
+                row.remark?.trim() ||
+                  "",
+              ]
+            );
+          }
+        );
+
+        /* =================================================
+           HEADER TEXT
+        ================================================= */
+
+        const openingHeaderLines =
+          [
+            "คงเหลือยอดยกมา",
+            `เมื่อ 30 ก.ย. ${startShortYear}`,
+          ];
+
+        /*
+         * วันรับ / จ่าย อยู่บรรทัดเดียว
+         */
+        const movementHeaderLines =
+          [
+            `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`,
+          ];
+
+        /* =================================================
+           TABLE
+        ================================================= */
+
+        autoTable(
+          doc,
+          {
+            startY:
+              TABLE_START_Y,
+
+            margin: {
+              left:
+                MARGIN_X,
+
+              right:
+                MARGIN_X,
+            },
+
+            tableWidth:
+              TABLE_WIDTH,
+
+            theme:
+              "grid",
+
+            head: [
+              [
+                {
+                  content:
+                    "ลำดับ",
+
+                  rowSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    "รายการพัสดุ",
+
+                  rowSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    "หน่วยนับ",
+
+                  rowSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    openingHeaderLines.join(
+                      "\n"
+                    ),
+
+                  rowSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    movementHeaderLines[
+                      0
+                    ],
+
+                  colSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    "คงเหลือ",
+
+                  colSpan:
+                    1,
+                },
+
+                {
+                  content:
+                    "ผลการตรวจสอบ",
+
+                  colSpan:
+                    2,
+                },
+
+                {
+                  content:
+                    "ถ้าไม่ถูกต้องจำนวนที่ขาด\nจำนวนที่เกินคิดเป็นร้อยละ",
+
+                  colSpan:
+                    4,
+                },
+
+                {
+                  content:
+                    "จำนวนที่",
+
+                  colSpan:
+                    3,
+                },
+
+                {
+                  content:
+                    "หมายเหตุ",
+
+                  rowSpan:
+                    2,
+                },
+              ],
+
+              [
+                "รับ",
+                "จ่าย",
+                "ยกไป",
+
+                "ถูกต้อง",
+                "ไม่ถูกต้อง",
+
+                "ขาด",
+                "เกิน",
+                "บาท",
+                "สต.",
+
+                "ชำรุด",
+                "เสื่อมสภาพ",
+                "ไม่จำเป็นต้องใช้",
+              ],
+            ],
+
+            body,
+
+            styles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize:
+                8,
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth:
+                0.25,
+
+              cellPadding:
+                0.45,
+
+              minCellHeight:
+                6.5,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              overflow:
+                "linebreak",
+            },
+
+            headStyles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize:
+                7.5,
+
+              fillColor: [
+                255,
+                255,
+                255,
+              ],
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth:
+                0.25,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+
+              overflow:
+                "linebreak",
+            },
+
+            bodyStyles: {
+              font:
+                "2.3.2 THSarabunNew",
+
+              fontStyle:
+                "normal",
+
+              fontSize:
+                8,
+
+              textColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineColor: [
+                0,
+                0,
+                0,
+              ],
+
+              lineWidth:
+                0.25,
+
+              halign:
+                "center",
+
+              valign:
+                "middle",
+            },
+
+            columnStyles: {
+              0: {
+                cellWidth:
+                  COLUMN_WIDTHS.order,
+              },
+
+              1: {
+                cellWidth:
+                  COLUMN_WIDTHS.item,
+
+                halign:
+                  "left",
+              },
+
+              2: {
+                cellWidth:
+                  COLUMN_WIDTHS.unit,
+              },
+
+              3: {
+                cellWidth:
+                  COLUMN_WIDTHS.opening,
+              },
+
+              4: {
+                cellWidth:
+                  COLUMN_WIDTHS.receive,
+              },
+
+              5: {
+                cellWidth:
+                  COLUMN_WIDTHS.issue,
+              },
+
+              6: {
+                cellWidth:
+                  COLUMN_WIDTHS.closing,
+              },
+
+              7: {
+                cellWidth:
+                  COLUMN_WIDTHS.correct,
+              },
+
+              8: {
+                cellWidth:
+                  COLUMN_WIDTHS.incorrect,
+              },
+
+              9: {
+                cellWidth:
+                  COLUMN_WIDTHS.shortage,
+              },
+
+              10: {
+                cellWidth:
+                  COLUMN_WIDTHS.excess,
+              },
+
+              11: {
+                cellWidth:
+                  COLUMN_WIDTHS.baht,
+              },
+
+              12: {
+                cellWidth:
+                  COLUMN_WIDTHS.satang,
+              },
+
+              13: {
+                cellWidth:
+                  COLUMN_WIDTHS.damaged,
+              },
+
+              14: {
+                cellWidth:
+                  COLUMN_WIDTHS.deteriorated,
+              },
+
+              15: {
+                cellWidth:
+                  COLUMN_WIDTHS.unnecessary,
+              },
+
+              16: {
+                cellWidth:
+                  COLUMN_WIDTHS.remark,
+              },
+            },
+
+            tableLineColor: [
+              0,
+              0,
+              0,
+            ],
+
+            tableLineWidth:
+              0.25,
+
+            rowPageBreak:
+              "avoid",
+          }
+        );
+
+        /* =================================================
+           SIGNATURE
+
+           ต่อจากตาราง + 6 มม.
+           ไม่บังคับลงไปที่ตำแหน่ง 170 แล้ว
+        ================================================= */
+
+        const lastAutoTable =
+          (
+            doc as jsPDF & {
+              lastAutoTable?: {
+                finalY:
+                  number;
+              };
+            }
+          ).lastAutoTable;
+
+        const tableFinalY =
+          lastAutoTable
+            ?.finalY ??
+          TABLE_START_Y;
+
+        const signatureStartY =
+          tableFinalY +
+          SIGNATURE_GAP;
+
+        drawInspectors(
+          doc,
+          signatureStartY
+        );
+      }
+
+      /* ===================================================
+         OPEN PDF
+      =================================================== */
 
       const fileName =
         `กระดาษทำการตรวจสอบบัญชีพัสดุ_พ.ศ.${fiscalYear}.pdf`;
 
-      const blob =
+      const pdfBlob =
         doc.output(
           "blob"
         );
 
-      const url =
+      const pdfUrl =
         URL.createObjectURL(
-          blob
+          pdfBlob
         );
 
+      try {
+        previewWindow.document.title =
+          fileName;
+      } catch {
+        // ไม่ต้องทำอะไร
+      }
+
       previewWindow.location.replace(
-        url
+        pdfUrl
       );
 
       window.setTimeout(
-        () =>
+        () => {
           URL.revokeObjectURL(
-            url
-          ),
+            pdfUrl
+          );
+        },
         5 *
           60 *
           1000
@@ -1483,10 +1541,16 @@ export default function ExportInspectionPdf({
       error
     ) {
       console.error(
+        "ไม่สามารถสร้าง PDF ได้:",
         error
       );
 
-      previewWindow.close();
+      if (
+        previewWindow &&
+        !previewWindow.closed
+      ) {
+        previewWindow.close();
+      }
 
       alert(
         "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useEffect,
   useMemo,
   useRef,
@@ -20,21 +21,14 @@ import ExportInspectionPdf from "./ExportInspectionPdf";
 
 type MaterialRow = {
   materialId: number;
-
   code: string;
-
   name: string;
-
   unit: string;
-
   category: string;
 
   openingBalance: number;
-
   receiveQty: number;
-
   issueQty: number;
-
   closingBalance: number;
 };
 
@@ -42,22 +36,13 @@ type Officer = {
   id: number;
 
   firstName: string;
-
   lastName: string;
 
-  position:
-    | string
-    | null;
-
+  position: string | null;
   type: string;
 
-  departmentId:
-    | number
-    | null;
-
-  sectionId:
-    | number
-    | null;
+  departmentId: number | null;
+  sectionId: number | null;
 
   department: {
     id: number;
@@ -79,17 +64,13 @@ type InspectionRow = {
     | "INCORRECT";
 
   shortageQty: string;
-
   excessQty: string;
 
   baht: string;
-
   satang: string;
 
   damagedQty: string;
-
   deterioratedQty: string;
-
   unnecessaryQty: string;
 
   remark: string;
@@ -99,17 +80,68 @@ type Props = {
   fiscalYear: number;
 
   startShortYear: string;
-
   endShortYear: string;
 
-  materials:
-    MaterialRow[];
-
-  officers:
-    Officer[];
+  materials: MaterialRow[];
+  officers: Officer[];
 
   initialInspectionDate?: string;
 };
+
+/* =========================================================
+   FIELD TYPES
+========================================================= */
+
+type SearchableOption = {
+  value: string;
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+
+  value: string;
+
+  options: SearchableOption[];
+
+  placeholder: string;
+
+  searchPlaceholder?: string;
+  emptyText?: string;
+
+  disabled?: boolean;
+  required?: boolean;
+
+  onChange: (
+    value: string
+  ) => void;
+};
+
+type IOSDatePickerProps = {
+  id: string;
+
+  value: string;
+
+  placeholder?: string;
+
+  required?: boolean;
+  disabled?: boolean;
+
+  onChange: (
+    value: string
+  ) => void;
+};
+
+type EditableInspectionField =
+  | "accuracy"
+  | "shortageQty"
+  | "excessQty"
+  | "baht"
+  | "satang"
+  | "damagedQty"
+  | "deterioratedQty"
+  | "unnecessaryQty"
+  | "remark";
 
 /* =========================================================
    CATEGORY
@@ -149,47 +181,39 @@ const CATEGORY_NAMES:
 };
 
 /* =========================================================
-   SEARCHABLE DROPDOWN
-========================================================= */
-
-type SearchableOption = {
-  value: string;
-
-  label: string;
-};
-
-type SearchableDropdownProps = {
-  id: string;
-
-  value: string;
-
-  options:
-    SearchableOption[];
-
-  placeholder: string;
-
-  searchPlaceholder?: string;
-
-  emptyText?: string;
-
-  disabled?: boolean;
-
-  required?: boolean;
-
-  onChange:
-    (
-      value: string
-    ) => void;
-};
-
-/* =========================================================
    DATE
 ========================================================= */
 
-function getTodayDateOnly() {
-  const now =
-    new Date();
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
 
+const weekDays = [
+  "อา",
+  "จ",
+  "อ",
+  "พ",
+  "พฤ",
+  "ศ",
+  "ส",
+];
+
+/* =========================================================
+   CURRENT DATE
+========================================================= */
+
+function getCurrentDate() {
   const formatter =
     new Intl.DateTimeFormat(
       "en-CA",
@@ -209,110 +233,877 @@ function getTodayDateOnly() {
     );
 
   return formatter.format(
-    now
+    new Date()
   );
 }
 
 /* =========================================================
-   DISPLAY NUMBER
-
-   0 / ไม่มีค่า = -
+   DATE HELPERS
 ========================================================= */
 
-function displayQuantity(
-  value:
-    number |
-    null |
-    undefined
+function parseDateOnly(
+  value: string
 ) {
-  const numberValue =
-    Number(
-      value ??
-        0
-    );
-
-  if (
-    !Number.isFinite(
-      numberValue
-    ) ||
-    numberValue ===
-      0
-  ) {
-    return "-";
+  if (!value) {
+    return null;
   }
 
-  return numberValue.toLocaleString(
-    "th-TH"
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return null;
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
   );
 }
 
-/* =========================================================
-   INITIAL ROW
-========================================================= */
+function formatThaiDate(
+  value: string
+) {
+  const date =
+    parseDateOnly(
+      value
+    );
 
-function createInitialRows(
-  materials:
-    MaterialRow[]
-): InspectionRow[] {
-  return materials.map(
-    (
-      material
-    ) => ({
-      materialId:
-        material.materialId,
+  if (!date) {
+    return "";
+  }
 
-      accuracy:
-        "",
+  const day =
+    date.getDate();
 
-      shortageQty:
-        "",
+  const month =
+    thaiMonths[
+      date.getMonth()
+    ];
 
-      excessQty:
-        "",
+  const year =
+    date.getFullYear() +
+    543;
 
-      baht:
-        "",
+  return `${day} ${month} ${year}`;
+}
 
-      satang:
-        "",
+function dateToInputValue(
+  date: Date
+) {
+  return [
+    date.getFullYear(),
 
-      damagedQty:
-        "",
+    String(
+      date.getMonth() +
+        1
+    ).padStart(
+      2,
+      "0"
+    ),
 
-      deterioratedQty:
-        "",
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    ),
+  ].join("-");
+}
 
-      unnecessaryQty:
-        "",
+function inputValueToDate(
+  value: string
+) {
+  if (!value) {
+    return null;
+  }
 
-      remark:
-        "",
-    })
+  const [
+    year,
+    month,
+    day,
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  if (
+    !year ||
+    !month ||
+    !day
+  ) {
+    return null;
+  }
+
+  return new Date(
+    year,
+    month - 1,
+    day
   );
 }
 
-/* =========================================================
-   SAVE ICON
-========================================================= */
-
-function SaveIcon() {
+function isSameDate(
+  first: Date,
+  second: Date
+) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
+    first.getFullYear() ===
+      second.getFullYear() &&
+    first.getMonth() ===
+      second.getMonth() &&
+    first.getDate() ===
+      second.getDate()
+  );
+}
+
+/* =========================================================
+   IOS DATE PICKER
+========================================================= */
+
+function IOSDatePicker({
+  id,
+  value,
+  placeholder =
+    "เลือกวันที่",
+  required =
+    false,
+  disabled =
+    false,
+  onChange,
+}: IOSDatePickerProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const selectedDate =
+    inputValueToDate(
+      value
+    );
+
+  const [
+    open,
+    setOpen,
+  ] =
+    useState(
+      false
+    );
+
+  const [
+    viewDate,
+    setViewDate,
+  ] =
+    useState<Date>(
+      selectedDate ??
+        new Date()
+    );
+
+  useEffect(
+    () => {
+      if (
+        selectedDate
+      ) {
+        setViewDate(
+          new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            1
+          )
+        );
+      }
+    },
+    [
+      value,
+    ]
+  );
+
+  useEffect(
+    () => {
+      function handleMouseDown(
+        event:
+          MouseEvent
+      ) {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(
+            event.target as Node
+          )
+        ) {
+          setOpen(
+            false
+          );
+        }
+      }
+
+      document.addEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+
+      return () => {
+        document.removeEventListener(
+          "mousedown",
+          handleMouseDown
+        );
+      };
+    },
+    []
+  );
+
+  const calendarDays =
+    useMemo(
+      () => {
+        const year =
+          viewDate.getFullYear();
+
+        const month =
+          viewDate.getMonth();
+
+        const firstDay =
+          new Date(
+            year,
+            month,
+            1
+          );
+
+        const lastDay =
+          new Date(
+            year,
+            month +
+              1,
+            0
+          );
+
+        const days:
+          Array<
+            Date |
+            null
+          > = [];
+
+        for (
+          let i =
+            0;
+          i <
+          firstDay.getDay();
+          i++
+        ) {
+          days.push(
+            null
+          );
+        }
+
+        for (
+          let day =
+            1;
+          day <=
+          lastDay.getDate();
+          day++
+        ) {
+          days.push(
+            new Date(
+              year,
+              month,
+              day
+            )
+          );
+        }
+
+        while (
+          days.length %
+            7 !==
+          0
+        ) {
+          days.push(
+            null
+          );
+        }
+
+        return days;
+      },
+      [
+        viewDate,
+      ]
+    );
+
+  function previousMonth() {
+    setViewDate(
+      (
+        current
+      ) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() -
+            1,
+          1
+        )
+    );
+  }
+
+  function nextMonth() {
+    setViewDate(
+      (
+        current
+      ) =>
+        new Date(
+          current.getFullYear(),
+          current.getMonth() +
+            1,
+          1
+        )
+    );
+  }
+
+  function selectToday() {
+    const today =
+      new Date();
+
+    onChange(
+      dateToInputValue(
+        today
+      )
+    );
+
+    setViewDate(
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+      )
+    );
+
+    setOpen(
+      false
+    );
+  }
+
+  return (
+    <div
+      ref={
+        containerRef
+      }
+      className={`
+        relative
+        w-full
+        min-w-0
+
+        ${
+          open
+            ? "z-[500]"
+            : "z-10"
+        }
+      `}
     >
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+      {required && (
+        <input
+          tabIndex={
+            -1
+          }
+          aria-hidden="true"
+          value={
+            value
+          }
+          onChange={() => {}}
+          required
+          className="
+            pointer-events-none
+            absolute
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      )}
 
-      <path d="M17 21v-8H7v8" />
+      <button
+        id={
+          id
+        }
+        type="button"
+        disabled={
+          disabled
+        }
+        aria-haspopup="dialog"
+        aria-expanded={
+          open
+        }
+        onClick={() => {
+          if (
+            disabled
+          ) {
+            return;
+          }
 
-      <path d="M7 3v5h8" />
-    </svg>
+          if (
+            !open
+          ) {
+            const base =
+              selectedDate ??
+              new Date();
+
+            setViewDate(
+              new Date(
+                base.getFullYear(),
+                base.getMonth(),
+                1
+              )
+            );
+          }
+
+          setOpen(
+            (
+              current
+            ) =>
+              !current
+          );
+        }}
+        className="
+          flex
+          h-[52px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[16px]
+
+          border
+          border-slate-300
+
+          bg-white
+
+          px-4
+
+          text-left
+          text-base
+          font-bold
+
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:border-slate-400
+          hover:bg-slate-50
+
+          focus:border-blue-400
+          focus:bg-white
+          focus:ring-4
+          focus:ring-blue-500/10
+
+          disabled:cursor-default
+          disabled:border-slate-200
+          disabled:bg-slate-100
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              value
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {value
+            ? formatThaiDate(
+                value
+              )
+            : placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+
+            rounded-[11px]
+
+            bg-slate-100
+
+            text-lg
+
+            shadow-inner
+
+            transition-all
+
+            ${
+              open
+                ? "bg-slate-900 !text-white"
+                : ""
+            }
+          `}
+        >
+          📅
+        </span>
+      </button>
+
+      {open &&
+        !disabled && (
+          <div
+            role="dialog"
+            aria-label="เลือกวันที่"
+            className="
+              absolute
+              left-0
+              top-[calc(100%+10px)]
+
+              z-[9999]
+
+              w-[360px]
+              max-w-[calc(100vw-32px)]
+
+              overflow-hidden
+
+              rounded-[24px]
+
+              border
+              border-slate-200/90
+
+              bg-white/95
+
+              p-3
+
+              shadow-[0_28px_80px_-24px_rgba(15,23,42,0.55)]
+
+              ring-1
+              ring-black/5
+
+              backdrop-blur-2xl
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                gap-2
+
+                px-1
+                pb-3
+              "
+            >
+              <button
+                type="button"
+                onClick={
+                  previousMonth
+                }
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-[12px]
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+
+                  !text-slate-800
+
+                  hover:bg-slate-200
+
+                  active:scale-90
+                "
+              >
+                ‹
+              </button>
+
+              <div
+                className="
+                  min-w-0
+                  text-center
+                "
+              >
+                <div
+                  className="
+                    text-base
+                    font-black
+
+                    !text-slate-900
+                  "
+                >
+                  {
+                    thaiMonths[
+                      viewDate.getMonth()
+                    ]
+                  }
+                </div>
+
+                <div
+                  className="
+                    text-xs
+                    font-bold
+
+                    !text-slate-500
+                  "
+                >
+                  พ.ศ.{" "}
+                  {viewDate.getFullYear() +
+                    543}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  nextMonth
+                }
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+
+                  rounded-[12px]
+
+                  bg-slate-100
+
+                  text-xl
+                  font-black
+
+                  !text-slate-800
+
+                  hover:bg-slate-200
+
+                  active:scale-90
+                "
+              >
+                ›
+              </button>
+            </div>
+
+            <div
+              className="
+                grid
+                grid-cols-7
+                gap-1
+              "
+            >
+              {weekDays.map(
+                (
+                  day
+                ) => (
+                  <div
+                    key={
+                      day
+                    }
+                    className="
+                      flex
+                      h-8
+                      items-center
+                      justify-center
+
+                      text-xs
+                      font-extrabold
+
+                      !text-slate-400
+                    "
+                  >
+                    {
+                      day
+                    }
+                  </div>
+                )
+              )}
+
+              {calendarDays.map(
+                (
+                  date,
+                  index
+                ) => {
+                  if (
+                    !date
+                  ) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="h-10"
+                      />
+                    );
+                  }
+
+                  const selected =
+                    selectedDate
+                      ? isSameDate(
+                          date,
+                          selectedDate
+                        )
+                      : false;
+
+                  const today =
+                    isSameDate(
+                      date,
+                      new Date()
+                    );
+
+                  return (
+                    <button
+                      key={
+                        dateToInputValue(
+                          date
+                        )
+                      }
+                      type="button"
+                      onClick={() => {
+                        onChange(
+                          dateToInputValue(
+                            date
+                          )
+                        );
+
+                        setOpen(
+                          false
+                        );
+                      }}
+                      className={`
+                        flex
+                        h-10
+                        items-center
+                        justify-center
+
+                        rounded-[12px]
+
+                        text-sm
+                        font-extrabold
+
+                        transition-all
+
+                        active:scale-90
+
+                        ${
+                          selected
+                            ? `
+                              bg-slate-900
+                              !text-white
+                              shadow-md
+                            `
+                            : today
+                            ? `
+                              bg-blue-50
+                              !text-blue-700
+                              ring-1
+                              ring-blue-200
+                            `
+                            : `
+                              bg-transparent
+                              !text-slate-800
+                              hover:bg-slate-100
+                            `
+                        }
+                      `}
+                    >
+                      {
+                        date.getDate()
+                      }
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <div
+              className="
+                mt-3
+
+                flex
+                items-center
+                justify-between
+                gap-2
+
+                border-t
+                border-slate-200
+
+                pt-3
+              "
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(
+                    ""
+                  );
+
+                  setOpen(
+                    false
+                  );
+                }}
+                className="
+                  rounded-full
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+
+                  !text-slate-500
+
+                  hover:bg-slate-100
+                "
+              >
+                ล้างวันที่
+              </button>
+
+              <button
+                type="button"
+                onClick={
+                  selectToday
+                }
+                className="
+                  rounded-[12px]
+
+                  bg-slate-900
+
+                  px-4
+                  py-2
+
+                  text-sm
+                  font-extrabold
+
+                  !text-white
+
+                  shadow-sm
+
+                  hover:bg-slate-800
+
+                  active:scale-95
+                "
+              >
+                วันนี้
+              </button>
+            </div>
+          </div>
+        )}
+    </div>
   );
 }
 
@@ -544,6 +1335,7 @@ function SearchableDropdown({
           flex
           min-h-[50px]
           w-full
+          min-w-0
           items-center
           justify-between
           gap-3
@@ -567,8 +1359,6 @@ function SearchableDropdown({
           shadow-sm
           outline-none
 
-          transition-all
-
           hover:border-slate-400
           hover:bg-slate-50
 
@@ -578,11 +1368,17 @@ function SearchableDropdown({
         "
       >
         <span
-          className={
-            selectedOption
-              ? "!text-slate-900"
-              : "!text-slate-400"
-          }
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
         >
           {selectedOption
             ?.label ??
@@ -590,7 +1386,9 @@ function SearchableDropdown({
         </span>
 
         <span
+          aria-hidden="true"
           className={`
+            text-xs
             !text-slate-500
 
             ${
@@ -624,7 +1422,7 @@ function SearchableDropdown({
 
               bg-white
 
-              shadow-xl
+              shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
             "
           >
             <div
@@ -648,6 +1446,7 @@ function SearchableDropdown({
                 placeholder={
                   searchPlaceholder
                 }
+                autoComplete="off"
                 onChange={(
                   event
                 ) =>
@@ -682,8 +1481,10 @@ function SearchableDropdown({
             </div>
 
             <div
+              role="listbox"
               className="
                 max-h-[280px]
+
                 overflow-y-auto
 
                 p-2
@@ -694,61 +1495,70 @@ function SearchableDropdown({
                 filteredOptions.map(
                   (
                     option
-                  ) => (
-                    <button
-                      key={
-                        option.value
-                      }
-                      type="button"
-                      onClick={() => {
-                        onChange(
+                  ) => {
+                    const selected =
+                      option.value ===
+                      value;
+
+                    return (
+                      <button
+                        key={
                           option.value
-                        );
-
-                        setOpen(
-                          false
-                        );
-
-                        setSearch(
-                          ""
-                        );
-                      }}
-                      className={`
-                        flex
-                        w-full
-                        items-center
-                        justify-between
-
-                        rounded-[10px]
-
-                        px-3
-                        py-2.5
-
-                        text-left
-                        font-bold
-
-                        ${
-                          option.value ===
-                          value
-                            ? "bg-slate-900 !text-white"
-                            : "bg-white !text-slate-900 hover:bg-slate-100"
                         }
-                      `}
-                    >
-                      <span>
-                        {
-                          option.label
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selected
                         }
-                      </span>
+                        onClick={() => {
+                          onChange(
+                            option.value
+                          );
 
-                      {option.value ===
-                        value && (
+                          setOpen(
+                            false
+                          );
+
+                          setSearch(
+                            ""
+                          );
+                        }}
+                        className={`
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-[10px]
+
+                          px-3
+                          py-2.5
+
+                          text-left
+                          font-bold
+
+                          ${
+                            selected
+                              ? "bg-slate-900 !text-white"
+                              : "bg-white !text-slate-900 hover:bg-slate-100"
+                          }
+                        `}
+                      >
                         <span>
-                          ✓
+                          {
+                            option.label
+                          }
                         </span>
-                      )}
-                    </button>
-                  )
+
+                        {selected && (
+                          <span>
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
                 )
               ) : (
                 <div
@@ -771,6 +1581,107 @@ function SearchableDropdown({
           </div>
         )}
     </div>
+  );
+}
+
+/* =========================================================
+   DISPLAY NUMBER
+========================================================= */
+
+function displayQuantity(
+  value:
+    number |
+    null |
+    undefined
+) {
+  const numberValue =
+    Number(
+      value ??
+        0
+    );
+
+  if (
+    !Number.isFinite(
+      numberValue
+    ) ||
+    numberValue ===
+      0
+  ) {
+    return "-";
+  }
+
+  return numberValue.toLocaleString(
+    "th-TH"
+  );
+}
+
+/* =========================================================
+   INITIAL ROW
+========================================================= */
+
+function createInitialRows(
+  materials:
+    MaterialRow[]
+): InspectionRow[] {
+  return materials.map(
+    (
+      material
+    ) => ({
+      materialId:
+        material.materialId,
+
+      accuracy:
+        "",
+
+      shortageQty:
+        "",
+
+      excessQty:
+        "",
+
+      baht:
+        "",
+
+      satang:
+        "",
+
+      damagedQty:
+        "",
+
+      deterioratedQty:
+        "",
+
+      unnecessaryQty:
+        "",
+
+      remark:
+        "",
+    })
+  );
+}
+
+/* =========================================================
+   SAVE ICON
+========================================================= */
+
+function SaveIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+
+      <path d="M17 21v-8H7v8" />
+
+      <path d="M7 3v5h8" />
+    </svg>
   );
 }
 
@@ -817,7 +1728,7 @@ export default function InspectionForm({
   ] =
     useState(
       initialInspectionDate ||
-        getTodayDateOnly()
+        getCurrentDate()
     );
 
   const [
@@ -865,6 +1776,7 @@ export default function InspectionForm({
               material.name,
               material.unit,
               material.category,
+
               CATEGORY_NAMES[
                 material.category
               ],
@@ -890,13 +1802,13 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     GROUP BY CATEGORY
+     GROUP
   ======================================================= */
 
   const groupedMaterials =
     useMemo(
-      () => {
-        return CATEGORY_ORDER
+      () =>
+        CATEGORY_ORDER
           .map(
             (
               category
@@ -925,8 +1837,7 @@ export default function InspectionForm({
             ) =>
               group.materials.length >
               0
-          );
-      },
+          ),
       [
         filteredMaterials,
       ]
@@ -941,16 +1852,16 @@ export default function InspectionForm({
       number,
 
     field:
-      keyof InspectionRow,
+      EditableInspectionField,
 
     value:
       string
   ) {
     setRows(
       (
-        current
+        currentRows
       ) =>
-        current.map(
+        currentRows.map(
           (
             row
           ) =>
@@ -960,6 +1871,47 @@ export default function InspectionForm({
                   ...row,
 
                   [field]:
+                    value,
+                }
+              : row
+        )
+    );
+  }
+
+  /* =======================================================
+     QUICK ACCURACY
+  ======================================================= */
+
+  function updateAllAccuracy(
+    value:
+      | "CORRECT"
+      | "INCORRECT"
+  ) {
+    const visibleMaterialIds =
+      new Set(
+        filteredMaterials.map(
+          (
+            material
+          ) =>
+            material.materialId
+        )
+      );
+
+    setRows(
+      (
+        currentRows
+      ) =>
+        currentRows.map(
+          (
+            row
+          ) =>
+            visibleMaterialIds.has(
+              row.materialId
+            )
+              ? {
+                  ...row,
+
+                  accuracy:
                     value,
                 }
               : row
@@ -1130,10 +2082,6 @@ export default function InspectionForm({
     }
   }
 
-  /* =======================================================
-     INPUT STYLE
-  ======================================================= */
-
   const numberInputClass =
     `
       mx-auto
@@ -1178,7 +2126,7 @@ export default function InspectionForm({
       "
     >
       {/* =====================================================
-          INFORMATION CARD
+          INFORMATION
       ===================================================== */}
 
       <AppCard
@@ -1310,12 +2258,13 @@ export default function InspectionForm({
             </p>
           </div>
 
-          {/* ===============================================
-              INSPECTION DATE
-          =============================================== */}
-
           <div
             className="
+              relative
+              z-40
+
+              min-w-0
+
               rounded-[18px]
 
               border
@@ -1329,6 +2278,9 @@ export default function InspectionForm({
             <label
               htmlFor="inspectionDate"
               className="
+                mb-2
+                block
+
                 text-sm
                 font-extrabold
 
@@ -1338,45 +2290,16 @@ export default function InspectionForm({
               ตรวจสอบเมื่อวันที่
             </label>
 
-            <input
+            <IOSDatePicker
               id="inspectionDate"
-              type="date"
               value={
                 inspectionDate
               }
-              onChange={(
-                event
-              ) =>
-                setInspectionDate(
-                  event.target.value
-                )
+              placeholder="เลือกวันที่"
+              required
+              onChange={
+                setInspectionDate
               }
-              className="
-                mt-2
-
-                min-h-[44px]
-                w-full
-
-                rounded-[12px]
-
-                border
-                border-slate-300
-
-                bg-white
-
-                px-3
-
-                text-base
-                font-bold
-
-                !text-slate-900
-
-                outline-none
-
-                focus:border-blue-500
-                focus:ring-2
-                focus:ring-blue-500/10
-              "
             />
           </div>
 
@@ -1481,6 +2404,11 @@ export default function InspectionForm({
             event.target.value
           )
         }
+        onSubmit={() =>
+          setSearchTerm(
+            searchTerm.trim()
+          )
+        }
         onClear={() =>
           setSearchTerm(
             ""
@@ -1508,6 +2436,57 @@ export default function InspectionForm({
           "th-TH"
         )} รายการ`}
       >
+        {/* =================================================
+            QUICK ACTION
+        ================================================= */}
+
+        <div
+          className="
+            border-b
+            border-slate-200
+
+            bg-slate-50/70
+
+            p-3
+
+            sm:p-4
+          "
+        >
+          <div
+            className="
+              flex
+              flex-wrap
+              gap-2
+            "
+          >
+            <AppButton
+              type="button"
+              variant="success"
+              size="sm"
+              onClick={() =>
+                updateAllAccuracy(
+                  "CORRECT"
+                )
+              }
+            >
+              ถูกต้องทั้งหมด
+            </AppButton>
+
+            <AppButton
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                updateAllAccuracy(
+                  "INCORRECT"
+                )
+              }
+            >
+              ไม่ถูกต้องทั้งหมด
+            </AppButton>
+          </div>
+        </div>
+
         <div
           className="
             w-full
@@ -1530,7 +2509,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
                 >
                   ลำดับ
                 </th>
@@ -1539,7 +2518,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center !text-white"
+                  className="min-w-[320px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center align-middle font-extrabold !text-white"
                 >
                   รายการพัสดุ
                 </th>
@@ -1548,7 +2527,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
                 >
                   หน่วยนับ
                 </th>
@@ -1557,7 +2536,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="min-w-[180px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
                 >
                   คงเหลือยอดยกมา
                   <br />
@@ -1571,7 +2550,7 @@ export default function InspectionForm({
                   colSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
                 >
                   01 ต.ค.{" "}
                   {
@@ -1583,9 +2562,7 @@ export default function InspectionForm({
                   }
                 </th>
 
-                <th
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
-                >
+                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white">
                   คงเหลือ
                 </th>
 
@@ -1593,7 +2570,7 @@ export default function InspectionForm({
                   colSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
                 >
                   ผลการตรวจสอบ
                 </th>
@@ -1602,7 +2579,7 @@ export default function InspectionForm({
                   colSpan={
                     4
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
                 >
                   ถ้าไม่ถูกต้องจำนวนที่ขาด
                   จำนวนที่เกินคิดเป็นร้อยละ
@@ -1612,7 +2589,7 @@ export default function InspectionForm({
                   colSpan={
                     3
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
                 >
                   จำนวนที่
                 </th>
@@ -1621,7 +2598,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
                 >
                   หมายเหตุ
                 </th>
@@ -1649,7 +2626,7 @@ export default function InspectionForm({
                       key={
                         title
                       }
-                      className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center !text-white"
+                      className="min-w-[100px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center font-extrabold !text-white"
                     >
                       {
                         title
@@ -1689,14 +2666,12 @@ export default function InspectionForm({
                   (
                     group
                   ) => (
-                    <>
-                      {/* ===================================
-                          CATEGORY ROW
-                      =================================== */}
-
-                      <tr
-                        key={`category-${group.category}`}
-                      >
+                    <Fragment
+                      key={
+                        group.category
+                      }
+                    >
+                      <tr>
                         <td
                           colSpan={
                             17
@@ -1723,11 +2698,6 @@ export default function InspectionForm({
                         </td>
                       </tr>
 
-                      {/* ===================================
-                          MATERIAL ROWS
-                          ลำดับเริ่มใหม่ทุกหมวด
-                      =================================== */}
-
                       {group.materials.map(
                         (
                           material,
@@ -1753,13 +2723,22 @@ export default function InspectionForm({
                               key={
                                 material.materialId
                               }
-                              className={
-                                index %
-                                  2 ===
-                                0
-                                  ? "bg-white"
-                                  : "bg-slate-50/60"
-                              }
+                              className={`
+                                text-sm
+                                font-medium
+
+                                !text-slate-900
+
+                                ${
+                                  index %
+                                    2 ===
+                                  0
+                                    ? "bg-white"
+                                    : "bg-slate-50/60"
+                                }
+
+                                hover:bg-emerald-50/60
+                              `}
                             >
                               <td className="border border-black px-2 py-2.5 text-center">
                                 {
@@ -1851,43 +2830,56 @@ export default function InspectionForm({
                               {[
                                 {
                                   field:
-                                    "shortageQty",
+                                    "shortageQty" as const,
+
                                   value:
                                     row.shortageQty,
                                 },
+
                                 {
                                   field:
-                                    "excessQty",
+                                    "excessQty" as const,
+
                                   value:
                                     row.excessQty,
                                 },
+
                                 {
                                   field:
-                                    "baht",
+                                    "baht" as const,
+
                                   value:
                                     row.baht,
                                 },
+
                                 {
                                   field:
-                                    "satang",
+                                    "satang" as const,
+
                                   value:
                                     row.satang,
                                 },
+
                                 {
                                   field:
-                                    "damagedQty",
+                                    "damagedQty" as const,
+
                                   value:
                                     row.damagedQty,
                                 },
+
                                 {
                                   field:
-                                    "deterioratedQty",
+                                    "deterioratedQty" as const,
+
                                   value:
                                     row.deterioratedQty,
                                 },
+
                                 {
                                   field:
-                                    "unnecessaryQty",
+                                    "unnecessaryQty" as const,
+
                                   value:
                                     row.unnecessaryQty,
                                 },
@@ -1914,7 +2906,7 @@ export default function InspectionForm({
                                       ) =>
                                         updateRow(
                                           material.materialId,
-                                          input.field as keyof InspectionRow,
+                                          input.field,
                                           event.target.value
                                         )
                                       }
@@ -1961,6 +2953,8 @@ export default function InspectionForm({
 
                                     outline-none
 
+                                    placeholder:!text-slate-400
+
                                     focus:border-blue-500
                                     focus:ring-2
                                     focus:ring-blue-500/10
@@ -1971,7 +2965,7 @@ export default function InspectionForm({
                           );
                         }
                       )}
-                    </>
+                    </Fragment>
                   )
                 )
               )}
@@ -2071,6 +3065,11 @@ export default function InspectionForm({
                   key={
                     index
                   }
+                  className="
+                    relative
+                    z-10
+                    min-w-0
+                  "
                 >
                   <label
                     className="
@@ -2098,6 +3097,8 @@ export default function InspectionForm({
                       options
                     }
                     placeholder="-- เลือกผู้ตรวจสอบ --"
+                    searchPlaceholder="พิมพ์ค้นหาผู้ตรวจสอบ..."
+                    emptyText="ไม่พบรายชื่อผู้ตรวจสอบ"
                     required
                     onChange={(
                       value
@@ -2113,52 +3114,61 @@ export default function InspectionForm({
             }
           )}
         </div>
+      </AppCard>
 
-        <div
+      {/* =====================================================
+          ACTION
+          ใช้ปุ่มตัวกลางแบบเดียวกับหน้าอื่น
+      ===================================================== */}
+
+      <div
+        className="
+          flex
+          w-full
+          flex-col
+
+          gap-2
+
+          sm:flex-row
+          sm:items-center
+          sm:justify-end
+        "
+      >
+        <AppButton
+          href={`/stock-card?fiscalYear=${fiscalYear}`}
+          variant="primary"
+          size="md"
           className="
-            mt-6
-
-            flex
-            flex-col-reverse
-            gap-3
-
-            border-t
-            border-slate-200
-
-            pt-5
-
-            sm:flex-row
-            sm:justify-end
+            w-full
+            sm:w-auto
           "
         >
-          <AppButton
-            href={`/stock-card?fiscalYear=${fiscalYear}`}
-            variant="secondary"
-            size="md"
-          >
-            ยกเลิก
-          </AppButton>
+          ยกเลิก
+        </AppButton>
 
-          <AppButton
-            type="button"
-            variant="success"
-            size="md"
-            icon={
-              <SaveIcon />
-            }
-            onClick={
-              handleSave
-            }
-            disabled={
-              isSaving
-            }
-          >
-            {isSaving
-              ? "กำลังบันทึก..."
-              : "บันทึก"}
-          </AppButton>
-        </div>
-      </AppCard>
+        <AppButton
+          type="button"
+          variant="success"
+          size="md"
+          icon={
+            <SaveIcon />
+          }
+          onClick={
+            handleSave
+          }
+          disabled={
+            isSaving
+          }
+          className="
+            w-full
+            sm:w-auto
+          "
+        >
+          {isSaving
+            ? "กำลังบันทึก..."
+            : "บันทึก"}
+        </AppButton>
+      </div>
     </div>
   );
 }
