@@ -408,25 +408,69 @@ export default async function StockCardHome({
       selectedFiscalYear
     );
 
+  /* =======================================================
+     URL
+  ======================================================= */
+
   const inspectionHref =
     `/stock-card/inspection?fiscalYear=${selectedFiscalYear}`;
 
+  const inspectionHistoryHref =
+    `/stock-card/inspection-history?fiscalYear=${selectedFiscalYear}`;
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <AppPage>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <AppPageHeader
         icon="📚"
         title="รายการบัญชีพัสดุ"
         subtitle={`เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ • ปีงบประมาณ ${selectedFiscalYear}`}
         actions={
-          <AppButton
-            href={
-              inspectionHref
-            }
-            variant="primary"
-            size="md"
+          <div
+            className="
+              flex
+              flex-col
+              gap-2
+
+              sm:flex-row
+              sm:items-center
+            "
           >
-            🔎 ตรวจสอบบัญชีพัสดุประจำปี
-          </AppButton>
+            {/* ===============================================
+                INSPECTION HISTORY
+            =============================================== */}
+
+            <AppButton
+              href={
+                inspectionHistoryHref
+              }
+              variant="secondary"
+              size="md"
+            >
+              🕘 ประวัติการตรวจสอบบัญชีพัสดุประจำปี
+            </AppButton>
+
+            {/* ===============================================
+                NEW INSPECTION
+            =============================================== */}
+
+            <AppButton
+              href={
+                inspectionHref
+              }
+              variant="primary"
+              size="md"
+            >
+              🔎 ตรวจสอบบัญชีพัสดุประจำปี
+            </AppButton>
+          </div>
         }
       />
 
@@ -438,8 +482,11 @@ export default async function StockCardHome({
         className="
           w-full
           min-w-0
+
           overflow-visible
+
           p-4
+
           sm:p-5
         "
       >
@@ -448,6 +495,7 @@ export default async function StockCardHome({
             flex
             min-w-0
             flex-col
+
             gap-4
 
             lg:flex-row
@@ -455,6 +503,10 @@ export default async function StockCardHome({
             lg:justify-between
           "
         >
+          {/* =================================================
+              SELECT FY
+          ================================================= */}
+
           <form
             method="get"
             action="/stock-card"
@@ -462,6 +514,7 @@ export default async function StockCardHome({
               flex
               min-w-0
               flex-col
+
               gap-3
 
               sm:flex-row
@@ -471,6 +524,7 @@ export default async function StockCardHome({
             <div
               className="
                 min-w-0
+
                 sm:w-[260px]
               "
             >
@@ -479,8 +533,10 @@ export default async function StockCardHome({
                 className="
                   mb-2
                   block
+
                   text-sm
                   font-extrabold
+
                   !text-slate-800
                 "
               >
@@ -498,18 +554,27 @@ export default async function StockCardHome({
                 className="
                   h-[52px]
                   w-full
+
                   rounded-[16px]
+
                   border-2
                   !border-black
+
                   bg-white
+
                   px-4
+
                   text-base
                   font-extrabold
+
                   !text-slate-900
+
                   shadow-sm
                   outline-none
+
                   transition-all
                   duration-200
+
                   focus:ring-4
                   focus:ring-blue-100/70
                 "
@@ -545,15 +610,24 @@ export default async function StockCardHome({
             </AppButton>
           </form>
 
+          {/* =================================================
+              FISCAL YEAR INFORMATION
+          ================================================= */}
+
           <div
             className="
               min-w-0
+
               rounded-[18px]
+
               border
               border-slate-200
+
               bg-slate-50/80
+
               px-4
               py-3
+
               shadow-sm
             "
           >
@@ -561,6 +635,7 @@ export default async function StockCardHome({
               className="
                 text-sm
                 font-extrabold
+
                 !text-slate-900
               "
             >
@@ -573,8 +648,10 @@ export default async function StockCardHome({
             <p
               className="
                 mt-1
+
                 text-sm
                 font-semibold
+
                 !text-slate-500
               "
             >
@@ -592,8 +669,10 @@ export default async function StockCardHome({
               <p
                 className="
                   mt-1
+
                   text-xs
                   font-semibold
+
                   !text-slate-400
                 "
               >
@@ -605,8 +684,10 @@ export default async function StockCardHome({
               <p
                 className="
                   mt-1
+
                   text-xs
                   font-semibold
+
                   !text-slate-400
                 "
               >
@@ -628,6 +709,7 @@ export default async function StockCardHome({
           w-full
           min-w-0
           grid-cols-1
+
           gap-4
 
           md:grid-cols-2
@@ -647,17 +729,25 @@ export default async function StockCardHome({
                 min-h-[230px]
                 min-w-0
                 flex-col
+
                 items-center
                 justify-center
+
                 text-center
               "
             >
+              {/* =============================================
+                  ICON
+              ============================================= */}
+
               <div
                 className="
                   flex
                   w-full
+
                   items-center
                   justify-center
+
                   text-center
                 "
               >
@@ -667,7 +757,9 @@ export default async function StockCardHome({
                     h-16
                     w-16
                     shrink-0
+
                     place-items-center
+
                     text-center
                   "
                   aria-hidden="true"
@@ -675,6 +767,7 @@ export default async function StockCardHome({
                   <span
                     className="
                       block
+
                       text-center
                       text-3xl
                       leading-none
@@ -687,21 +780,30 @@ export default async function StockCardHome({
                 </div>
               </div>
 
+              {/* =============================================
+                  INFORMATION
+              ============================================= */}
+
               <div
                 className="
                   mt-4
+
                   w-full
                   min-w-0
+
                   text-center
                 "
               >
                 <h2
                   className="
                     w-full
+
                     break-words
+
                     text-center
                     text-xl
                     font-extrabold
+
                     !text-slate-900
                   "
                 >
@@ -713,11 +815,15 @@ export default async function StockCardHome({
                 <p
                   className="
                     mt-2
+
                     w-full
+
                     break-words
+
                     text-center
                     text-sm
                     font-semibold
+
                     !text-slate-500
                   "
                 >
@@ -727,8 +833,10 @@ export default async function StockCardHome({
                 <p
                   className="
                     mt-1
+
                     text-xs
                     font-bold
+
                     !text-slate-400
                   "
                 >
@@ -739,11 +847,17 @@ export default async function StockCardHome({
                 </p>
               </div>
 
+              {/* =============================================
+                  ACTION
+              ============================================= */}
+
               <div
                 className="
                   mt-5
+
                   flex
                   w-full
+
                   items-center
                   justify-center
                 "

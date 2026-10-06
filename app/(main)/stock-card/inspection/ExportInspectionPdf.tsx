@@ -747,7 +747,7 @@ export default function ExportInspectionPdf({
 
     const headerText =
       `ตรวจสอบเมื่อวันที่    เดือน ${monthName} พ.ศ. ${buddhistYear} ` +
-      `เสร็จเมื่อวันที่    เดือน ${monthName} พ.ศ. ${buddhistYear}` +
+      `เสร็จเมื่อวันที่    เดือน ${monthName} พ.ศ. ${buddhistYear}`  +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
 
     doc.text(
