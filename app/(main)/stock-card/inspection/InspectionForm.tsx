@@ -1,0 +1,2885 @@
+"use client";
+
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
+import AppSearchInput from "@/components/AppSearchInput";
+import AppTableCard from "@/components/AppTableCard";
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type MaterialRow = {
+  materialId: number;
+
+  code: string;
+
+  name: string;
+
+  unit: string;
+
+  category: string;
+
+  openingBalance: number;
+
+  receiveQty: number;
+
+  issueQty: number;
+
+  closingBalance: number;
+};
+
+type Officer = {
+  id: number;
+
+  firstName: string;
+
+  lastName: string;
+
+  position:
+    | string
+    | null;
+
+  type: string;
+
+  departmentId:
+    | number
+    | null;
+
+  sectionId:
+    | number
+    | null;
+
+  department: {
+    id: number;
+    name: string;
+  } | null;
+
+  section: {
+    id: number;
+    name: string;
+  } | null;
+};
+
+type InspectionRow = {
+  materialId: number;
+
+  accuracy:
+    | ""
+    | "CORRECT"
+    | "INCORRECT";
+
+  shortageQty: string;
+
+  excessQty: string;
+
+  baht: string;
+
+  satang: string;
+
+  damagedQty: string;
+
+  deterioratedQty: string;
+
+  unnecessaryQty: string;
+
+  remark: string;
+};
+
+type Props = {
+  fiscalYear: number;
+
+  startShortYear: string;
+
+  endShortYear: string;
+
+  materials:
+    MaterialRow[];
+
+  officers:
+    Officer[];
+};
+
+/* =========================================================
+   SEARCHABLE DROPDOWN TYPES
+========================================================= */
+
+type SearchableOption = {
+  value: string;
+
+  label: string;
+};
+
+type SearchableDropdownProps = {
+  id: string;
+
+  value: string;
+
+  options:
+    SearchableOption[];
+
+  placeholder: string;
+
+  searchPlaceholder?: string;
+
+  emptyText?: string;
+
+  required?: boolean;
+
+  disabled?: boolean;
+
+  onChange:
+    (
+      value: string
+    ) => void;
+};
+
+/* =========================================================
+   NUMBER
+========================================================= */
+
+function formatNumber(
+  value: number
+) {
+  return Number(
+    value
+  ).toLocaleString(
+    "th-TH"
+  );
+}
+
+/* =========================================================
+   INITIAL RESULT ROWS
+========================================================= */
+
+function createInitialRows(
+  materials:
+    MaterialRow[]
+): InspectionRow[] {
+  return materials.map(
+    (
+      material
+    ) => ({
+      materialId:
+        material.materialId,
+
+      accuracy:
+        "",
+
+      shortageQty:
+        "",
+
+      excessQty:
+        "",
+
+      baht:
+        "",
+
+      satang:
+        "",
+
+      damagedQty:
+        "",
+
+      deterioratedQty:
+        "",
+
+      unnecessaryQty:
+        "",
+
+      remark:
+        "",
+    })
+  );
+}
+
+/* =========================================================
+   SEARCHABLE DROPDOWN
+
+   รูปแบบเดียวกับ Inspection ครุภัณฑ์
+========================================================= */
+
+function SearchableDropdown({
+  id,
+  value,
+  options,
+  placeholder,
+  searchPlaceholder =
+    "พิมพ์เพื่อค้นหา...",
+  emptyText =
+    "ไม่พบข้อมูล",
+  required =
+    false,
+  disabled =
+    false,
+  onChange,
+}: SearchableDropdownProps) {
+  const containerRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const inputRef =
+    useRef<HTMLInputElement>(
+      null
+    );
+
+  const [
+    open,
+    setOpen,
+  ] =
+    useState(
+      false
+    );
+
+  const [
+    search,
+    setSearch,
+  ] =
+    useState(
+      ""
+    );
+
+  const selectedOption =
+    options.find(
+      (
+        option
+      ) =>
+        option.value ===
+        value
+    );
+
+  const filteredOptions =
+    useMemo(
+      () => {
+        const keyword =
+          search
+            .trim()
+            .toLocaleLowerCase(
+              "th"
+            );
+
+        if (
+          !keyword
+        ) {
+          return options;
+        }
+
+        return options.filter(
+          (
+            option
+          ) =>
+            option.label
+              .toLocaleLowerCase(
+                "th"
+              )
+              .includes(
+                keyword
+              ) ||
+            option.value
+              .toLocaleLowerCase(
+                "th"
+              )
+              .includes(
+                keyword
+              )
+        );
+      },
+      [
+        options,
+        search,
+      ]
+    );
+
+  useEffect(
+    () => {
+      function handleMouseDown(
+        event:
+          MouseEvent
+      ) {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(
+            event.target as Node
+          )
+        ) {
+          setOpen(
+            false
+          );
+
+          setSearch(
+            ""
+          );
+        }
+      }
+
+      document.addEventListener(
+        "mousedown",
+        handleMouseDown
+      );
+
+      return () => {
+        document.removeEventListener(
+          "mousedown",
+          handleMouseDown
+        );
+      };
+    },
+    []
+  );
+
+  useEffect(
+    () => {
+      if (
+        !open
+      ) {
+        return;
+      }
+
+      const timer =
+        window.setTimeout(
+          () => {
+            inputRef.current?.focus();
+          },
+          0
+        );
+
+      return () => {
+        window.clearTimeout(
+          timer
+        );
+      };
+    },
+    [
+      open,
+    ]
+  );
+
+  return (
+    <div
+      ref={
+        containerRef
+      }
+      className={`
+        relative
+        w-full
+        min-w-0
+
+        ${
+          open
+            ? "z-[400]"
+            : "z-10"
+        }
+      `}
+    >
+      {required && (
+        <input
+          tabIndex={
+            -1
+          }
+          aria-hidden="true"
+          value={
+            value
+          }
+          onChange={() => {}}
+          required
+          className="
+            pointer-events-none
+            absolute
+            h-px
+            w-px
+            opacity-0
+          "
+        />
+      )}
+
+      <button
+        id={
+          id
+        }
+        type="button"
+        disabled={
+          disabled
+        }
+        aria-haspopup="listbox"
+        aria-expanded={
+          open
+        }
+        onClick={() => {
+          if (
+            disabled
+          ) {
+            return;
+          }
+
+          setOpen(
+            (
+              current
+            ) => {
+              const next =
+                !current;
+
+              if (
+                !next
+              ) {
+                setSearch(
+                  ""
+                );
+              }
+
+              return next;
+            }
+          );
+        }}
+        className="
+          flex
+          min-h-[50px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-3
+
+          rounded-[14px]
+
+          border-2
+          !border-black
+
+          bg-white
+
+          px-4
+          py-3
+
+          text-left
+          text-base
+          font-bold
+          !text-slate-900
+
+          shadow-sm
+          outline-none
+
+          transition-all
+          duration-200
+
+          hover:bg-slate-50
+
+          focus:ring-4
+          focus:ring-blue-500/10
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-100
+          disabled:opacity-70
+        "
+      >
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+
+            ${
+              selectedOption
+                ? "!text-slate-900"
+                : "!text-slate-400"
+            }
+          `}
+        >
+          {selectedOption
+            ?.label ??
+            placeholder}
+        </span>
+
+        <span
+          aria-hidden="true"
+          className={`
+            shrink-0
+            text-xs
+            !text-slate-500
+
+            transition-transform
+            duration-200
+
+            ${
+              open
+                ? "rotate-180"
+                : ""
+            }
+          `}
+        >
+          ▼
+        </span>
+      </button>
+
+      {open &&
+        !disabled && (
+          <div
+            className="
+              absolute
+              left-0
+              right-0
+              top-[calc(100%+8px)]
+
+              z-[9999]
+
+              overflow-hidden
+
+              rounded-[16px]
+
+              border
+              border-slate-200
+
+              bg-white
+
+              shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
+            "
+          >
+            <div
+              className="
+                border-b
+                border-slate-200
+                bg-slate-50
+                p-3
+              "
+            >
+              <input
+                ref={
+                  inputRef
+                }
+                type="text"
+                value={
+                  search
+                }
+                autoComplete="off"
+                placeholder={
+                  searchPlaceholder
+                }
+                onChange={(
+                  event
+                ) =>
+                  setSearch(
+                    event
+                      .target
+                      .value
+                  )
+                }
+                onKeyDown={(
+                  event
+                ) => {
+                  if (
+                    event.key ===
+                    "Escape"
+                  ) {
+                    setOpen(
+                      false
+                    );
+
+                    setSearch(
+                      ""
+                    );
+                  }
+
+                  if (
+                    event.key ===
+                      "Enter" &&
+                    filteredOptions.length ===
+                      1
+                  ) {
+                    event.preventDefault();
+
+                    onChange(
+                      filteredOptions[
+                        0
+                      ].value
+                    );
+
+                    setOpen(
+                      false
+                    );
+
+                    setSearch(
+                      ""
+                    );
+                  }
+                }}
+                className="
+                  min-h-[46px]
+                  w-full
+
+                  rounded-[12px]
+
+                  border-2
+                  !border-black
+
+                  bg-white
+
+                  px-4
+                  py-2.5
+
+                  text-base
+                  font-bold
+                  !text-slate-900
+
+                  shadow-sm
+                  outline-none
+
+                  placeholder:!text-slate-400
+
+                  focus:ring-4
+                  focus:ring-blue-500/10
+                "
+              />
+            </div>
+
+            <div
+              role="listbox"
+              className="
+                max-h-[280px]
+                overflow-y-auto
+                overscroll-contain
+
+                bg-white
+                p-2
+              "
+            >
+              {filteredOptions.length >
+              0 ? (
+                filteredOptions.map(
+                  (
+                    option
+                  ) => {
+                    const selected =
+                      option.value ===
+                      value;
+
+                    return (
+                      <button
+                        key={
+                          option.value
+                        }
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selected
+                        }
+                        onClick={() => {
+                          onChange(
+                            option.value
+                          );
+
+                          setOpen(
+                            false
+                          );
+
+                          setSearch(
+                            ""
+                          );
+                        }}
+                        className={`
+                          flex
+                          w-full
+                          items-center
+                          justify-between
+                          gap-3
+
+                          rounded-[10px]
+
+                          px-3
+                          py-2.5
+
+                          text-left
+                          text-base
+                          font-bold
+
+                          transition-colors
+
+                          ${
+                            selected
+                              ? `
+                                  bg-slate-900
+                                  !text-white
+                                `
+                              : `
+                                  bg-white
+                                  !text-slate-900
+                                  hover:bg-slate-100
+                                `
+                          }
+                        `}
+                      >
+                        <span
+                          className="
+                            min-w-0
+                            flex-1
+                            break-words
+                          "
+                        >
+                          {
+                            option.label
+                          }
+                        </span>
+
+                        {selected && (
+                          <span
+                            aria-hidden="true"
+                            className="
+                              shrink-0
+                              !text-white
+                            "
+                          >
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  }
+                )
+              ) : (
+                <div
+                  className="
+                    px-4
+                    py-8
+                    text-center
+                    text-sm
+                    font-bold
+                    !text-slate-500
+                  "
+                >
+                  {
+                    emptyText
+                  }
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+    </div>
+  );
+}
+
+/* =========================================================
+   COMPONENT
+========================================================= */
+
+export default function InspectionForm({
+  fiscalYear,
+  startShortYear,
+  endShortYear,
+  materials,
+  officers,
+}: Props) {
+  /* =======================================================
+     STATE
+  ======================================================= */
+
+  const [
+    rows,
+    setRows,
+  ] =
+    useState<
+      InspectionRow[]
+    >(
+      () =>
+        createInitialRows(
+          materials
+        )
+    );
+
+  const [
+    inspectorIds,
+    setInspectorIds,
+  ] =
+    useState<
+      string[]
+    >([
+      "",
+      "",
+      "",
+    ]);
+
+  const [
+    searchTerm,
+    setSearchTerm,
+  ] =
+    useState(
+      ""
+    );
+
+  /* =======================================================
+     SEARCH
+  ======================================================= */
+
+  const filteredMaterials =
+    useMemo(
+      () => {
+        const keyword =
+          searchTerm
+            .trim()
+            .toLocaleLowerCase(
+              "th"
+            );
+
+        if (
+          !keyword
+        ) {
+          return materials;
+        }
+
+        return materials.filter(
+          (
+            material
+          ) => {
+            const searchableText =
+              [
+                material.code,
+                material.name,
+                material.unit,
+                material.category,
+              ]
+                .filter(
+                  Boolean
+                )
+                .join(
+                  " "
+                )
+                .toLocaleLowerCase(
+                  "th"
+                );
+
+            return searchableText.includes(
+              keyword
+            );
+          }
+        );
+      },
+      [
+        materials,
+        searchTerm,
+      ]
+    );
+
+  /* =======================================================
+     TABLE SCROLL
+  ======================================================= */
+
+  const topScrollRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const bottomScrollRef =
+    useRef<HTMLDivElement>(
+      null
+    );
+
+  const tableRef =
+    useRef<HTMLTableElement>(
+      null
+    );
+
+  const [
+    tableScrollWidth,
+    setTableScrollWidth,
+  ] =
+    useState(
+      0
+    );
+
+  useEffect(
+    () => {
+      let animationFrame =
+        0;
+
+      function updateTableMeasurements() {
+        cancelAnimationFrame(
+          animationFrame
+        );
+
+        animationFrame =
+          requestAnimationFrame(
+            () => {
+              const table =
+                tableRef.current;
+
+              if (
+                !table
+              ) {
+                return;
+              }
+
+              setTableScrollWidth(
+                table.scrollWidth
+              );
+            }
+          );
+      }
+
+      updateTableMeasurements();
+
+      window.addEventListener(
+        "resize",
+        updateTableMeasurements
+      );
+
+      const table =
+        tableRef.current;
+
+      const resizeObserver =
+        typeof ResizeObserver !==
+          "undefined" &&
+        table
+          ? new ResizeObserver(
+              updateTableMeasurements
+            )
+          : null;
+
+      if (
+        resizeObserver &&
+        table
+      ) {
+        resizeObserver.observe(
+          table
+        );
+      }
+
+      return () => {
+        cancelAnimationFrame(
+          animationFrame
+        );
+
+        window.removeEventListener(
+          "resize",
+          updateTableMeasurements
+        );
+
+        resizeObserver?.disconnect();
+      };
+    },
+    [
+      filteredMaterials,
+      rows,
+    ]
+  );
+
+  function handleTopScroll() {
+    if (
+      !topScrollRef.current ||
+      !bottomScrollRef.current
+    ) {
+      return;
+    }
+
+    bottomScrollRef.current.scrollLeft =
+      topScrollRef.current.scrollLeft;
+  }
+
+  function handleBottomScroll() {
+    if (
+      !topScrollRef.current ||
+      !bottomScrollRef.current
+    ) {
+      return;
+    }
+
+    topScrollRef.current.scrollLeft =
+      bottomScrollRef.current.scrollLeft;
+  }
+
+  /* =======================================================
+     ROW
+  ======================================================= */
+
+  function updateRow(
+    materialId:
+      number,
+
+    field:
+      keyof InspectionRow,
+
+    value:
+      string
+  ) {
+    setRows(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            row
+          ) =>
+            row.materialId ===
+            materialId
+              ? {
+                  ...row,
+
+                  [field]:
+                    value,
+                }
+              : row
+        )
+    );
+  }
+
+  /* =======================================================
+     ACCURACY
+  ======================================================= */
+
+  function updateAccuracy(
+    materialId:
+      number,
+
+    value:
+      | "CORRECT"
+      | "INCORRECT"
+  ) {
+    setRows(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            row
+          ) => {
+            if (
+              row.materialId !==
+              materialId
+            ) {
+              return row;
+            }
+
+            const nextAccuracy =
+              row.accuracy ===
+              value
+                ? ""
+                : value;
+
+            if (
+              nextAccuracy ===
+              "CORRECT"
+            ) {
+              return {
+                ...row,
+
+                accuracy:
+                  "CORRECT",
+
+                shortageQty:
+                  "",
+
+                excessQty:
+                  "",
+
+                baht:
+                  "",
+
+                satang:
+                  "",
+              };
+            }
+
+            return {
+              ...row,
+
+              accuracy:
+                nextAccuracy,
+            };
+          }
+        )
+    );
+  }
+
+  /* =======================================================
+     QUICK ACTION
+  ======================================================= */
+
+  function updateAllAccuracy(
+    value:
+      | "CORRECT"
+      | "INCORRECT"
+  ) {
+    const visibleIds =
+      new Set(
+        filteredMaterials.map(
+          (
+            material
+          ) =>
+            material.materialId
+        )
+      );
+
+    setRows(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            row
+          ) => {
+            if (
+              !visibleIds.has(
+                row.materialId
+              )
+            ) {
+              return row;
+            }
+
+            if (
+              value ===
+              "CORRECT"
+            ) {
+              return {
+                ...row,
+
+                accuracy:
+                  "CORRECT",
+
+                shortageQty:
+                  "",
+
+                excessQty:
+                  "",
+
+                baht:
+                  "",
+
+                satang:
+                  "",
+              };
+            }
+
+            return {
+              ...row,
+
+              accuracy:
+                "INCORRECT",
+            };
+          }
+        )
+    );
+  }
+
+  /* =======================================================
+     INSPECTOR
+  ======================================================= */
+
+  function updateInspector(
+    index:
+      number,
+
+    value:
+      string
+  ) {
+    if (
+      value &&
+      inspectorIds.some(
+        (
+          currentId,
+          currentIndex
+        ) =>
+          currentIndex !==
+            index &&
+          currentId ===
+            value
+      )
+    ) {
+      alert(
+        "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้"
+      );
+
+      return;
+    }
+
+    setInspectorIds(
+      (
+        current
+      ) => {
+        const next =
+          [
+            ...current,
+          ];
+
+        next[
+          index
+        ] =
+          value;
+
+        return next;
+      }
+    );
+  }
+
+  function getOfficer(
+    id:
+      string
+  ) {
+    return officers.find(
+      (
+        officer
+      ) =>
+        String(
+          officer.id
+        ) ===
+        id
+    );
+  }
+
+  function isOfficerSelected(
+    officerId:
+      string,
+
+    currentIndex:
+      number
+  ) {
+    return inspectorIds.some(
+      (
+        id,
+        index
+      ) =>
+        index !==
+          currentIndex &&
+        id ===
+          officerId
+    );
+  }
+
+  /* =======================================================
+     INPUT CLASS
+  ======================================================= */
+
+  const numberInputClass =
+    `
+      h-10
+      w-[78px]
+
+      rounded-[10px]
+
+      border-2
+      !border-black
+
+      bg-white
+
+      px-2
+
+      text-center
+      text-sm
+      font-extrabold
+      tabular-nums
+
+      !text-slate-900
+
+      outline-none
+
+      focus:ring-4
+      focus:ring-blue-500/10
+
+      disabled:cursor-not-allowed
+      disabled:bg-slate-100
+      disabled:!text-slate-400
+    `;
+
+  const remarkInputClass =
+    `
+      h-10
+      w-full
+      min-w-[180px]
+
+      rounded-[10px]
+
+      border-2
+      !border-black
+
+      bg-white
+
+      px-3
+
+      text-sm
+      font-semibold
+
+      !text-slate-900
+
+      outline-none
+
+      focus:ring-4
+      focus:ring-blue-500/10
+    `;
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
+  return (
+    <div
+      className="
+        relative
+
+        w-full
+        min-w-0
+
+        space-y-5
+
+        sm:space-y-6
+      "
+    >
+      {/* =====================================================
+          1. INFORMATION
+      ===================================================== */}
+
+      <AppCard
+        className="
+          relative
+          z-20
+
+          w-full
+          min-w-0
+        "
+      >
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
+
+              !text-slate-900
+
+              sm:text-2xl
+            "
+          >
+            ข้อมูลการตรวจสอบ
+          </h2>
+
+          <p
+            className="
+              mt-1
+
+              text-sm
+              font-semibold
+
+              !text-slate-500
+            "
+          >
+            ตรวจสอบบัญชีพัสดุประจำปีงบประมาณ
+            พ.ศ.{" "}
+            {
+              fiscalYear
+            }
+          </p>
+        </div>
+
+        <div
+          className="
+            mt-5
+
+            grid
+            grid-cols-1
+
+            gap-4
+
+            md:grid-cols-3
+          "
+        >
+          <div
+            className="
+              rounded-[18px]
+
+              border
+              border-slate-200/80
+
+              bg-slate-50/60
+
+              p-4
+            "
+          >
+            <p
+              className="
+                text-sm
+                font-extrabold
+
+                !text-slate-500
+              "
+            >
+              ปีงบประมาณ
+            </p>
+
+            <p
+              className="
+                mt-1
+
+                text-lg
+                font-black
+
+                !text-slate-900
+              "
+            >
+              พ.ศ.{" "}
+              {
+                fiscalYear
+              }
+            </p>
+          </div>
+
+          <div
+            className="
+              rounded-[18px]
+
+              border
+              border-slate-200/80
+
+              bg-slate-50/60
+
+              p-4
+            "
+          >
+            <p
+              className="
+                text-sm
+                font-extrabold
+
+                !text-slate-500
+              "
+            >
+              ยอดยกมา
+            </p>
+
+            <p
+              className="
+                mt-1
+
+                text-lg
+                font-black
+
+                !text-slate-900
+              "
+            >
+              30 ก.ย.{" "}
+              {
+                startShortYear
+              }
+            </p>
+          </div>
+
+          <div
+            className="
+              rounded-[18px]
+
+              border
+              border-slate-200/80
+
+              bg-slate-50/60
+
+              p-4
+            "
+          >
+            <p
+              className="
+                text-sm
+                font-extrabold
+
+                !text-slate-500
+              "
+            >
+              ช่วงรายการรับ–จ่าย
+            </p>
+
+            <p
+              className="
+                mt-1
+
+                text-lg
+                font-black
+
+                !text-slate-900
+              "
+            >
+              01 ต.ค.{" "}
+              {
+                startShortYear
+              }{" "}
+              - 30 ก.ย.{" "}
+              {
+                endShortYear
+              }
+            </p>
+          </div>
+        </div>
+      </AppCard>
+
+      {/* =====================================================
+          2. SEARCH
+      ===================================================== */}
+
+      <div
+        className="
+          relative
+          z-10
+        "
+      >
+        <AppSearchInput
+          value={
+            searchTerm
+          }
+          onChange={(
+            event
+          ) =>
+            setSearchTerm(
+              event
+                .target
+                .value
+            )
+          }
+          onSubmit={() =>
+            setSearchTerm(
+              searchTerm.trim()
+            )
+          }
+          onClear={() =>
+            setSearchTerm(
+              ""
+            )
+          }
+          placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หน่วยนับ"
+          resultCount={
+            filteredMaterials.length
+          }
+          resultLabel="รายการ"
+          showSearchButton
+          showClearButton
+          searchButtonText="ค้นหา"
+          clearButtonText="ล้าง"
+        />
+      </div>
+
+      {/* =====================================================
+          3. TABLE
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการตรวจสอบบัญชีพัสดุ"
+        subtitle={`ตรวจสอบรายการพัสดุประจำปีงบประมาณ ${fiscalYear}`}
+        badge={`${filteredMaterials.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        className="
+          relative
+          z-0
+
+          w-full
+          min-w-0
+          max-w-full
+        "
+      >
+        {/* ===================================================
+            QUICK ACTION
+        =================================================== */}
+
+        <div
+          className="
+            border-b
+            border-slate-200
+
+            bg-slate-50/70
+
+            p-3
+
+            sm:p-4
+          "
+        >
+          <p
+            className="
+              mb-3
+
+              text-sm
+              font-extrabold
+
+              !text-slate-700
+            "
+          >
+            กำหนดผลให้รายการที่กำลังแสดงทั้งหมด
+          </p>
+
+          <div
+            className="
+              flex
+              flex-wrap
+              gap-2
+            "
+          >
+            <AppButton
+              type="button"
+              variant="success"
+              size="sm"
+              onClick={() =>
+                updateAllAccuracy(
+                  "CORRECT"
+                )
+              }
+            >
+              ✓ ถูกต้องทั้งหมด
+            </AppButton>
+
+            <AppButton
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={() =>
+                updateAllAccuracy(
+                  "INCORRECT"
+                )
+              }
+            >
+              ✕ ไม่ถูกต้องทั้งหมด
+            </AppButton>
+          </div>
+        </div>
+
+        {/* ===================================================
+            TOP SCROLLBAR
+        =================================================== */}
+
+        <div
+          ref={
+            topScrollRef
+          }
+          onScroll={
+            handleTopScroll
+          }
+          className="
+            w-full
+            overflow-x-auto
+            overflow-y-hidden
+          "
+        >
+          <div
+            style={{
+              width:
+                tableScrollWidth,
+              height:
+                1,
+            }}
+          />
+        </div>
+
+        {/* ===================================================
+            BOTTOM TABLE SCROLL
+        =================================================== */}
+
+        <div
+          ref={
+            bottomScrollRef
+          }
+          onScroll={
+            handleBottomScroll
+          }
+          className="
+            w-full
+            min-w-0
+
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
+          <table
+            ref={
+              tableRef
+            }
+            className="
+              w-full
+              min-w-[2500px]
+
+              border-collapse
+
+              bg-white
+            "
+          >
+            <thead>
+              {/* =============================================
+                  HEADER ROW 1
+              ============================================= */}
+
+              <tr>
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    w-[70px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    align-middle
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ลำดับ
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[320px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+                    align-middle
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  รายการพัสดุ
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[110px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    align-middle
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  หน่วยนับ
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[190px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+                    align-middle
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  คงเหลือยอดยกมา
+                  <br />
+                  เมื่อ 30 ก.ย.{" "}
+                  {
+                    startShortYear
+                  }
+                </th>
+
+                <th
+                  colSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  01 ต.ค.{" "}
+                  {
+                    startShortYear
+                  }{" "}
+                  - 30 ก.ย.{" "}
+                  {
+                    endShortYear
+                  }
+                </th>
+
+                <th
+                  colSpan={
+                    1
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-4
+
+                    text-center
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  คงเหลือ
+                </th>
+
+                <th
+                  colSpan={
+                    2
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ผลการตรวจสอบ
+                </th>
+
+                <th
+                  colSpan={
+                    4
+                  }
+                  className="
+                    min-w-[430px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+
+                    text-sm
+                    font-extrabold
+
+                    leading-relaxed
+
+                    !text-white
+                  "
+                >
+                  ถ้าไม่ถูกต้องจำนวนที่ขาด
+                  จำนวนที่เกินคิดเป็นร้อยละ
+                </th>
+
+                <th
+                  colSpan={
+                    3
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  จำนวนที่
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[220px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-4
+                    py-4
+
+                    text-center
+                    align-middle
+
+                    text-sm
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  หมายเหตุ
+                </th>
+              </tr>
+
+              {/* =============================================
+                  HEADER ROW 2
+              ============================================= */}
+
+              <tr>
+                {[
+                  "รับ",
+                  "จ่าย",
+                  "ยกไป",
+                  "ถูกต้อง",
+                  "ไม่ถูกต้อง",
+                  "ขาด",
+                  "เกิน",
+                  "บาท",
+                  "สต.",
+                  "ชำรุด",
+                  "เสื่อมสภาพ",
+                  "ไม่จำเป็นต้องใช้",
+                ].map(
+                  (
+                    title
+                  ) => (
+                    <th
+                      key={
+                        title
+                      }
+                      className="
+                        min-w-[100px]
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-3
+                        py-3
+
+                        text-center
+
+                        text-sm
+                        font-extrabold
+
+                        !text-white
+                      "
+                    >
+                      {
+                        title
+                      }
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredMaterials.length ===
+              0 ? (
+                <tr>
+                  <td
+                    colSpan={
+                      17
+                    }
+                    className="
+                      border
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
+                      text-center
+
+                      font-bold
+                      !text-slate-500
+                    "
+                  >
+                    ไม่พบรายการพัสดุ
+                  </td>
+                </tr>
+              ) : (
+                filteredMaterials.map(
+                  (
+                    material,
+                    index
+                  ) => {
+                    const row =
+                      rows.find(
+                        (
+                          current
+                        ) =>
+                          current.materialId ===
+                          material.materialId
+                      );
+
+                    if (
+                      !row
+                    ) {
+                      return null;
+                    }
+
+                    const incorrect =
+                      row.accuracy ===
+                      "INCORRECT";
+
+                    return (
+                      <tr
+                        key={
+                          material.materialId
+                        }
+                        className={`
+                          transition-colors
+                          duration-200
+
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
+
+                          hover:bg-blue-50/70
+                        `}
+                      >
+                        {/* ORDER */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-extrabold
+
+                            !text-slate-900
+                          "
+                        >
+                          {(
+                            index +
+                            1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* MATERIAL */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-4
+                            py-3
+
+                            font-extrabold
+
+                            !text-slate-900
+                          "
+                        >
+                          <div>
+                            {
+                              material.name
+                            }
+                          </div>
+
+                          <div
+                            className="
+                              mt-1
+                              text-xs
+                              font-bold
+                              !text-slate-400
+                            "
+                          >
+                            {
+                              material.code
+                            }
+                          </div>
+                        </td>
+
+                        {/* UNIT */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-bold
+
+                            !text-slate-800
+                          "
+                        >
+                          {material.unit ||
+                            "-"}
+                        </td>
+
+                        {/* OPENING */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-black
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {formatNumber(
+                            material.openingBalance
+                          )}
+                        </td>
+
+                        {/* RECEIVE */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-black
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {formatNumber(
+                            material.receiveQty
+                          )}
+                        </td>
+
+                        {/* ISSUE */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-black
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {formatNumber(
+                            material.issueQty
+                          )}
+                        </td>
+
+                        {/* CLOSING */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            bg-slate-100/70
+
+                            px-3
+                            py-3
+
+                            text-center
+
+                            font-black
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {formatNumber(
+                            material.closingBalance
+                          )}
+                        </td>
+
+                        {/* CORRECT */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              row.accuracy ===
+                              "CORRECT"
+                            }
+                            onChange={() =>
+                              updateAccuracy(
+                                material.materialId,
+                                "CORRECT"
+                              )
+                            }
+                            aria-label={`ถูกต้อง ${material.name}`}
+                            className="
+                              h-5
+                              w-5
+                              cursor-pointer
+                              accent-emerald-600
+                            "
+                          />
+                        </td>
+
+                        {/* INCORRECT */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-3
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="checkbox"
+                            checked={
+                              row.accuracy ===
+                              "INCORRECT"
+                            }
+                            onChange={() =>
+                              updateAccuracy(
+                                material.materialId,
+                                "INCORRECT"
+                              )
+                            }
+                            aria-label={`ไม่ถูกต้อง ${material.name}`}
+                            className="
+                              h-5
+                              w-5
+                              cursor-pointer
+                              accent-red-600
+                            "
+                          />
+                        </td>
+
+                        {/* SHORTAGE */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            disabled={
+                              !incorrect
+                            }
+                            value={
+                              row.shortageQty
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "shortageQty",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* EXCESS */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            disabled={
+                              !incorrect
+                            }
+                            value={
+                              row.excessQty
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "excessQty",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* BAHT */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            disabled={
+                              !incorrect
+                            }
+                            value={
+                              row.baht
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "baht",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* SATANG */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            max="99"
+                            step="1"
+                            disabled={
+                              !incorrect
+                            }
+                            value={
+                              row.satang
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "satang",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* DAMAGED */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={
+                              row.damagedQty
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "damagedQty",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* DETERIORATED */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={
+                              row.deterioratedQty
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "deterioratedQty",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* UNNECESSARY */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+
+                            text-center
+                          "
+                        >
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={
+                              row.unnecessaryQty
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "unnecessaryQty",
+                                event.target.value
+                              )
+                            }
+                            className={
+                              numberInputClass
+                            }
+                          />
+                        </td>
+
+                        {/* REMARK */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-2
+                            py-2
+                          "
+                        >
+                          <input
+                            type="text"
+                            value={
+                              row.remark
+                            }
+                            onChange={(
+                              event
+                            ) =>
+                              updateRow(
+                                material.materialId,
+                                "remark",
+                                event.target.value
+                              )
+                            }
+                            placeholder="หมายเหตุ"
+                            className={
+                              remarkInputClass
+                            }
+                          />
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AppTableCard>
+
+      {/* =====================================================
+          4. COMMITTEE
+      ===================================================== */}
+
+      <AppCard
+        className="
+          relative
+          z-10
+
+          w-full
+          min-w-0
+
+          !overflow-visible
+        "
+      >
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
+
+              !text-slate-900
+
+              sm:text-2xl
+            "
+          >
+            คณะกรรมการตรวจสอบครุภัณฑ์
+          </h2>
+
+          <p
+            className="
+              mt-1
+
+              text-sm
+              font-semibold
+
+              !text-slate-500
+            "
+          >
+            เลือกผู้ตรวจสอบจำนวน 3 คน
+            โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
+          </p>
+        </div>
+
+        <div
+          className="
+            mt-5
+
+            grid
+            grid-cols-1
+
+            gap-4
+
+            lg:grid-cols-3
+          "
+        >
+          {inspectorIds.map(
+            (
+              inspectorId,
+              index
+            ) => {
+              const officerOptions =
+                officers
+                  .filter(
+                    (
+                      officer
+                    ) => {
+                      const officerId =
+                        String(
+                          officer.id
+                        );
+
+                      return (
+                        officerId ===
+                          inspectorId ||
+                        !isOfficerSelected(
+                          officerId,
+                          index
+                        )
+                      );
+                    }
+                  )
+                  .map(
+                    (
+                      officer
+                    ) => ({
+                      value:
+                        String(
+                          officer.id
+                        ),
+
+                      label:
+                        `${officer.firstName} ${officer.lastName}`.trim(),
+                    })
+                  );
+
+              return (
+                <div
+                  key={
+                    index
+                  }
+                  className="
+                    relative
+
+                    min-w-0
+
+                    rounded-[18px]
+
+                    border
+                    border-slate-200/80
+
+                    bg-slate-50/60
+
+                    p-4
+                  "
+                >
+                  <label
+                    className="
+                      mb-2
+                      block
+
+                      text-sm
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    {index ===
+                    0
+                      ? "ประธานกรรมการ"
+                      : `กรรมการคนที่ ${index}`}
+                  </label>
+
+                  <SearchableDropdown
+                    id={`inspector-${index}`}
+                    value={
+                      inspectorId
+                    }
+                    options={
+                      officerOptions
+                    }
+                    placeholder="-- เลือกผู้ตรวจสอบ --"
+                    searchPlaceholder="พิมพ์ค้นหาผู้ตรวจสอบ..."
+                    emptyText="ไม่พบรายชื่อผู้ตรวจสอบ"
+                    required
+                    onChange={(
+                      officerId
+                    ) =>
+                      updateInspector(
+                        index,
+                        officerId
+                      )
+                    }
+                  />
+
+                  {inspectorId && (
+                    <p
+                      className="
+                        mt-2
+
+                        text-xs
+                        font-semibold
+
+                        !text-slate-500
+                      "
+                    >
+                      ตำแหน่ง:{" "}
+                      {getOfficer(
+                        inspectorId
+                      )?.position ||
+                        "-"}
+                    </p>
+                  )}
+                </div>
+              );
+            }
+          )}
+        </div>
+
+        {/* ===================================================
+            CURRENT STAGE
+
+            ยังไม่บันทึก DB ในรอบนี้
+        =================================================== */}
+
+        <div
+          className="
+            mt-6
+
+            flex
+            flex-col-reverse
+            gap-3
+
+            border-t
+            border-slate-200
+
+            pt-5
+
+            sm:flex-row
+            sm:items-center
+            sm:justify-end
+          "
+        >
+          <AppButton
+            href={`/stock-card?fiscalYear=${fiscalYear}`}
+            variant="back"
+            size="md"
+          >
+            ยกเลิก
+          </AppButton>
+        </div>
+      </AppCard>
+    </div>
+  );
+}
