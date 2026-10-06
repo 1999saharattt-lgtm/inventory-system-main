@@ -1,65 +1,51 @@
-import {
-  notFound,
-} from "next/navigation";
-
-import {
-  prisma,
-} from "@/lib/prisma";
-
-import {
-  requireLogin,
-} from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
 
-import InspectionForm from "./InspectionForm";
+/* =========================================================
+   DYNAMIC
+========================================================= */
 
 export const dynamic =
   "force-dynamic";
-
-export const revalidate =
-  0;
 
 /* =========================================================
    TYPES
 ========================================================= */
 
-type Props = {
+type PageProps = {
   searchParams: Promise<{
     fiscalYear?: string;
   }>;
 };
 
-type FiscalYearRange = {
-  fiscalYearThai: number;
-  fiscalYearGregorian: number;
-
-  startDate: Date;
-  endDate: Date;
-};
-
-type ThailandDateParts = {
-  year: number;
-  month: number;
-  day: number;
-};
-
 /* =========================================================
-   CONSTANT
+   THAI MONTHS
 ========================================================= */
 
-const FIRST_FISCAL_YEAR =
-  2569;
+const thaiMonths = [
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
+];
 
 /* =========================================================
-   THAILAND DATE
+   CURRENT FISCAL YEAR
 ========================================================= */
 
-function getThailandDateParts(
-  value: Date
-): ThailandDateParts {
+function getCurrentFiscalYearThai() {
   const formatter =
     new Intl.DateTimeFormat(
       "en-US",
@@ -71,24 +57,19 @@ function getThailandDateParts(
           "numeric",
 
         month:
-          "2-digit",
-
-        day:
-          "2-digit",
+          "numeric",
       }
     );
 
   const parts =
     formatter.formatToParts(
-      value
+      new Date()
     );
 
   const year =
     Number(
       parts.find(
-        (
-          part
-        ) =>
+        (part) =>
           part.type ===
           "year"
       )?.value
@@ -97,431 +78,210 @@ function getThailandDateParts(
   const month =
     Number(
       parts.find(
-        (
-          part
-        ) =>
+        (part) =>
           part.type ===
           "month"
       )?.value
     );
 
-  const day =
-    Number(
-      parts.find(
-        (
-          part
-        ) =>
-          part.type ===
-          "day"
-      )?.value
-    );
-
-  return {
-    year,
-    month,
-    day,
-  };
-}
-
-/* =========================================================
-   CURRENT FISCAL YEAR
-========================================================= */
-
-function getCurrentFiscalYearThai(
-  value: Date =
-    new Date()
-) {
-  const parts =
-    getThailandDateParts(
-      value
-    );
-
-  const fiscalYearGregorian =
-    parts.month >=
-    10
-      ? parts.year +
-        1
-      : parts.year;
+  const fiscalChristianYear =
+    month >= 10
+      ? year + 1
+      : year;
 
   return (
-    fiscalYearGregorian +
+    fiscalChristianYear +
     543
   );
 }
 
 /* =========================================================
-   FISCAL YEAR RANGE
+   INSPECTION DATE
 
-   FY 2569
-   1 ต.ค. 2568
-   ถึงก่อน
-   1 ต.ค. 2569
+   inspectionDate เก็บเป็น Date Only แบบ UTC
+   จึงอ่านด้วย UTC เพื่อไม่ให้วันที่เลื่อน
 ========================================================= */
 
-function getFiscalYearRange(
-  fiscalYearThai:
-    number
-): FiscalYearRange {
-  const fiscalYearGregorian =
-    fiscalYearThai -
+function formatInspectionDate(
+  value: Date
+) {
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "-";
+  }
+
+  const day =
+    date.getUTCDate();
+
+  const month =
+    thaiMonths[
+      date.getUTCMonth()
+    ];
+
+  const year =
+    date.getUTCFullYear() +
     543;
 
-  const startDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian -
-          1,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-  const endDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-  return {
-    fiscalYearThai,
-    fiscalYearGregorian,
-    startDate,
-    endDate,
-  };
+  return `${day} ${month} ${year}`;
 }
 
 /* =========================================================
-   ISSUE QTY
-
-   ใช้กติกาเดียวกับ Stock Card เดิม
+   CREATED DATE
 ========================================================= */
 
-function getIssueQuantity(
-  item: {
-    qty: number;
+function formatCreatedDate(
+  value: Date
+) {
+  try {
+    return new Intl.DateTimeFormat(
+      "th-TH",
+      {
+        timeZone:
+          "Asia/Bangkok",
 
-    issuedQty:
-      number | null;
+        day:
+          "numeric",
+
+        month:
+          "long",
+
+        year:
+          "numeric",
+
+        hour:
+          "2-digit",
+
+        minute:
+          "2-digit",
+      }
+    ).format(value);
+  } catch {
+    return "-";
   }
-) {
-  return Number(
-    item.issuedQty ??
-      item.qty ??
-      0
-  );
 }
 
 /* =========================================================
-   SHORT THAI YEAR
-
-   2568 -> 68
+   INSPECTOR NAMES
 ========================================================= */
 
-function getShortThaiYear(
-  buddhistYear: number
-) {
-  return String(
-    buddhistYear
-  ).slice(
-    -2
-  );
+function parseInspectorNames(
+  value: unknown
+): string[] {
+  if (
+    Array.isArray(value)
+  ) {
+    return value
+      .map(
+        (item) =>
+          String(
+            item ?? ""
+          ).trim()
+      )
+      .filter(Boolean);
+  }
+
+  if (
+    typeof value ===
+      "string" &&
+    value.trim()
+  ) {
+    try {
+      const parsed =
+        JSON.parse(
+          value
+        );
+
+      if (
+        Array.isArray(
+          parsed
+        )
+      ) {
+        return parsed
+          .map(
+            (item) =>
+              String(
+                item ?? ""
+              ).trim()
+          )
+          .filter(
+            Boolean
+          );
+      }
+    } catch {
+      return value
+        .split(",")
+        .map(
+          (item) =>
+            item.trim()
+        )
+        .filter(
+          Boolean
+        );
+    }
+  }
+
+  return [];
 }
 
 /* =========================================================
    PAGE
 ========================================================= */
 
-export default async function StockCardInspectionPage({
+export default async function StockCardInspectionHistoryPage({
   searchParams,
-}: Props) {
-  /* =======================================================
-     USER
-  ======================================================= */
-
-  const user =
-    await requireLogin();
-
-  if (
-    user.role !==
-    "ADMIN"
-  ) {
-    notFound();
-  }
+}: PageProps) {
+  const params =
+    await searchParams;
 
   /* =======================================================
      FISCAL YEAR
   ======================================================= */
-
-  const query =
-    await searchParams;
 
   const currentFiscalYear =
     getCurrentFiscalYearThai();
 
   const requestedFiscalYear =
     Number(
-      query.fiscalYear
+      params.fiscalYear
     );
 
-  const fiscalYear =
+  const selectedFiscalYear =
     Number.isInteger(
       requestedFiscalYear
     ) &&
     requestedFiscalYear >=
-      FIRST_FISCAL_YEAR &&
+      2400 &&
     requestedFiscalYear <=
       3000
       ? requestedFiscalYear
-      : currentFiscalYear;
-
-  const fiscalRange =
-    getFiscalYearRange(
-      fiscalYear
-    );
-
-  const previousThaiYear =
-    fiscalYear -
-    1;
-
-  const startShortYear =
-    getShortThaiYear(
-      previousThaiYear
-    );
-
-  const endShortYear =
-    getShortThaiYear(
-      fiscalYear
-    );
+      : null;
 
   /* =======================================================
-     OPENING DAY END
-
-     1 ต.ค. เวลา 00:00
-     ถึงก่อน
-     2 ต.ค. เวลา 00:00
+     DATA
   ======================================================= */
 
-  const openingEndDate =
-    new Date(
-      fiscalRange
-        .startDate
-        .getTime() +
-        24 *
-          60 *
-          60 *
-          1000
-    );
+  const inspections =
+    await prisma.stockCardInspection.findMany(
+      {
+        where:
+          selectedFiscalYear !==
+          null
+            ? {
+                fiscalYear:
+                  selectedFiscalYear,
+              }
+            : undefined,
 
-  /* =======================================================
-     BULK DATA
-
-     สำคัญ:
-     ไม่มี query ทีละ Material
-  ======================================================= */
-
-  const [
-    materials,
-    openingItems,
-    receiveItems,
-    issueItems,
-    officers,
-  ] =
-    await Promise.all([
-      /* ===================================================
-         MATERIAL
-      =================================================== */
-
-      prisma.material.findMany({
-        select: {
-          id:
-            true,
-
-          code:
-            true,
-
-          name:
-            true,
-
-          unit:
-            true,
-
-          category:
-            true,
-        },
-
-        orderBy: [
-          {
-            category:
-              "asc",
-          },
-
-          {
-            code:
-              "asc",
-          },
-        ],
-      }),
-
-      /* ===================================================
-         OPENING
-
-         ดึงจาก Stock Card:
-         "ยอดยกเข้าระบบ"
-         วันที่ 1 ต.ค. ของ FY
-
-         FY 2569
-         =
-         1 ต.ค. 2568
-      =================================================== */
-
-      prisma.receiveItem.findMany({
-        where: {
-          receive: {
-            documentNo:
-              "ยอดยกเข้าระบบ",
-
-            receiveDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                openingEndDate,
-            },
-          },
-        },
-
-        select: {
-          materialId:
-            true,
-
-          qty:
-            true,
-        },
-      }),
-
-      /* ===================================================
-         RECEIVE
-
-         1 ต.ค. - 30 ก.ย.
-
-         ไม่รวมยอดยก
-      =================================================== */
-
-      prisma.receiveItem.findMany({
-        where: {
-          receive: {
-            receiveDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                fiscalRange.endDate,
-            },
-
-            NOT: {
-              documentNo:
-                "ยอดยกเข้าระบบ",
-            },
-          },
-        },
-
-        select: {
-          materialId:
-            true,
-
-          qty:
-            true,
-        },
-      }),
-
-      /* ===================================================
-         ISSUE
-
-         APPROVED เท่านั้น
-      =================================================== */
-
-      prisma.issueItem.findMany({
-        where: {
-          issue: {
-            status:
-              "APPROVED",
-
-            issueDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                fiscalRange.endDate,
-            },
-          },
-        },
-
-        select: {
-          materialId:
-            true,
-
-          qty:
-            true,
-
-          issuedQty:
-            true,
-        },
-      }),
-
-      /* ===================================================
-         OFFICERS
-      =================================================== */
-
-      prisma.officer.findMany({
-        select: {
-          id:
-            true,
-
-          firstName:
-            true,
-
-          lastName:
-            true,
-
-          position:
-            true,
-
-          type:
-            true,
-
-          departmentId:
-            true,
-
-          sectionId:
-            true,
-
-          department: {
+        include: {
+          _count: {
             select: {
-              id:
-                true,
-
-              name:
-                true,
-            },
-          },
-
-          section: {
-            select: {
-              id:
-                true,
-
-              name:
+              rows:
                 true,
             },
           },
@@ -529,182 +289,49 @@ export default async function StockCardInspectionPage({
 
         orderBy: [
           {
-            firstName:
-              "asc",
+            fiscalYear:
+              "desc",
           },
 
           {
-            lastName:
-              "asc",
+            inspectionDate:
+              "desc",
+          },
+
+          {
+            id:
+              "desc",
           },
         ],
-      }),
-    ]);
-
-  /* =======================================================
-     OPENING MAP
-  ======================================================= */
-
-  const openingMap =
-    new Map<
-      number,
-      number
-    >();
-
-  for (
-    const item of
-      openingItems
-  ) {
-    const current =
-      openingMap.get(
-        item.materialId
-      ) ??
-      0;
-
-    openingMap.set(
-      item.materialId,
-      current +
-        Number(
-          item.qty ??
-            0
-        )
-    );
-  }
-
-  /* =======================================================
-     RECEIVE MAP
-  ======================================================= */
-
-  const receiveMap =
-    new Map<
-      number,
-      number
-    >();
-
-  for (
-    const item of
-      receiveItems
-  ) {
-    const current =
-      receiveMap.get(
-        item.materialId
-      ) ??
-      0;
-
-    receiveMap.set(
-      item.materialId,
-      current +
-        Number(
-          item.qty ??
-            0
-        )
-    );
-  }
-
-  /* =======================================================
-     ISSUE MAP
-  ======================================================= */
-
-  const issueMap =
-    new Map<
-      number,
-      number
-    >();
-
-  for (
-    const item of
-      issueItems
-  ) {
-    const current =
-      issueMap.get(
-        item.materialId
-      ) ??
-      0;
-
-    const qty =
-      getIssueQuantity({
-        qty:
-          Number(
-            item.qty ??
-              0
-          ),
-
-        issuedQty:
-          item.issuedQty,
-      });
-
-    issueMap.set(
-      item.materialId,
-      current +
-        qty
-    );
-  }
-
-  /* =======================================================
-     ROWS
-  ======================================================= */
-
-  const rows =
-    materials.map(
-      (
-        material
-      ) => {
-        const openingBalance =
-          openingMap.get(
-            material.id
-          ) ??
-          0;
-
-        const receiveQty =
-          receiveMap.get(
-            material.id
-          ) ??
-          0;
-
-        const issueQty =
-          issueMap.get(
-            material.id
-          ) ??
-          0;
-
-        const closingBalance =
-          openingBalance +
-          receiveQty -
-          issueQty;
-
-        return {
-          materialId:
-            material.id,
-
-          code:
-            material.code,
-
-          name:
-            material.name,
-
-          unit:
-            material.unit,
-
-          category:
-            material.category,
-
-          openingBalance,
-
-          receiveQty,
-
-          issueQty,
-
-          closingBalance,
-        };
       }
     );
 
   /* =======================================================
-     BACK
+     URL
   ======================================================= */
 
+  const backFiscalYear =
+    selectedFiscalYear ??
+    currentFiscalYear;
+
   const backHref =
-    `/stock-card?fiscalYear=${fiscalYear}`;
+    `/stock-card?fiscalYear=${backFiscalYear}`;
+
+  const newInspectionHref =
+    `/stock-card/inspection?fiscalYear=${backFiscalYear}`;
+
+  const clearFilterHref =
+    "/stock-card/inspection-history";
+
+  /* =======================================================
+     SUBTITLE
+  ======================================================= */
+
+  const tableSubtitle =
+    selectedFiscalYear !==
+    null
+      ? `ประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`
+      : "ประวัติการตรวจสอบบัญชีพัสดุประจำปีทั้งหมด";
 
   /* =======================================================
      UI
@@ -712,40 +339,529 @@ export default async function StockCardInspectionPage({
 
   return (
     <AppPage>
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <AppPageHeader
-        icon="🔎"
-        title="ตรวจสอบบัญชีพัสดุประจำปี"
-        subtitle={`ตรวจสอบบัญชีพัสดุประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
+        icon="🗂️"
+        title="ประวัติการตรวจสอบบัญชีพัสดุประจำปี"
+        subtitle="ตรวจสอบและเรียกดูผลการตรวจสอบบัญชีพัสดุที่บันทึกไว้"
         actions={
-          <AppButton
-            href={
-              backHref
-            }
-            variant="back"
-            size="md"
-          >
-            กลับ
-          </AppButton>
+          <>
+            <AppButton
+              href={
+                newInspectionHref
+              }
+              variant="primary"
+              size="md"
+            >
+              🔎 ตรวจสอบบัญชีพัสดุประจำปี
+            </AppButton>
+
+            <AppButton
+              href={
+                backHref
+              }
+              variant="back"
+              size="md"
+            >
+              ← กลับ
+            </AppButton>
+          </>
         }
       />
 
-      <InspectionForm
-        fiscalYear={
-          fiscalYear
+      {/* =====================================================
+          TABLE
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการประวัติการตรวจสอบ"
+        subtitle={
+          tableSubtitle
         }
-        startShortYear={
-          startShortYear
-        }
-        endShortYear={
-          endShortYear
-        }
-        materials={
-          rows
-        }
-        officers={
-          officers
-        }
-      />
+        badge={`${inspections.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        className="
+          w-full
+          min-w-0
+        "
+      >
+        {/* ===================================================
+            FILTER INFORMATION
+        =================================================== */}
+
+        {selectedFiscalYear !==
+          null && (
+          <div
+            className="
+              mb-4
+
+              flex
+              w-full
+              min-w-0
+              flex-col
+              gap-3
+
+              rounded-[18px]
+
+              border
+              border-slate-200
+
+              bg-slate-50/80
+
+              px-4
+              py-3
+
+              shadow-sm
+
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <div
+              className="
+                min-w-0
+              "
+            >
+              <p
+                className="
+                  text-sm
+                  font-extrabold
+
+                  !text-slate-900
+                "
+              >
+                กำลังแสดงปีงบประมาณ{" "}
+                {
+                  selectedFiscalYear
+                }
+              </p>
+
+              <p
+                className="
+                  mt-1
+
+                  text-xs
+                  font-semibold
+
+                  !text-slate-500
+                "
+              >
+                แสดงเฉพาะประวัติการตรวจสอบของปีงบประมาณที่เลือก
+              </p>
+            </div>
+
+            <AppButton
+              href={
+                clearFilterHref
+              }
+              variant="secondary"
+              size="sm"
+            >
+              แสดงประวัติทั้งหมด
+            </AppButton>
+          </div>
+        )}
+
+        {/* ===================================================
+            TABLE SCROLL
+        =================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+
+            overflow-x-auto
+            overscroll-x-contain
+          "
+        >
+          <table
+            className="
+              w-full
+              min-w-[1050px]
+
+              border-collapse
+
+              bg-white
+
+              text-sm
+            "
+          >
+            {/* =================================================
+                HEADER
+            ================================================= */}
+
+            <thead>
+              <tr>
+                {[
+                  "ลำดับ",
+                  "ปีงบประมาณ",
+                  "วันที่ตรวจสอบ",
+                  "จำนวนรายการ",
+                  "คณะกรรมการตรวจสอบ",
+                  "วันที่บันทึก",
+                  "การดำเนินการ",
+                ].map(
+                  (
+                    title
+                  ) => (
+                    <th
+                      key={
+                        title
+                      }
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-4
+                        py-4
+
+                        text-center
+                        text-base
+                        font-extrabold
+
+                        !text-white
+                      "
+                    >
+                      {
+                        title
+                      }
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+
+            {/* =================================================
+                BODY
+            ================================================= */}
+
+            <tbody>
+              {inspections.length ===
+              0 ? (
+                <tr>
+                  <td
+                    colSpan={
+                      7
+                    }
+                    className="
+                      border
+                      border-black
+
+                      px-4
+                      py-12
+
+                      text-center
+                      text-base
+                      font-bold
+
+                      !text-slate-500
+                    "
+                  >
+                    {selectedFiscalYear !==
+                    null
+                      ? `ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`
+                      : "ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ"}
+                  </td>
+                </tr>
+              ) : (
+                inspections.map(
+                  (
+                    inspection,
+                    index
+                  ) => {
+                    const inspectorNames =
+                      parseInspectorNames(
+                        inspection.inspectorNames
+                      );
+
+                    const detailHref =
+                      `/stock-card/inspection-history/${inspection.fiscalYear}`;
+
+                    return (
+                      <tr
+                        key={
+                          inspection.id
+                        }
+                        className={`
+                          transition-colors
+                          duration-150
+
+                          hover:bg-blue-50/70
+
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/70"
+                          }
+                        `}
+                      >
+                        {/* =====================================
+                            ORDER
+                        ===================================== */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-3
+                            py-4
+
+                            text-center
+                            font-bold
+
+                            !text-slate-700
+                          "
+                        >
+                          {(
+                            index +
+                            1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* =====================================
+                            FISCAL YEAR
+                        ===================================== */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            text-center
+                            text-base
+                            font-extrabold
+
+                            !text-slate-900
+                          "
+                        >
+                          {
+                            inspection.fiscalYear
+                          }
+                        </td>
+
+                        {/* =====================================
+                            INSPECTION DATE
+                        ===================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            text-center
+                            font-semibold
+
+                            !text-slate-700
+                          "
+                        >
+                          {formatInspectionDate(
+                            inspection.inspectionDate
+                          )}
+                        </td>
+
+                        {/* =====================================
+                            ROW COUNT
+                        ===================================== */}
+
+                        <td
+                          className="
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            text-center
+                            font-bold
+                            tabular-nums
+
+                            !text-slate-800
+                          "
+                        >
+                          {inspection._count.rows.toLocaleString(
+                            "th-TH"
+                          )}{" "}
+                          รายการ
+                        </td>
+
+                        {/* =====================================
+                            INSPECTORS
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[280px]
+
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            align-top
+
+                            font-semibold
+
+                            !text-slate-700
+                          "
+                        >
+                          {inspectorNames.length >
+                          0 ? (
+                            <div
+                              className="
+                                space-y-1.5
+                              "
+                            >
+                              {inspectorNames.map(
+                                (
+                                  name,
+                                  inspectorIndex
+                                ) => (
+                                  <div
+                                    key={`${inspection.id}-${inspectorIndex}`}
+                                    className="
+                                      flex
+                                      min-w-0
+                                      items-start
+                                      gap-2
+                                    "
+                                  >
+                                    <span
+                                      className="
+                                        shrink-0
+
+                                        font-extrabold
+
+                                        !text-slate-500
+                                      "
+                                    >
+                                      {inspectorIndex +
+                                        1}
+                                      .
+                                    </span>
+
+                                    <span
+                                      className="
+                                        min-w-0
+                                        break-words
+                                      "
+                                    >
+                                      {
+                                        name
+                                      }
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          ) : (
+                            <div
+                              className="
+                                text-center
+
+                                !text-slate-400
+                              "
+                            >
+                              -
+                            </div>
+                          )}
+                        </td>
+
+                        {/* =====================================
+                            CREATED AT
+                        ===================================== */}
+
+                        <td
+                          className="
+                            min-w-[190px]
+
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            text-center
+                            font-semibold
+
+                            !text-slate-700
+                          "
+                        >
+                          {formatCreatedDate(
+                            inspection.createdAt
+                          )}
+                        </td>
+
+                        {/* =====================================
+                            ACTION
+                        ===================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-4
+
+                            text-center
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+                              gap-2
+                            "
+                          >
+                            <AppButton
+                              href={
+                                detailHref
+                              }
+                              variant="secondary"
+                              size="sm"
+                            >
+                              ดู / แก้ไข
+                            </AppButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AppTableCard>
     </AppPage>
   );
 }
