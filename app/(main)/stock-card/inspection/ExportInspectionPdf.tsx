@@ -138,8 +138,11 @@ const SIGNATURE_GAP =
 const SIGNATURE_MIN_START_Y =
   166;
 
+/*
+ * แสดงข้อมูล 15 รายการต่อหน้า
+ */
 const ROWS_PER_PAGE =
-  14;
+  15;
 
 /* =========================================================
    COLUMN WIDTHS
@@ -508,15 +511,6 @@ export default function ExportInspectionPdf({
           "center",
       }
     );
-
-    /*
-     * แก้เฉพาะหัวกระดาษตามที่กำหนด
-     *
-     * ตัวอย่าง FY 2570:
-     * 1 ตุลาคม พ.ศ. 2569
-     * เป็นยอดคงเหลือตามบัญชีหรือทะเบียน
-     * เมื่อวันที่ 30 กันยายน พ.ศ. 2569
-     */
 
     doc.setFontSize(
       14
@@ -954,6 +948,9 @@ export default function ExportInspectionPdf({
             }
           );
 
+        /*
+         * เติมแถวว่างให้ครบ 15 รายการต่อหน้า
+         */
         while (
           body.length <
           ROWS_PER_PAGE
