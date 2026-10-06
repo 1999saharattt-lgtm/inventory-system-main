@@ -1,17 +1,18 @@
+"use client";
+
+import {
+  useMemo,
+  useTransition,
+} from "react";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
 import AppPage from "@/components/AppPage";
-import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
-
-/* =========================================================
-   FORCE DYNAMIC
-========================================================= */
-
-export const dynamic =
-  "force-dynamic";
-
-export const revalidate =
-  0;
 
 /* =========================================================
    TYPES
@@ -23,119 +24,88 @@ type Category = {
   icon: string;
 };
 
-type StockCardHomeProps = {
-  searchParams: Promise<{
-    fiscalYear?: string;
-  }>;
-};
+/* =========================================================
+   CONSTANT
+========================================================= */
 
-type ThailandDateParts = {
-  year: number;
-  month: number;
-  day: number;
-};
+const BASE_FISCAL_YEAR =
+  2569;
 
-type FiscalYearRange = {
-  fiscalYearThai: number;
-
-  fiscalYearGregorian: number;
-
-  startDate: Date;
-
-  endDate: Date;
-};
+const MAX_FISCAL_YEAR =
+  3000;
 
 /* =========================================================
    CATEGORIES
 ========================================================= */
 
-const categories:
-  Category[] = [
-  {
-    code:
-      "OFFICE",
+const categories: Category[] =
+  [
+    {
+      code:
+        "OFFICE",
 
-    name:
-      "วัสดุสำนักงาน",
+      name:
+        "วัสดุสำนักงาน",
 
-    icon:
-      "📄",
-  },
+      icon:
+        "📄",
+    },
 
-  {
-    code:
-      "COMPUTER",
+    {
+      code:
+        "COMPUTER",
 
-    name:
-      "วัสดุคอมพิวเตอร์",
+      name:
+        "วัสดุคอมพิวเตอร์",
 
-    icon:
-      "💻",
-  },
+      icon:
+        "💻",
+    },
 
-  {
-    code:
-      "ELECTRIC",
+    {
+      code:
+        "ELECTRIC",
 
-    name:
-      "วัสดุไฟฟ้าและวิทยุ",
+      name:
+        "วัสดุไฟฟ้าและวิทยุ",
 
-    icon:
-      "⚡",
-  },
+      icon:
+        "⚡",
+    },
 
-  {
-    code:
-      "HOUSEHOLD",
+    {
+      code:
+        "HOUSEHOLD",
 
-    name:
-      "วัสดุงานบ้านและงานครัว",
+      name:
+        "วัสดุงานบ้านและงานครัว",
 
-    icon:
-      "🏠",
-  },
+      icon:
+        "🏠",
+    },
 
-  {
-    code:
-      "VEHICLE",
+    {
+      code:
+        "VEHICLE",
 
-    name:
-      "วัสดุยานพาหนะ",
+      name:
+        "วัสดุยานพาหนะ",
 
-    icon:
-      "🚗",
-  },
+      icon:
+        "🚗",
+    },
 
-  {
-    code:
-      "PRINTING",
+    {
+      code:
+        "PRINTING",
 
-    name:
-      "วัสดุสื่อสิ่งพิมพ์",
+      name:
+        "วัสดุสื่อสิ่งพิมพ์",
 
-    icon:
-      "📰",
-  },
-];
-
-/* =========================================================
-   THAI MONTHS
-========================================================= */
-
-const thaiShortMonths = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
+      icon:
+        "📰",
+    },
+  ];
 
 /* =========================================================
    THAILAND DATE
@@ -143,7 +113,7 @@ const thaiShortMonths = [
 
 function getThailandDateParts(
   value: Date
-): ThailandDateParts {
+) {
   const formatter =
     new Intl.DateTimeFormat(
       "en-US",
@@ -208,7 +178,13 @@ function getThailandDateParts(
 }
 
 /* =========================================================
-   CURRENT FY
+   CURRENT FISCAL YEAR
+
+   ต.ค. - ธ.ค.
+   = ปีถัดไป
+
+   ม.ค. - ก.ย.
+   = ปีปัจจุบัน
 ========================================================= */
 
 function getCurrentFiscalYearThai(
@@ -234,95 +210,7 @@ function getCurrentFiscalYearThai(
 }
 
 /* =========================================================
-   FY RANGE
-========================================================= */
-
-function getFiscalYearRange(
-  fiscalYearThai:
-    number
-): FiscalYearRange {
-  const fiscalYearGregorian =
-    fiscalYearThai -
-    543;
-
-  const startDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian -
-          1,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-  const endDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-  return {
-    fiscalYearThai,
-    fiscalYearGregorian,
-    startDate,
-    endDate,
-  };
-}
-
-/* =========================================================
-   DISPLAY END
-========================================================= */
-
-function getDisplayEndDate(
-  range:
-    FiscalYearRange
-) {
-  return new Date(
-    range.endDate.getTime() -
-      24 *
-        60 *
-        60 *
-        1000
-  );
-}
-
-/* =========================================================
-   DATE DISPLAY
-========================================================= */
-
-function formatThaiFullDate(
-  value: Date
-) {
-  const parts =
-    getThailandDateParts(
-      value
-    );
-
-  const month =
-    thaiShortMonths[
-      parts.month -
-        1
-    ];
-
-  return `${parts.day} ${month} ${
-    parts.year +
-    543
-  }`;
-}
-
-/* =========================================================
-   AVAILABLE YEARS
+   AVAILABLE FISCAL YEARS
 ========================================================= */
 
 function getAvailableFiscalYears(
@@ -332,9 +220,6 @@ function getAvailableFiscalYears(
   selectedFiscalYear:
     number
 ) {
-  const BASE_FISCAL_YEAR =
-    2569;
-
   const highestFiscalYear =
     Math.max(
       currentFiscalYear,
@@ -367,18 +252,35 @@ function getAvailableFiscalYears(
    PAGE
 ========================================================= */
 
-export default async function StockCardHome({
-  searchParams,
-}: StockCardHomeProps) {
-  const params =
-    await searchParams;
+export default function StockCardHome() {
+  const router =
+    useRouter();
+
+  const searchParams =
+    useSearchParams();
+
+  const [
+    isChangingYear,
+    startTransition,
+  ] =
+    useTransition();
+
+  /* =======================================================
+     CURRENT FY
+  ======================================================= */
 
   const currentFiscalYear =
     getCurrentFiscalYearThai();
 
+  /* =======================================================
+     SELECTED FY
+  ======================================================= */
+
   const requestedFiscalYear =
     Number(
-      params.fiscalYear
+      searchParams.get(
+        "fiscalYear"
+      )
     );
 
   const selectedFiscalYear =
@@ -386,26 +288,27 @@ export default async function StockCardHome({
       requestedFiscalYear
     ) &&
     requestedFiscalYear >=
-      2569 &&
+      BASE_FISCAL_YEAR &&
     requestedFiscalYear <=
-      3000
+      MAX_FISCAL_YEAR
       ? requestedFiscalYear
       : currentFiscalYear;
 
-  const fiscalRange =
-    getFiscalYearRange(
-      selectedFiscalYear
-    );
-
-  const fiscalDisplayEndDate =
-    getDisplayEndDate(
-      fiscalRange
-    );
+  /* =======================================================
+     AVAILABLE YEARS
+  ======================================================= */
 
   const availableFiscalYears =
-    getAvailableFiscalYears(
-      currentFiscalYear,
-      selectedFiscalYear
+    useMemo(
+      () =>
+        getAvailableFiscalYears(
+          currentFiscalYear,
+          selectedFiscalYear
+        ),
+      [
+        currentFiscalYear,
+        selectedFiscalYear,
+      ]
     );
 
   /* =======================================================
@@ -418,6 +321,49 @@ export default async function StockCardHome({
   const inspectionHistoryHref =
     `/stock-card/inspection-history?fiscalYear=${selectedFiscalYear}`;
 
+  /* =======================================================
+     CHANGE FISCAL YEAR
+
+     เลือกแล้วเปลี่ยนข้อมูลทันที
+     ไม่มีปุ่ม "แสดงข้อมูล"
+  ======================================================= */
+
+  function handleFiscalYearChange(
+    value: string
+  ) {
+    const nextFiscalYear =
+      Number(
+        value
+      );
+
+    if (
+      !Number.isInteger(
+        nextFiscalYear
+      ) ||
+      nextFiscalYear <
+        BASE_FISCAL_YEAR ||
+      nextFiscalYear >
+        MAX_FISCAL_YEAR
+    ) {
+      return;
+    }
+
+    if (
+      nextFiscalYear ===
+      selectedFiscalYear
+    ) {
+      return;
+    }
+
+    startTransition(
+      () => {
+        router.push(
+          `/stock-card?fiscalYear=${nextFiscalYear}`
+        );
+      }
+    );
+  }
+
   /* =========================================================
      UI
   ========================================================= */
@@ -425,36 +371,44 @@ export default async function StockCardHome({
   return (
     <AppPage>
       {/* =====================================================
-          HEADER
+          MAIN HEADER CARD
+
+          รวม:
+          - รายการบัญชีพัสดุ
+          - ปุ่มตรวจสอบ
+          - ปุ่มประวัติ
+          - Dropdown ปีงบประมาณ
+
+          ไม่มี Card ปีงบประมาณแยกอีกแล้ว
       ===================================================== */}
 
-      <AppPageHeader
-        icon="📚"
-        title="รายการบัญชีพัสดุ"
-        subtitle={`เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ • ปีงบประมาณ ${selectedFiscalYear}`}
-        actions={
-          <div
-            className="
-              flex
-              flex-col
-              gap-2
-
-              sm:flex-row
-              sm:items-center
-            "
+      <AppCard
+        icon={
+          <span
+            aria-hidden="true"
           >
+            📚
+          </span>
+        }
+        title="รายการบัญชีพัสดุ"
+        subtitle="เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ"
+        actions={
+          <>
             {/* ===============================================
                 INSPECTION HISTORY
+
+                ใช้ปุ่มตัวกลาง
+                สีเขียว
             =============================================== */}
 
             <AppButton
               href={
                 inspectionHistoryHref
               }
-              variant="secondary"
+              variant="success"
               size="md"
             >
-              🕘 ประวัติการตรวจสอบบัญชีพัสดุประจำปี
+              ประวัติการตรวจสอบบัญชีพัสดุประจำปี
             </AppButton>
 
             {/* ===============================================
@@ -470,232 +424,189 @@ export default async function StockCardHome({
             >
               🔎 ตรวจสอบบัญชีพัสดุประจำปี
             </AppButton>
-          </div>
+          </>
         }
-      />
-
-      {/* =====================================================
-          FISCAL YEAR
-      ===================================================== */}
-
-      <AppCard
         className="
           w-full
           min-w-0
 
-          overflow-visible
-
-          p-4
-
-          sm:p-5
+          !overflow-visible
         "
       >
+        {/* ===================================================
+            FISCAL YEAR SELECT
+
+            อยู่ภายในการ์ดรายการบัญชีพัสดุ
+            ใต้หัวข้อ
+
+            ไม่มีกรอบดำ
+            ไม่มีปุ่มแสดงข้อมูล
+        =================================================== */}
+
         <div
           className="
-            flex
+            w-full
             min-w-0
-            flex-col
 
-            gap-4
-
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
+            sm:max-w-[300px]
           "
         >
-          {/* =================================================
-              SELECT FY
-          ================================================= */}
-
-          <form
-            method="get"
-            action="/stock-card"
+          <label
+            htmlFor="fiscalYear"
             className="
-              flex
-              min-w-0
-              flex-col
+              mb-2
+              block
 
-              gap-3
+              text-sm
+              font-extrabold
 
-              sm:flex-row
-              sm:items-end
+              !text-slate-700
             "
           >
-            <div
-              className="
-                min-w-0
-
-                sm:w-[260px]
-              "
-            >
-              <label
-                htmlFor="fiscalYear"
-                className="
-                  mb-2
-                  block
-
-                  text-sm
-                  font-extrabold
-
-                  !text-slate-800
-                "
-              >
-                ปีงบประมาณ
-              </label>
-
-              <select
-                id="fiscalYear"
-                name="fiscalYear"
-                defaultValue={
-                  String(
-                    selectedFiscalYear
-                  )
-                }
-                className="
-                  h-[52px]
-                  w-full
-
-                  rounded-[16px]
-
-                  border-2
-                  !border-black
-
-                  bg-white
-
-                  px-4
-
-                  text-base
-                  font-extrabold
-
-                  !text-slate-900
-
-                  shadow-sm
-                  outline-none
-
-                  transition-all
-                  duration-200
-
-                  focus:ring-4
-                  focus:ring-blue-100/70
-                "
-              >
-                {availableFiscalYears.map(
-                  (
-                    fiscalYear
-                  ) => (
-                    <option
-                      key={
-                        fiscalYear
-                      }
-                      value={
-                        fiscalYear
-                      }
-                    >
-                      ปีงบประมาณ{" "}
-                      {
-                        fiscalYear
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="md"
-            >
-              แสดงข้อมูล
-            </AppButton>
-          </form>
-
-          {/* =================================================
-              FISCAL YEAR INFORMATION
-          ================================================= */}
+            ปีงบประมาณ
+          </label>
 
           <div
             className="
-              min-w-0
-
-              rounded-[18px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/80
-
-              px-4
-              py-3
-
-              shadow-sm
+              relative
+              w-full
             "
           >
-            <p
+            <select
+              id="fiscalYear"
+              name="fiscalYear"
+              value={
+                String(
+                  selectedFiscalYear
+                )
+              }
+              disabled={
+                isChangingYear
+              }
+              onChange={(
+                event
+              ) =>
+                handleFiscalYearChange(
+                  event.target
+                    .value
+                )
+              }
               className="
-                text-sm
+                h-[50px]
+                w-full
+
+                cursor-pointer
+
+                appearance-none
+
+                rounded-[14px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-4
+                pr-11
+
+                text-base
                 font-extrabold
 
                 !text-slate-900
+
+                shadow-sm
+
+                outline-none
+
+                transition-all
+                duration-200
+
+                hover:border-slate-400
+
+                focus:border-emerald-500
+                focus:ring-4
+                focus:ring-emerald-100/70
+
+                disabled:cursor-wait
+                disabled:bg-slate-50
+                disabled:opacity-70
               "
             >
-              ปีงบประมาณ{" "}
-              {
-                selectedFiscalYear
-              }
-            </p>
+              {availableFiscalYears.map(
+                (
+                  fiscalYear
+                ) => (
+                  <option
+                    key={
+                      fiscalYear
+                    }
+                    value={
+                      fiscalYear
+                    }
+                  >
+                    ปีงบประมาณ{" "}
+                    {
+                      fiscalYear
+                    }
+                  </option>
+                )
+              )}
+            </select>
 
-            <p
+            {/* =============================================
+                SELECT ARROW
+            ============================================= */}
+
+            <div
+              aria-hidden="true"
               className="
-                mt-1
+                pointer-events-none
 
-                text-sm
-                font-semibold
+                absolute
+                inset-y-0
+                right-4
+
+                flex
+                items-center
 
                 !text-slate-500
               "
             >
-              {formatThaiFullDate(
-                fiscalRange.startDate
-              )}{" "}
-              -{" "}
-              {formatThaiFullDate(
-                fiscalDisplayEndDate
-              )}
-            </p>
-
-            {selectedFiscalYear >=
-            2570 ? (
-              <p
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
                 className="
-                  mt-1
-
-                  text-xs
-                  font-semibold
-
-                  !text-slate-400
+                  h-5
+                  w-5
                 "
               >
-                ยอดคงเหลือต้นปีจะแสดงเป็น
-                “ยอดยกเข้าระบบ”
-                ณ วันที่ 1 ตุลาคม
-              </p>
-            ) : (
-              <p
-                className="
-                  mt-1
-
-                  text-xs
-                  font-semibold
-
-                  !text-slate-400
-                "
-              >
-                ข้อมูลปีงบประมาณ 2569
-                แสดงตามข้อมูลเดิมของระบบ
-              </p>
-            )}
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </div>
+
+          {/* ===============================================
+              CHANGING STATE
+          =============================================== */}
+
+          {isChangingYear && (
+            <p
+              className="
+                mt-2
+
+                text-xs
+                font-semibold
+
+                !text-emerald-600
+              "
+            >
+              กำลังเปลี่ยนปีงบประมาณ...
+            </p>
+          )}
         </div>
       </AppCard>
 
@@ -713,6 +624,7 @@ export default async function StockCardHome({
           gap-4
 
           md:grid-cols-2
+
           xl:grid-cols-3
         "
       >
@@ -781,7 +693,7 @@ export default async function StockCardHome({
               </div>
 
               {/* =============================================
-                  INFORMATION
+                  CATEGORY INFORMATION
               ============================================= */}
 
               <div
@@ -848,7 +760,7 @@ export default async function StockCardHome({
               </div>
 
               {/* =============================================
-                  ACTION
+                  OPEN CATEGORY
               ============================================= */}
 
               <div
