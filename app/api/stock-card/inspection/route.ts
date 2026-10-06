@@ -4,69 +4,148 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySession } from "@/lib/session";
 
-const inspectionStatuses = [
-  "IN_USE",
-  "DAMAGED",
-  "DETERIORATED",
-  "UNUSABLE",
-] as const;
+/* =========================================================
+   TYPES
+========================================================= */
 
-const accuracyOptions = [
-  "CORRECT",
-  "INCORRECT",
-] as const;
-
-type InspectionRowInput = {
-  assetId: number;
-  countedQty: string | number;
-  accuracy: string;
-  status: string;
-  remark: string;
+type InspectionRowPayload = {
+  materialId?: unknown;
+  accuracy?: unknown;
+  shortageQty?: unknown;
+  excessQty?: unknown;
+  baht?: unknown;
+  satang?: unknown;
+  damagedQty?: unknown;
+  deterioratedQty?: unknown;
+  unnecessaryQty?: unknown;
+  remark?: unknown;
 };
 
-type InspectionRequestBody = {
-  departmentId: number;
-  inspectionStartDate: string;
-  inspectionEndDate: string;
-  inspectorIds: string[];
-  rows: InspectionRowInput[];
+type InspectionPayload = {
+  fiscalYear?: unknown;
+  inspectionDate?: unknown;
+  inspectorIds?: unknown;
+  rows?: unknown;
 };
 
-function parseDateOnly(value: string) {
+/* =========================================================
+   JSON RESPONSE
+========================================================= */
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json(
+    {
+      ok: false,
+      message,
+    },
+    {
+      status,
+    }
+  );
+}
+
+/* =========================================================
+   SESSION
+========================================================= */
+
+async function getSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session")?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    return await verifySession(token);
+  } catch {
+    return null;
+  }
+}
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function parsePositiveInteger(value: unknown) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number(String(value ?? "").trim());
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function parseOptionalNonNegativeInteger(value: unknown) {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
+    return null;
+  }
+
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number(String(value).trim());
+
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+function parseText(value: unknown) {
+  const text = String(value ?? "").trim();
+
+  return text ? text : null;
+}
+
+/* =========================================================
+   DATE ONLY
+
+   YYYY-MM-DD
+   -> UTC 00:00:00
+
+   ใช้มาตรฐานเดียวกับข้อมูล date-only ของระบบ
+========================================================= */
+
+function parseDateOnly(value: unknown) {
+  const text = String(value ?? "").trim();
+
   const match =
-    /^(\d{4})-(\d{2})-(\d{2})$/.exec(
-      value
-    );
+    /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
 
   if (!match) {
     return null;
   }
 
-  const year = Number(
-    match[1]
-  );
-
-  const month = Number(
-    match[2]
-  );
-
-  const day = Number(
-    match[3]
-  );
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
 
   const date = new Date(
-    year,
-    month - 1,
-    day
+    Date.UTC(
+      year,
+      month - 1,
+      day,
+      0,
+      0,
+      0,
+      0
+    )
   );
 
   if (
-    date.getFullYear() !==
-      year ||
-    date.getMonth() !==
-      month - 1 ||
-    date.getDate() !==
-      day
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
   ) {
     return null;
   }
@@ -74,764 +153,421 @@ function parseDateOnly(value: string) {
   return date;
 }
 
-function getFiscalYear(
-  date: Date
-) {
-  const year =
-    date.getFullYear();
+/* =========================================================
+   ACCURACY
+========================================================= */
 
-  return date.getMonth() >= 9
-    ? year + 1 + 543
-    : year + 543;
+function parseAccuracy(value: unknown) {
+  const accuracy = String(value ?? "")
+    .trim()
+    .toUpperCase();
+
+  if (!accuracy) {
+    return null;
+  }
+
+  if (
+    accuracy !== "CORRECT" &&
+    accuracy !== "INCORRECT"
+  ) {
+    return undefined;
+  }
+
+  return accuracy;
 }
 
-function getQuarter(
-  date: Date
-) {
-  const month =
-    date.getMonth() + 1;
+/* =========================================================
+   POST
+   บันทึกผลตรวจสอบบัญชีพัสดุประจำปี
 
-  if (
-    month >= 10 &&
-    month <= 12
-  ) {
-    return "Q1";
+   หมายเหตุ:
+   - ไม่แก้ Material.balance
+   - ไม่สร้าง/แก้ Transaction
+   - ไม่กระทบ Stock Card เดิม
+========================================================= */
+
+export async function POST(request: Request) {
+  /* =======================================================
+     LOGIN
+  ======================================================= */
+
+  const session = await getSession();
+
+  if (!session) {
+    return jsonError("กรุณาเข้าสู่ระบบ", 401);
   }
 
-  if (
-    month >= 1 &&
-    month <= 3
-  ) {
-    return "Q2";
-  }
+  /* =======================================================
+     BODY
+  ======================================================= */
 
-  if (
-    month >= 4 &&
-    month <= 6
-  ) {
-    return "Q3";
-  }
+  let body: InspectionPayload | null = null;
 
-  return "Q4";
-}
-
-export async function POST(
-  request: Request
-) {
   try {
-    /* =====================================================
-       ตรวจสอบ Session
-       ===================================================== */
+    body = (await request.json()) as InspectionPayload;
+  } catch {
+    return jsonError("ข้อมูลที่ส่งมาไม่ถูกต้อง", 400);
+  }
 
-    const cookieStore =
-      await cookies();
+  if (!body || typeof body !== "object") {
+    return jsonError("ข้อมูลที่ส่งมาไม่ถูกต้อง", 400);
+  }
 
-    const token =
-      cookieStore.get(
-        "session"
-      )?.value ??
-      cookieStore.get(
-        "token"
-      )?.value;
+  /* =======================================================
+     FISCAL YEAR
+  ======================================================= */
 
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ไม่ได้เข้าสู่ระบบ",
-        },
-        {
-          status: 401,
-        }
+  const fiscalYear = parsePositiveInteger(body.fiscalYear);
+
+  if (
+    fiscalYear === null ||
+    fiscalYear < 2400 ||
+    fiscalYear > 3000
+  ) {
+    return jsonError("ปีงบประมาณไม่ถูกต้อง", 400);
+  }
+
+  /* =======================================================
+     INSPECTION DATE
+  ======================================================= */
+
+  const inspectionDate = parseDateOnly(body.inspectionDate);
+
+  if (!inspectionDate) {
+    return jsonError("วันที่ตรวจสอบไม่ถูกต้อง", 400);
+  }
+
+  /* =======================================================
+     INSPECTORS
+     ต้องครบ 3 คน และห้ามซ้ำ
+  ======================================================= */
+
+  if (!Array.isArray(body.inspectorIds)) {
+    return jsonError(
+      "กรุณาเลือกคณะกรรมการตรวจสอบให้ครบ 3 คน",
+      400
+    );
+  }
+
+  const inspectorIds = body.inspectorIds.map((value) =>
+    parsePositiveInteger(value)
+  );
+
+  if (
+    inspectorIds.length !== 3 ||
+    inspectorIds.some((id) => id === null)
+  ) {
+    return jsonError(
+      "กรุณาเลือกคณะกรรมการตรวจสอบให้ครบ 3 คน",
+      400
+    );
+  }
+
+  const validInspectorIds = inspectorIds as number[];
+
+  if (new Set(validInspectorIds).size !== 3) {
+    return jsonError(
+      "ไม่สามารถเลือกคณะกรรมการตรวจสอบซ้ำกันได้",
+      400
+    );
+  }
+
+  /* =======================================================
+     ROWS
+  ======================================================= */
+
+  if (!Array.isArray(body.rows) || body.rows.length === 0) {
+    return jsonError(
+      "ไม่พบรายการพัสดุสำหรับบันทึก",
+      400
+    );
+  }
+
+  const rows: Array<{
+    materialId: number;
+    accuracy: string | null;
+    shortageQty: number | null;
+    excessQty: number | null;
+    baht: number | null;
+    satang: number | null;
+    damagedQty: number | null;
+    deterioratedQty: number | null;
+    unnecessaryQty: number | null;
+    remark: string | null;
+  }> = [];
+
+  for (let index = 0; index < body.rows.length; index++) {
+    const rawRow =
+      body.rows[index] as InspectionRowPayload;
+
+    if (!rawRow || typeof rawRow !== "object") {
+      return jsonError(
+        `ข้อมูลรายการที่ ${index + 1} ไม่ถูกต้อง`,
+        400
       );
     }
 
-    let session;
+    const materialId =
+      parsePositiveInteger(rawRow.materialId);
 
-    try {
-      session =
-        await verifySession(
-          token
-        );
-    } catch {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Session ไม่ถูกต้องหรือหมดอายุ",
-        },
-        {
-          status: 401,
-        }
+    if (materialId === null) {
+      return jsonError(
+        `รหัสพัสดุรายการที่ ${index + 1} ไม่ถูกต้อง`,
+        400
       );
     }
 
-    /* =====================================================
-       เฉพาะ ADMIN
-       ===================================================== */
+    const accuracy = parseAccuracy(rawRow.accuracy);
 
-    if (
-      session.role !==
-      "ADMIN"
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ไม่มีสิทธิ์บันทึกผลการตรวจสอบ",
-        },
-        {
-          status: 403,
-        }
+    if (accuracy === undefined) {
+      return jsonError(
+        `ผลการตรวจสอบรายการที่ ${index + 1} ไม่ถูกต้อง`,
+        400
       );
     }
 
-    /* =====================================================
-       อ่านข้อมูล
-       ===================================================== */
+    const shortageQty =
+      parseOptionalNonNegativeInteger(rawRow.shortageQty);
 
-    const body =
-      (await request.json()) as InspectionRequestBody;
+    const excessQty =
+      parseOptionalNonNegativeInteger(rawRow.excessQty);
 
-    const departmentId =
-      Number(
-        body.departmentId
+    const baht =
+      parseOptionalNonNegativeInteger(rawRow.baht);
+
+    const satang =
+      parseOptionalNonNegativeInteger(rawRow.satang);
+
+    const damagedQty =
+      parseOptionalNonNegativeInteger(rawRow.damagedQty);
+
+    const deterioratedQty =
+      parseOptionalNonNegativeInteger(
+        rawRow.deterioratedQty
       );
 
-    if (
-      !Number.isInteger(
-        departmentId
-      ) ||
-      departmentId <= 0
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "รหัสหน่วยงานไม่ถูกต้อง",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const inspectionStartDate =
-      parseDateOnly(
-        body.inspectionStartDate
-      );
-
-    const inspectionEndDate =
-      parseDateOnly(
-        body.inspectionEndDate
-      );
-
-    if (
-      !inspectionStartDate ||
-      !inspectionEndDate
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "วันที่ตรวจสอบไม่ถูกต้อง",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      inspectionEndDate <
-      inspectionStartDate
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มตรวจสอบ",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    /* =====================================================
-       ตรวจสอบ Department
-       ===================================================== */
-
-    const department =
-      await prisma.department.findUnique(
-        {
-          where: {
-            id: departmentId,
-          },
-
-          select: {
-            id: true,
-            name: true,
-          },
-        }
-      );
-
-    if (!department) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ไม่พบหน่วยงานที่ระบุ",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    /* =====================================================
-       ตรวจสอบผู้ตรวจสอบ 5 คน
-       ===================================================== */
-
-    if (
-      !Array.isArray(
-        body.inspectorIds
-      )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ข้อมูลผู้ตรวจสอบไม่ถูกต้อง",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      body.inspectorIds
-        .length !== 5
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ต้องระบุผู้ตรวจสอบจำนวน 5 คน",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const inspectorIds =
-      body.inspectorIds.map(
-        (id) =>
-          Number(id)
+    const unnecessaryQty =
+      parseOptionalNonNegativeInteger(
+        rawRow.unnecessaryQty
       );
 
     if (
-      inspectorIds.some(
-        (id) =>
-          !Number.isInteger(
-            id
-          ) ||
-          id <= 0
-      )
+      shortageQty === undefined ||
+      excessQty === undefined ||
+      baht === undefined ||
+      satang === undefined ||
+      damagedQty === undefined ||
+      deterioratedQty === undefined ||
+      unnecessaryQty === undefined
     ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "รหัสผู้ตรวจสอบไม่ถูกต้อง",
-        },
-        {
-          status: 400,
-        }
+      return jsonError(
+        `จำนวนในรายการที่ ${index + 1} ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป`,
+        400
       );
     }
 
-    if (
-      new Set(
-        inspectorIds
-      ).size !==
-      inspectorIds.length
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    rows.push({
+      materialId,
+      accuracy,
+      shortageQty,
+      excessQty,
+      baht,
+      satang,
+      damagedQty,
+      deterioratedQty,
+      unnecessaryQty,
+      remark: parseText(rawRow.remark),
+    });
+  }
 
-    const officers =
-      await prisma.officer.findMany(
-        {
-          where: {
-            id: {
-              in: inspectorIds,
-            },
-          },
+  /* =======================================================
+     MATERIAL ID ห้ามซ้ำ
+  ======================================================= */
 
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            position: true,
-          },
-        }
-      );
+  const materialIds = rows.map((row) => row.materialId);
 
-    if (
-      officers.length !==
-      inspectorIds.length
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "พบผู้ตรวจสอบบางรายไม่อยู่ในระบบ",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+  if (new Set(materialIds).size !== materialIds.length) {
+    return jsonError(
+      "พบรายการพัสดุซ้ำในข้อมูลที่ส่งมา",
+      400
+    );
+  }
 
-    const officerMap =
-      new Map(
-        officers.map(
-          (officer) => [
-            officer.id,
-            officer,
-          ]
-        )
-      );
+  /* =======================================================
+     CHECK EXISTING INSPECTION
+     1 ปีงบประมาณ = 1 รอบการตรวจ
+  ======================================================= */
 
-    const inspectorNames =
-      inspectorIds.map(
-        (id) => {
-          const officer =
-            officerMap.get(id);
-
-          return officer
-            ? `${officer.firstName} ${officer.lastName}`.trim()
-            : "";
-        }
-      );
-
-    const officerNames =
-      inspectorNames.filter(
-        (name) =>
-          name.length > 0
-      );
-
-    /* =====================================================
-       ตรวจสอบรายการครุภัณฑ์
-       ===================================================== */
-
-    if (
-      !Array.isArray(
-        body.rows
-      ) ||
-      body.rows.length ===
-        0
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "ไม่พบรายการครุภัณฑ์ที่ต้องการบันทึก",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const assetIds =
-      body.rows.map(
-        (row) =>
-          Number(
-            row.assetId
-          )
-      );
-
-    if (
-      assetIds.some(
-        (id) =>
-          !Number.isInteger(
-            id
-          ) ||
-          id <= 0
-      )
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "รหัสครุภัณฑ์ไม่ถูกต้อง",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (
-      new Set(
-        assetIds
-      ).size !==
-      assetIds.length
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "มีรายการครุภัณฑ์ซ้ำกัน",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const assets =
-      await prisma.asset.findMany(
-        {
-          where: {
-            id: {
-              in: assetIds,
-            },
-          },
-
-          select: {
-            id: true,
-            departmentId: true,
-          },
-        }
-      );
-
-    if (
-      assets.length !==
-      assetIds.length
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "พบครุภัณฑ์บางรายการไม่อยู่ในระบบ",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const invalidDepartmentAsset =
-      assets.some(
-        (asset) =>
-          asset.departmentId !==
-          departmentId
-      );
-
-    if (
-      invalidDepartmentAsset
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "พบครุภัณฑ์ที่ไม่ได้อยู่ในหน่วยงานที่เลือก",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    /* =====================================================
-       ตรวจสอบข้อมูลแต่ละรายการ
-       ===================================================== */
-
-    for (
-      const row of
-      body.rows
-    ) {
-      const countedQty =
-        Number(
-          row.countedQty
-        );
-
-      if (
-        !Number.isInteger(
-          countedQty
-        ) ||
-        countedQty < 0
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              `จำนวนที่ตรวจนับของครุภัณฑ์ ${row.assetId} ไม่ถูกต้อง`,
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      if (
-        !accuracyOptions.includes(
-          row.accuracy as
-            (typeof accuracyOptions)[number]
-        )
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              `กรุณาระบุผลการตรวจนับของครุภัณฑ์ ${row.assetId}`,
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      if (
-        !inspectionStatuses.includes(
-          row.status as
-            (typeof inspectionStatuses)[number]
-        )
-      ) {
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              `กรุณาระบุสถานะของครุภัณฑ์ ${row.assetId}`,
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
-    /* =====================================================
-       ปีงบประมาณ / ไตรมาส
-       ===================================================== */
-
-    const fiscalYear =
-      getFiscalYear(
-        inspectionStartDate
-      );
-
-    const quarter =
-      getQuarter(
-        inspectionStartDate
-      );
-
-    /* =====================================================
-       บันทึกผลตรวจสอบ
-
-       เปลี่ยนเป็น Interactive Transaction
-       เพื่อกำหนด timeout ได้
-
-       maxWait = 10 วินาที
-       timeout = 30 วินาที
-
-       เวลาเริ่มนับเฉพาะตอน Transaction ทำงาน
-       ไม่เกี่ยวกับเวลาที่ผู้ใช้กรอกข้อมูลบนหน้าเว็บ
-       ===================================================== */
-
-    await prisma.$transaction(
-      async (tx) => {
-        for (
-          const row of
-          body.rows
-        ) {
-          const countedQty =
-            Number(
-              row.countedQty
-            );
-
-          await tx.assetInspection.upsert(
-            {
-              where: {
-                assetId_year_quarter:
-                  {
-                    assetId:
-                      Number(
-                        row.assetId
-                      ),
-
-                    year:
-                      fiscalYear,
-
-                    quarter,
-                  },
-              },
-
-              create: {
-                assetId:
-                  Number(
-                    row.assetId
-                  ),
-
-                year:
-                  fiscalYear,
-
-                quarter,
-
-                inspectionDate:
-                  inspectionEndDate,
-
-                inspectionStartDate,
-
-                inspectionEndDate,
-
-                status:
-                  row.status as
-                    | "IN_USE"
-                    | "RETURNED"
-                    | "DAMAGED"
-                    | "MISSING"
-                    | "NOT_FOUND"
-                    | "DETERIORATED"
-                    | "UNUSABLE",
-
-                countedQty,
-
-                accuracy:
-                  row.accuracy,
-
-                inspectorIds,
-
-                inspectorNames:
-                  officerNames,
-
-                inspectorName:
-                  officerNames.length >
-                  0
-                    ? officerNames.join(
-                        ", "
-                      )
-                    : null,
-
-                condition:
-                  row.status,
-
-                location:
-                  null,
-
-                remark:
-                  row.remark?.trim()
-                    ? row.remark.trim()
-                    : null,
-              },
-
-              update: {
-                inspectionDate:
-                  inspectionEndDate,
-
-                inspectionStartDate,
-
-                inspectionEndDate,
-
-                status:
-                  row.status as
-                    | "IN_USE"
-                    | "RETURNED"
-                    | "DAMAGED"
-                    | "MISSING"
-                    | "NOT_FOUND"
-                    | "DETERIORATED"
-                    | "UNUSABLE",
-
-                countedQty,
-
-                accuracy:
-                  row.accuracy,
-
-                inspectorIds,
-
-                inspectorNames:
-                  officerNames,
-
-                inspectorName:
-                  officerNames.length >
-                  0
-                    ? officerNames.join(
-                        ", "
-                      )
-                    : null,
-
-                condition:
-                  row.status,
-
-                remark:
-                  row.remark?.trim()
-                    ? row.remark.trim()
-                    : null,
-              },
-            }
-          );
-        }
+  const existingInspection =
+    await prisma.stockCardInspection.findUnique({
+      where: {
+        fiscalYear,
       },
-      {
-        maxWait: 10_000,
-        timeout: 30_000,
+      select: {
+        id: true,
+      },
+    });
+
+  if (existingInspection) {
+    return jsonError(
+      `มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${fiscalYear} แล้ว`,
+      409
+    );
+  }
+
+  /* =======================================================
+     CHECK INSPECTORS
+  ======================================================= */
+
+  const officers = await prisma.officer.findMany({
+    where: {
+      id: {
+        in: validInspectorIds,
+      },
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
+
+  if (officers.length !== validInspectorIds.length) {
+    return jsonError(
+      "ไม่พบข้อมูลคณะกรรมการตรวจสอบบางราย",
+      400
+    );
+  }
+
+  const officerMap = new Map(
+    officers.map((officer) => [
+      officer.id,
+      officer,
+    ])
+  );
+
+  const inspectorNames = validInspectorIds.map((id) => {
+    const officer = officerMap.get(id);
+
+    if (!officer) {
+      return "";
+    }
+
+    return `${officer.firstName} ${officer.lastName}`.trim();
+  });
+
+  /* =======================================================
+     CHECK MATERIALS
+  ======================================================= */
+
+  const materials = await prisma.material.findMany({
+    where: {
+      id: {
+        in: materialIds,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (materials.length !== materialIds.length) {
+    return jsonError(
+      "ไม่พบข้อมูลพัสดุบางรายการ กรุณาเปิดหน้าใหม่แล้วลองอีกครั้ง",
+      400
+    );
+  }
+
+  /* =======================================================
+     CREATE
+     ใช้ Transaction เพื่อให้หัวรายการและทุกรายการย่อย
+     ถูกบันทึกพร้อมกันทั้งหมด
+  ======================================================= */
+
+  try {
+    const inspection = await prisma.$transaction(
+      async (tx) => {
+        const created =
+          await tx.stockCardInspection.create({
+            data: {
+              fiscalYear,
+              inspectionDate,
+              inspectorIds: validInspectorIds,
+              inspectorNames,
+            },
+            select: {
+              id: true,
+              fiscalYear: true,
+              inspectionDate: true,
+            },
+          });
+
+        await tx.stockCardInspectionRow.createMany({
+          data: rows.map((row) => ({
+            inspectionId: created.id,
+            materialId: row.materialId,
+            accuracy: row.accuracy,
+            shortageQty: row.shortageQty,
+            excessQty: row.excessQty,
+            baht: row.baht,
+            satang: row.satang,
+            damagedQty: row.damagedQty,
+            deterioratedQty: row.deterioratedQty,
+            unnecessaryQty: row.unnecessaryQty,
+            remark: row.remark,
+          })),
+        });
+
+        return created;
       }
     );
 
-    /* =====================================================
-       สำเร็จ
-       ===================================================== */
-
     return NextResponse.json(
       {
-        success: true,
-
+        ok: true,
         message:
-          "บันทึกผลการตรวจสอบเรียบร้อยแล้ว",
-
-        fiscalYear,
-
-        quarter,
-
-        department: {
-          id: department.id,
-          name: department.name,
+          "บันทึกผลการตรวจสอบบัญชีพัสดุประจำปีเรียบร้อยแล้ว",
+        inspection: {
+          id: inspection.id,
+          fiscalYear: inspection.fiscalYear,
+          inspectionDate: inspection.inspectionDate,
+          rowCount: rows.length,
         },
-
-        savedCount:
-          body.rows.length,
+      },
+      {
+        status: 201,
       }
     );
   } catch (error) {
     console.error(
-      "POST /api/assets/inspection error:",
+      "Create stock card inspection error:",
       error
     );
 
-    return NextResponse.json(
-      {
-        success: false,
-        message:
-          "เกิดข้อผิดพลาดในการบันทึกผลการตรวจสอบ",
-      },
-      {
-        status: 500,
-      }
+    /*
+     * เผื่อมี request ซ้ำเข้าพร้อมกัน
+     * โดย fiscalYear มี @unique ใน schema
+     */
+    const duplicate =
+      await prisma.stockCardInspection.findUnique({
+        where: {
+          fiscalYear,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (duplicate) {
+      return jsonError(
+        `มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${fiscalYear} แล้ว`,
+        409
+      );
+    }
+
+    return jsonError(
+      "เกิดข้อผิดพลาดในการบันทึกผลการตรวจสอบบัญชีพัสดุ",
+      500
     );
   }
 }
