@@ -130,7 +130,7 @@ const MARGIN_X =
   2;
 
 const TABLE_START_Y =
-  29;
+  35;
 
 const SIGNATURE_GAP =
   10;
@@ -459,7 +459,7 @@ export default function ExportInspectionPdf({
     );
 
   /* =======================================================
-     HEADER
+     DOCUMENT HEADER
   ======================================================= */
 
   function drawDocumentHeader(
@@ -509,14 +509,23 @@ export default function ExportInspectionPdf({
       }
     );
 
+    /*
+     * แก้เฉพาะหัวกระดาษตามที่กำหนด
+     *
+     * ตัวอย่าง FY 2570:
+     * 1 ตุลาคม พ.ศ. 2569
+     * เป็นยอดคงเหลือตามบัญชีหรือทะเบียน
+     * เมื่อวันที่ 30 กันยายน พ.ศ. 2569
+     */
+
     doc.setFontSize(
       14
     );
 
     doc.text(
-      `ยอดยกมา ณ วันที่ 30 กันยายน ${startShortYear}  รายการเคลื่อนไหวระหว่างวันที่ 1 ตุลาคม ${startShortYear} - 30 กันยายน ${endShortYear}`,
+      `1 ตุลาคม พ.ศ. ${fiscalYear - 1} เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear - 1}`,
       center,
-      26,
+      27,
       {
         align:
           "center",
@@ -669,7 +678,7 @@ export default function ExportInspectionPdf({
   }
 
   /* =======================================================
-     EXPORT
+     EXPORT PDF
   ======================================================= */
 
   async function handleExportPdf() {
@@ -705,6 +714,7 @@ export default function ExportInspectionPdf({
 
       previewWindow.document.write(`
         <!DOCTYPE html>
+
         <html lang="th">
           <head>
             <meta charset="UTF-8" />
@@ -782,6 +792,7 @@ export default function ExportInspectionPdf({
       const totalPages =
         Math.max(
           1,
+
           Math.ceil(
             materials.length /
               ROWS_PER_PAGE
@@ -958,12 +969,14 @@ export default function ExportInspectionPdf({
 
         /* =================================================
            HEADER TEXT
+
+           คงหัวตารางเดิม
         ================================================= */
 
         const openingHeaderLines =
           [
-            "ยอดคงเหลือตามบัญชีหรือทะเบียน",
-            `เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear - 1}`,
+            "คงเหลือยอดยกมา",
+            `เมื่อ 30 ก.ย. ${startShortYear}`,
           ];
 
         const movementHeaderLines =
@@ -1113,6 +1126,10 @@ export default function ExportInspectionPdf({
 
             body,
 
+            /* =============================================
+               GENERAL
+            ============================================= */
+
             styles: {
               font:
                 "2.3.2 THSarabunNew",
@@ -1153,6 +1170,10 @@ export default function ExportInspectionPdf({
               overflow:
                 "linebreak",
             },
+
+            /* =============================================
+               HEADER
+            ============================================= */
 
             headStyles: {
               font:
@@ -1198,6 +1219,10 @@ export default function ExportInspectionPdf({
                 "linebreak",
             },
 
+            /* =============================================
+               BODY
+            ============================================= */
+
             bodyStyles: {
               font:
                 "2.3.2 THSarabunNew",
@@ -1235,6 +1260,10 @@ export default function ExportInspectionPdf({
               valign:
                 "middle",
             },
+
+            /* =============================================
+               COLUMN WIDTH
+            ============================================= */
 
             columnStyles: {
               0: {
@@ -1343,9 +1372,17 @@ export default function ExportInspectionPdf({
               },
             },
 
+            /* =============================================
+               PARSE CELL
+            ============================================= */
+
             didParseCell: (
               data
             ) => {
+              /* ===========================================
+                 OPENING HEADER
+              =========================================== */
+
               if (
                 data.section ===
                   "head" &&
@@ -1369,7 +1406,17 @@ export default function ExportInspectionPdf({
 
                 data.cell.styles.cellPadding =
                   0.25;
+
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
               }
+
+              /* ===========================================
+                 MOVEMENT HEADER
+              =========================================== */
 
               if (
                 data.section ===
@@ -1398,7 +1445,17 @@ export default function ExportInspectionPdf({
 
                 data.cell.styles.cellPadding =
                   0.25;
+
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
               }
+
+              /* ===========================================
+                 INCORRECT GROUP HEADER
+              =========================================== */
 
               if (
                 data.section ===
@@ -1429,7 +1486,17 @@ export default function ExportInspectionPdf({
 
                 data.cell.styles.cellPadding =
                   0.25;
+
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
               }
+
+              /* ===========================================
+                 MATERIAL NAME
+              =========================================== */
 
               if (
                 data.section ===
@@ -1473,6 +1540,10 @@ export default function ExportInspectionPdf({
                   "hidden";
               }
 
+              /* ===========================================
+                 UNIT
+              =========================================== */
+
               if (
                 data.section ===
                   "body" &&
@@ -1505,9 +1576,19 @@ export default function ExportInspectionPdf({
                     0.8
                   );
 
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+
                 data.cell.styles.overflow =
                   "hidden";
               }
+
+              /* ===========================================
+                 REMARK
+              =========================================== */
 
               if (
                 data.section ===
@@ -1541,9 +1622,22 @@ export default function ExportInspectionPdf({
                     0.8
                   );
 
+                data.cell.styles.halign =
+                  "center";
+
+                data.cell.styles.valign =
+                  "middle";
+
                 data.cell.styles.overflow =
                   "hidden";
               }
+
+              /* ===========================================
+                 CHECKBOX
+
+                 7 = ถูกต้อง
+                 8 = ไม่ถูกต้อง
+              =========================================== */
 
               if (
                 data.section ===
@@ -1567,6 +1661,10 @@ export default function ExportInspectionPdf({
                   "middle";
               }
             },
+
+            /* =============================================
+               DRAW CHECK
+            ============================================= */
 
             didDrawCell: (
               data
@@ -1620,9 +1718,12 @@ export default function ExportInspectionPdf({
               doc.line(
                 centerX -
                   1.8,
+
                 centerY,
+
                 centerX -
                   0.4,
+
                 centerY +
                   1.4
               );
@@ -1630,10 +1731,13 @@ export default function ExportInspectionPdf({
               doc.line(
                 centerX -
                   0.4,
+
                 centerY +
                   1.4,
+
                 centerX +
                   2.2,
+
                 centerY -
                   1.6
               );
@@ -1655,6 +1759,10 @@ export default function ExportInspectionPdf({
               "everyPage",
           }
         );
+
+        /* =================================================
+           SIGNATURE
+        ================================================= */
 
         const lastAutoTable =
           (
@@ -1684,6 +1792,10 @@ export default function ExportInspectionPdf({
           signatureStartY
         );
       }
+
+      /* ===================================================
+         OPEN PDF
+      =================================================== */
 
       const fileName =
         `กระดาษทำการตรวจสอบบัญชีพัสดุ_พ.ศ.${fiscalYear}.pdf`;
@@ -1715,6 +1827,7 @@ export default function ExportInspectionPdf({
             pdfUrl
           );
         },
+
         5 *
           60 *
           1000
