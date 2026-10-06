@@ -152,7 +152,7 @@ const CATEGORY_NAMES:
 };
 
 /* =========================================================
-   PDF
+   PDF PAGE
 ========================================================= */
 
 const PAGE_WIDTH =
@@ -169,41 +169,54 @@ const MARGIN_X =
   2;
 
 /*
- * หัวกระดาษ 3 บรรทัด
+ * หัวกระดาษบรรทัดเดียว
+ */
+const HEADER_Y =
+  14;
+
+/*
+ * เว้นหัวกระดาษกับตารางเล็กน้อย
  */
 const TABLE_START_Y =
-  30;
+  20;
 
 /*
- * ให้กรรมการอยู่ใกล้ตาราง
- * แต่เว้นช่องไฟ 6 มม.
+ * เว้นพื้นที่ลงชื่อมากขึ้น
  */
 const SIGNATURE_GAP =
-  6;
+  22;
 
 /*
- * จำนวนรายการจริงต่อหน้า
- * แถวชื่อหมวดไม่ถูกนับ
+ * 15 รายการต่อหน้า
  */
 const ROWS_PER_PAGE =
   15;
 
 /* =========================================================
    COLUMN WIDTHS
+
+   รวมทั้งหมด = 285 mm
+
+   ขยาย "รายการพัสดุ"
+   ลดช่องที่กว้างเกินความจำเป็น
 ========================================================= */
 
 const COLUMN_WIDTHS = {
   order:
     7,
 
+  /*
+   * เดิม 48
+   * เพิ่มเป็น 62 เพื่อให้ชื่อพัสดุอยู่บรรทัดเดียวได้มากขึ้น
+   */
   item:
-    48,
+    62,
 
   unit:
     12,
 
   opening:
-    25,
+    22,
 
   receive:
     14,
@@ -212,22 +225,22 @@ const COLUMN_WIDTHS = {
     14,
 
   closing:
-    18,
-
-  correct:
-    12,
-
-  incorrect:
     15,
 
+  correct:
+    10,
+
+  incorrect:
+    13,
+
   shortage:
-    12,
+    11,
 
   excess:
-    12,
+    11,
 
   baht:
-    12,
+    10,
 
   satang:
     10,
@@ -239,10 +252,10 @@ const COLUMN_WIDTHS = {
     15,
 
   unnecessary:
-    20,
+    18,
 
   remark:
-    25,
+    27,
 } as const;
 
 /* =========================================================
@@ -266,7 +279,6 @@ const THAI_MONTHS = [
 
 /* =========================================================
    CURRENT THAI MONTH / YEAR
-   Asia/Bangkok
 ========================================================= */
 
 function getCurrentThaiMonthYear() {
@@ -358,7 +370,7 @@ function formatStockNumber(
 }
 
 /* =========================================================
-   OTHER VALUE
+   OTHER INPUT
 
    ไม่มีค่า / 0 = ช่องว่าง
 ========================================================= */
@@ -398,6 +410,92 @@ function displayInputValue(
 }
 
 /* =========================================================
+   SINGLE LINE FONT SIZE
+
+   ลด font อัตโนมัติ
+   เพื่อให้ข้อความอยู่บรรทัดเดียว
+   และไม่ถูกตัด
+========================================================= */
+
+function getSingleLineFontSize(
+  doc:
+    jsPDF,
+
+  text:
+    string,
+
+  width:
+    number,
+
+  maxSize =
+    8,
+
+  minSize =
+    4.5,
+
+  padding =
+    2
+) {
+  const cleanText =
+    String(
+      text ??
+        ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
+
+  if (
+    !cleanText
+  ) {
+    return maxSize;
+  }
+
+  const availableWidth =
+    Math.max(
+      width -
+        padding,
+      1
+    );
+
+  let fontSize =
+    maxSize;
+
+  doc.setFont(
+    "2.3.2 THSarabunNew",
+    "normal"
+  );
+
+  while (
+    fontSize >
+    minSize
+  ) {
+    doc.setFontSize(
+      fontSize
+    );
+
+    const textWidth =
+      doc.getTextWidth(
+        cleanText
+      );
+
+    if (
+      textWidth <=
+      availableWidth
+    ) {
+      return fontSize;
+    }
+
+    fontSize -=
+      0.25;
+  }
+
+  return minSize;
+}
+
+/* =========================================================
    OFFICER
 ========================================================= */
 
@@ -426,7 +524,7 @@ function getOfficer(
 }
 
 /* =========================================================
-   PDF DISPLAY ROW
+   PDF ROW
 ========================================================= */
 
 type PdfCategoryRow = {
@@ -458,31 +556,31 @@ type PdfDisplayRow =
   | PdfCategoryRow
   | PdfMaterialRow;
 
-/* =========================================================
-   BUILD PAGES
+type PdfPage = {
+  category:
+    string;
 
-   กติกา:
-   - 15 รายการพัสดุต่อหน้า
-   - ชื่อหมวดขึ้นเฉพาะครั้งแรก
-   - ถ้าหมวดเดิมล้นไปหน้าถัดไป
-     ไม่เขียนชื่อหมวดซ้ำ
-   - ลำดับเริ่มใหม่เมื่อขึ้นหมวดใหม่
+  rows:
+    PdfDisplayRow[];
+};
+
+/* =========================================================
+   BUILD PDF PAGES
+
+   - แต่ละหมวดขึ้นหน้าใหม่
+   - ชื่อหมวดขึ้นเฉพาะหน้าแรกของหมวด
+   - หมวดเดิมหน้าที่ 2 ไม่ขึ้นชื่อหมวดซ้ำ
+   - ลำดับเริ่มใหม่ทุกหมวด
+   - 15 รายการต่อหน้า
 ========================================================= */
 
 function buildPdfPages(
   materials:
     MaterialRow[]
-) {
+): PdfPage[] {
   const pages:
-    PdfDisplayRow[][] =
+    PdfPage[] =
     [];
-
-  let currentPage:
-    PdfDisplayRow[] =
-    [];
-
-  let materialCountOnPage =
-    0;
 
   CATEGORY_ORDER.forEach(
     (
@@ -504,39 +602,44 @@ function buildPdfPages(
         return;
       }
 
-      /*
-       * ชื่อหมวดแสดงเพียงครั้งเดียว
-       * ไม่แสดงซ้ำเมื่อขึ้นหน้าใหม่
-       */
-      let categoryHeaderPrinted =
-        false;
+      const categoryLabel =
+        CATEGORY_NAMES[
+          category
+        ] ??
+        category;
 
       let categoryIndex =
         0;
 
       for (
-        const material of
-        categoryMaterials
-      ) {
-        if (
-          materialCountOnPage >=
+        let start =
+          0;
+
+        start <
+        categoryMaterials.length;
+
+        start +=
           ROWS_PER_PAGE
-        ) {
-          pages.push(
-            currentPage
+      ) {
+        const chunk =
+          categoryMaterials.slice(
+            start,
+            start +
+              ROWS_PER_PAGE
           );
 
-          currentPage =
-            [];
+        const pageRows:
+          PdfDisplayRow[] =
+          [];
 
-          materialCountOnPage =
-            0;
-        }
-
+        /*
+         * ชื่อหมวดขึ้นเฉพาะหน้าแรก
+         */
         if (
-          !categoryHeaderPrinted
+          start ===
+          0
         ) {
-          currentPage.push(
+          pageRows.push(
             {
               type:
                 "category",
@@ -544,47 +647,44 @@ function buildPdfPages(
               category,
 
               label:
-                CATEGORY_NAMES[
-                  category
-                ] ??
-                category,
+                categoryLabel,
             }
           );
-
-          categoryHeaderPrinted =
-            true;
         }
 
-        categoryIndex +=
-          1;
+        chunk.forEach(
+          (
+            material
+          ) => {
+            categoryIndex +=
+              1;
 
-        currentPage.push(
-          {
-            type:
-              "material",
+            pageRows.push(
+              {
+                type:
+                  "material",
 
-            category,
+                category,
 
-            categoryIndex,
+                categoryIndex,
 
-            material,
+                material,
+              }
+            );
           }
         );
 
-        materialCountOnPage +=
-          1;
+        pages.push(
+          {
+            category,
+
+            rows:
+              pageRows,
+          }
+        );
       }
     }
   );
-
-  if (
-    currentPage.length >
-    0
-  ) {
-    pages.push(
-      currentPage
-    );
-  }
 
   return pages;
 }
@@ -597,7 +697,8 @@ export default function ExportInspectionPdf({
   fiscalYear,
   startShortYear,
   endShortYear,
-  inspectionDate: _inspectionDate,
+  inspectionDate:
+    _inspectionDate,
   materials,
   rows,
   inspectorIds,
@@ -613,13 +714,6 @@ export default function ExportInspectionPdf({
 
   /* =======================================================
      HEADER
-
-     วัน = เว้นช่องว่าง
-     เดือน/ปี = เดือนและปีปัจจุบัน
-
-     ปี 30 กันยายน
-     ใช้ fiscalYear ตามปีงบประมาณที่เลือก
-     ไม่ hardcode
   ======================================================= */
 
   function drawDocumentHeader(
@@ -648,33 +742,18 @@ export default function ExportInspectionPdf({
     );
 
     doc.setFontSize(
-      14
+      13.5
     );
 
-    doc.text(
-      `ตรวจสอบเมื่อวันที่ .................... เดือน ${monthName} พ.ศ. ${buddhistYear}`,
-      center,
-      8,
-      {
-        align:
-          "center",
-      }
-    );
+    const headerText =
+      `ตรวจสอบเมื่อวันที่    เดือน ${monthName} พ.ศ. ${buddhistYear}    ` +
+      `เสร็จเมื่อวันที่    เดือน ${monthName} พ.ศ. ${buddhistYear}    ` +
+      `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
 
     doc.text(
-      `เสร็จเมื่อวันที่ .................... เดือน ${monthName} พ.ศ. ${buddhistYear}`,
+      headerText,
       center,
-      14,
-      {
-        align:
-          "center",
-      }
-    );
-
-    doc.text(
-      `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`,
-      center,
-      20,
+      HEADER_Y,
       {
         align:
           "center",
@@ -684,6 +763,16 @@ export default function ExportInspectionPdf({
 
   /* =======================================================
      INSPECTORS
+
+     ไม่แสดง:
+     - ประธานกรรมการ
+     - กรรมการคนที่ 1
+     - กรรมการคนที่ 2
+
+     เหลือ:
+     - ลงชื่อ
+     - ชื่อ-นามสกุล
+     - ตำแหน่ง
   ======================================================= */
 
   function drawInspectors(
@@ -709,33 +798,24 @@ export default function ExportInspectionPdf({
 
       index++
     ) {
-      const selectedInspectorId =
-        inspectorIds[
-          index
-        ] ||
-        "";
-
       const officer =
         getOfficer(
-          selectedInspectorId,
+          inspectorIds[
+            index
+          ] ||
+            "",
           officers
         );
 
-      const inspectorName =
+      const name =
         officer
           ? `${officer.firstName} ${officer.lastName}`.trim()
           : "................................";
 
-      const inspectorPosition =
+      const position =
         officer
           ?.position ||
         "................................";
-
-      const role =
-        index ===
-        0
-          ? "ประธานกรรมการ"
-          : `กรรมการคนที่ ${index}`;
 
       const centerX =
         MARGIN_X +
@@ -759,6 +839,9 @@ export default function ExportInspectionPdf({
         11
       );
 
+      /*
+       * ช่องสำหรับลงลายมือชื่อ
+       */
       doc.text(
         `ลงชื่อ ${dotLine}`,
         centerX,
@@ -769,33 +852,28 @@ export default function ExportInspectionPdf({
         }
       );
 
+      /*
+       * ชื่อ
+       */
       doc.text(
-        `(${inspectorName})`,
+        `(${name})`,
         centerX,
         startY +
-          5,
+          6,
         {
           align:
             "center",
         }
       );
 
+      /*
+       * ตำแหน่ง
+       */
       doc.text(
-        inspectorPosition,
+        position,
         centerX,
         startY +
-          10,
-        {
-          align:
-            "center",
-        }
-      );
-
-      doc.text(
-        role,
-        centerX,
-        startY +
-          15,
+          12,
         {
           align:
             "center",
@@ -892,7 +970,7 @@ export default function ExportInspectionPdf({
         const pageRows =
           pages[
             pageIndex
-          ];
+          ].rows;
 
         const body:
           (
@@ -919,9 +997,6 @@ export default function ExportInspectionPdf({
           ) => {
             /* =============================================
                CATEGORY
-
-               ใช้ TH Sarabun normal เท่านั้น
-               ป้องกันภาษาไทยเพี้ยนจาก fontStyle bold
             ============================================= */
 
             if (
@@ -941,6 +1016,10 @@ export default function ExportInspectionPdf({
                       font:
                         "2.3.2 THSarabunNew",
 
+                      /*
+                       * ใช้ normal
+                       * ป้องกันฟอนต์ภาษาไทยเพี้ยน
+                       */
                       fontStyle:
                         "normal",
 
@@ -1028,10 +1107,6 @@ export default function ExportInspectionPdf({
                   "",
               };
 
-            /*
-             * PDF ไม่แสดงเครื่องหมายถูก
-             * ช่องถูกต้อง / ไม่ถูกต้องเป็นช่องว่าง
-             */
             body.push(
               [
                 String(
@@ -1060,6 +1135,9 @@ export default function ExportInspectionPdf({
                   material.closingBalance
                 ),
 
+                /*
+                 * PDF ไม่แสดงติ๊กถูก
+                 */
                 "",
 
                 "",
@@ -1100,7 +1178,7 @@ export default function ExportInspectionPdf({
         );
 
         /* =================================================
-           HEADER TEXT
+           TABLE HEADER
         ================================================= */
 
         const openingHeaderLines =
@@ -1109,13 +1187,8 @@ export default function ExportInspectionPdf({
             `เมื่อ 30 ก.ย. ${startShortYear}`,
           ];
 
-        /*
-         * วันรับ / จ่าย อยู่บรรทัดเดียว
-         */
-        const movementHeaderLines =
-          [
-            `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`,
-          ];
+        const movementHeaderText =
+          `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`;
 
         /* =================================================
            TABLE
@@ -1179,9 +1252,7 @@ export default function ExportInspectionPdf({
 
                 {
                   content:
-                    movementHeaderLines[
-                      0
-                    ],
+                    movementHeaderText,
 
                   colSpan:
                     2,
@@ -1249,6 +1320,10 @@ export default function ExportInspectionPdf({
 
             body,
 
+            /* =============================================
+               GENERAL
+            ============================================= */
+
             styles: {
               font:
                 "2.3.2 THSarabunNew",
@@ -1275,7 +1350,7 @@ export default function ExportInspectionPdf({
                 0.25,
 
               cellPadding:
-                0.45,
+                0.4,
 
               minCellHeight:
                 6.5,
@@ -1290,6 +1365,13 @@ export default function ExportInspectionPdf({
                 "linebreak",
             },
 
+            /* =============================================
+               TABLE HEADER
+
+               เดิม 7.5
+               เพิ่มขึ้น 1 size = 8.5
+            ============================================= */
+
             headStyles: {
               font:
                 "2.3.2 THSarabunNew",
@@ -1298,7 +1380,7 @@ export default function ExportInspectionPdf({
                 "normal",
 
               fontSize:
-                7.5,
+                8.5,
 
               fillColor: [
                 255,
@@ -1321,6 +1403,9 @@ export default function ExportInspectionPdf({
               lineWidth:
                 0.25,
 
+              cellPadding:
+                0.35,
+
               halign:
                 "center",
 
@@ -1330,6 +1415,10 @@ export default function ExportInspectionPdf({
               overflow:
                 "linebreak",
             },
+
+            /* =============================================
+               BODY
+            ============================================= */
 
             bodyStyles: {
               font:
@@ -1356,12 +1445,22 @@ export default function ExportInspectionPdf({
               lineWidth:
                 0.25,
 
+              cellPadding:
+                0.4,
+
+              minCellHeight:
+                6.5,
+
               halign:
                 "center",
 
               valign:
                 "middle",
             },
+
+            /* =============================================
+               COLUMN WIDTH
+            ============================================= */
 
             columnStyles: {
               0: {
@@ -1375,6 +1474,20 @@ export default function ExportInspectionPdf({
 
                 halign:
                   "left",
+
+                cellPadding: {
+                  top:
+                    0.35,
+
+                  right:
+                    0.6,
+
+                  bottom:
+                    0.35,
+
+                  left:
+                    1.2,
+                },
               },
 
               2: {
@@ -1453,6 +1566,153 @@ export default function ExportInspectionPdf({
               },
             },
 
+            /* =============================================
+               PARSE CELL
+            ============================================= */
+
+            didParseCell: (
+              data
+            ) => {
+              /*
+               * รายการพัสดุ:
+               * อยู่บรรทัดเดียวเสมอ
+               * ลด font อัตโนมัติเมื่อชื่อยาว
+               */
+              if (
+                data.section ===
+                  "body" &&
+                data.column.index ===
+                  1 &&
+                typeof data.cell.raw ===
+                  "string"
+              ) {
+                const text =
+                  String(
+                    data.cell.raw ??
+                      ""
+                  )
+                    .replace(
+                      /\s+/g,
+                      " "
+                    )
+                    .trim();
+
+                data.cell.text =
+                  [
+                    text,
+                  ];
+
+                data.cell.styles.font =
+                  "2.3.2 THSarabunNew";
+
+                data.cell.styles.fontStyle =
+                  "normal";
+
+                data.cell.styles.fontSize =
+                  getSingleLineFontSize(
+                    doc,
+                    text,
+                    COLUMN_WIDTHS.item,
+                    8,
+                    4.5,
+                    2.2
+                  );
+
+                data.cell.styles.halign =
+                  "left";
+
+                data.cell.styles.valign =
+                  "middle";
+
+                data.cell.styles.overflow =
+                  "hidden";
+              }
+
+              /*
+               * หน่วยนับ:
+               * อยู่บรรทัดเดียว
+               */
+              if (
+                data.section ===
+                  "body" &&
+                data.column.index ===
+                  2 &&
+                typeof data.cell.raw ===
+                  "string"
+              ) {
+                const text =
+                  String(
+                    data.cell.raw ??
+                      ""
+                  )
+                    .replace(
+                      /\s+/g,
+                      " "
+                    )
+                    .trim();
+
+                data.cell.text =
+                  [
+                    text,
+                  ];
+
+                data.cell.styles.fontSize =
+                  getSingleLineFontSize(
+                    doc,
+                    text,
+                    COLUMN_WIDTHS.unit,
+                    8,
+                    5,
+                    1
+                  );
+
+                data.cell.styles.overflow =
+                  "hidden";
+              }
+
+              /*
+               * หมายเหตุ:
+               * พยายามให้อยู่บรรทัดเดียว
+               */
+              if (
+                data.section ===
+                  "body" &&
+                data.column.index ===
+                  16 &&
+                typeof data.cell.raw ===
+                  "string"
+              ) {
+                const text =
+                  String(
+                    data.cell.raw ??
+                      ""
+                  )
+                    .replace(
+                      /\s+/g,
+                      " "
+                    )
+                    .trim();
+
+                data.cell.text =
+                  [
+                    text,
+                  ];
+
+                data.cell.styles.fontSize =
+                  getSingleLineFontSize(
+                    doc,
+                    text,
+                    COLUMN_WIDTHS.remark,
+                    8,
+                    4.5,
+                    1.5
+                  );
+
+                data.cell.styles.overflow =
+                  "hidden";
+              }
+            },
+
             tableLineColor: [
               0,
               0,
@@ -1470,8 +1730,7 @@ export default function ExportInspectionPdf({
         /* =================================================
            SIGNATURE
 
-           ต่อจากตาราง + 6 มม.
-           ไม่บังคับลงไปที่ตำแหน่ง 170 แล้ว
+           เว้นลงมาจากตารางมากขึ้น
         ================================================= */
 
         const lastAutoTable =
@@ -1533,6 +1792,7 @@ export default function ExportInspectionPdf({
             pdfUrl
           );
         },
+
         5 *
           60 *
           1000
@@ -1561,6 +1821,10 @@ export default function ExportInspectionPdf({
       );
     }
   }
+
+  /* =========================================================
+     BUTTON
+  ========================================================= */
 
   return (
     <AppButton
