@@ -107,6 +107,45 @@ type Props = {
 
   officers:
     Officer[];
+
+  initialInspectionDate?: string;
+};
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+const CATEGORY_ORDER = [
+  "OFFICE",
+  "COMPUTER",
+  "ELECTRIC",
+  "HOUSEHOLD",
+  "VEHICLE",
+  "PRINTING",
+];
+
+const CATEGORY_NAMES:
+  Record<
+    string,
+    string
+  > = {
+  OFFICE:
+    "วัสดุสำนักงาน",
+
+  COMPUTER:
+    "วัสดุคอมพิวเตอร์",
+
+  ELECTRIC:
+    "วัสดุไฟฟ้าและวิทยุ",
+
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
+
+  VEHICLE:
+    "วัสดุยานพาหนะ",
+
+  PRINTING:
+    "วัสดุสื่อสิ่งพิมพ์",
 };
 
 /* =========================================================
@@ -115,6 +154,7 @@ type Props = {
 
 type SearchableOption = {
   value: string;
+
   label: string;
 };
 
@@ -143,18 +183,52 @@ type SearchableDropdownProps = {
 };
 
 /* =========================================================
+   DATE
+========================================================= */
+
+function getTodayDateOnly() {
+  const now =
+    new Date();
+
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-CA",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      }
+    );
+
+  return formatter.format(
+    now
+  );
+}
+
+/* =========================================================
    DISPLAY NUMBER
 
-   ไม่มีค่า / 0 = "-"
+   0 / ไม่มีค่า = -
 ========================================================= */
 
 function displayQuantity(
   value:
-    number | null | undefined
+    number |
+    null |
+    undefined
 ) {
   const numberValue =
     Number(
-      value ?? 0
+      value ??
+        0
     );
 
   if (
@@ -244,8 +318,6 @@ function SaveIcon() {
 
 /* =========================================================
    SEARCHABLE DROPDOWN
-
-   รูปแบบเดียวกับหน้าตรวจสอบครุภัณฑ์ต้นฉบับ
 ========================================================= */
 
 function SearchableDropdown({
@@ -464,27 +536,14 @@ function SearchableDropdown({
           setOpen(
             (
               current
-            ) => {
-              const next =
-                !current;
-
-              if (
-                !next
-              ) {
-                setSearch(
-                  ""
-                );
-              }
-
-              return next;
-            }
+            ) =>
+              !current
           );
         }}
         className="
           flex
           min-h-[50px]
           w-full
-          min-w-0
           items-center
           justify-between
           gap-3
@@ -502,41 +561,28 @@ function SearchableDropdown({
           text-left
           text-base
           font-bold
+
           !text-slate-900
 
           shadow-sm
           outline-none
 
           transition-all
-          duration-200
 
           hover:border-slate-400
           hover:bg-slate-50
 
           focus:border-blue-400
-          focus:bg-white
           focus:ring-4
           focus:ring-blue-500/10
-
-          disabled:cursor-not-allowed
-          disabled:border-slate-200
-          disabled:bg-slate-100
-          disabled:!text-slate-400
-          disabled:opacity-70
         "
       >
         <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            ${
-              selectedOption
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
+          className={
+            selectedOption
+              ? "!text-slate-900"
+              : "!text-slate-400"
+          }
         >
           {selectedOption
             ?.label ??
@@ -544,14 +590,8 @@ function SearchableDropdown({
         </span>
 
         <span
-          aria-hidden="true"
           className={`
-            shrink-0
-            text-xs
             !text-slate-500
-
-            transition-transform
-            duration-200
 
             ${
               open
@@ -584,7 +624,7 @@ function SearchableDropdown({
 
               bg-white
 
-              shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
+              shadow-xl
             "
           >
             <div
@@ -605,7 +645,6 @@ function SearchableDropdown({
                 value={
                   search
                 }
-                autoComplete="off"
                 placeholder={
                   searchPlaceholder
                 }
@@ -616,45 +655,6 @@ function SearchableDropdown({
                     event.target.value
                   )
                 }
-                onKeyDown={(
-                  event
-                ) => {
-                  if (
-                    event.key ===
-                    "Escape"
-                  ) {
-                    setOpen(
-                      false
-                    );
-
-                    setSearch(
-                      ""
-                    );
-                  }
-
-                  if (
-                    event.key ===
-                      "Enter" &&
-                    filteredOptions.length ===
-                      1
-                  ) {
-                    event.preventDefault();
-
-                    onChange(
-                      filteredOptions[
-                        0
-                      ].value
-                    );
-
-                    setOpen(
-                      false
-                    );
-
-                    setSearch(
-                      ""
-                    );
-                  }
-                }}
                 className="
                   min-h-[46px]
                   w-full
@@ -667,21 +667,12 @@ function SearchableDropdown({
                   bg-white
 
                   px-4
-                  py-2.5
 
-                  text-base
                   font-bold
+
                   !text-slate-900
 
-                  shadow-sm
                   outline-none
-
-                  transition-all
-                  duration-200
-
-                  placeholder:!text-slate-400
-
-                  hover:border-slate-400
 
                   focus:border-blue-400
                   focus:ring-4
@@ -691,13 +682,9 @@ function SearchableDropdown({
             </div>
 
             <div
-              role="listbox"
               className="
                 max-h-[280px]
                 overflow-y-auto
-                overscroll-contain
-
-                bg-white
 
                 p-2
               "
@@ -707,92 +694,61 @@ function SearchableDropdown({
                 filteredOptions.map(
                   (
                     option
-                  ) => {
-                    const selected =
-                      option.value ===
-                      value;
-
-                    return (
-                      <button
-                        key={
+                  ) => (
+                    <button
+                      key={
+                        option.value
+                      }
+                      type="button"
+                      onClick={() => {
+                        onChange(
                           option.value
+                        );
+
+                        setOpen(
+                          false
+                        );
+
+                        setSearch(
+                          ""
+                        );
+                      }}
+                      className={`
+                        flex
+                        w-full
+                        items-center
+                        justify-between
+
+                        rounded-[10px]
+
+                        px-3
+                        py-2.5
+
+                        text-left
+                        font-bold
+
+                        ${
+                          option.value ===
+                          value
+                            ? "bg-slate-900 !text-white"
+                            : "bg-white !text-slate-900 hover:bg-slate-100"
                         }
-                        type="button"
-                        role="option"
-                        aria-selected={
-                          selected
+                      `}
+                    >
+                      <span>
+                        {
+                          option.label
                         }
-                        onClick={() => {
-                          onChange(
-                            option.value
-                          );
+                      </span>
 
-                          setOpen(
-                            false
-                          );
-
-                          setSearch(
-                            ""
-                          );
-                        }}
-                        className={`
-                          flex
-                          w-full
-                          items-center
-                          justify-between
-                          gap-3
-
-                          rounded-[10px]
-
-                          px-3
-                          py-2.5
-
-                          text-left
-                          text-base
-                          font-bold
-
-                          transition-colors
-
-                          ${
-                            selected
-                              ? `
-                                  bg-slate-900
-                                  !text-white
-                                `
-                              : `
-                                  bg-white
-                                  !text-slate-900
-                                  hover:bg-slate-100
-                                `
-                          }
-                        `}
-                      >
-                        <span
-                          className="
-                            min-w-0
-                            flex-1
-                            break-words
-                          "
-                        >
-                          {
-                            option.label
-                          }
+                      {option.value ===
+                        value && (
+                        <span>
+                          ✓
                         </span>
-
-                        {selected && (
-                          <span
-                            aria-hidden="true"
-                            className="
-                              shrink-0
-                              !text-white
-                            "
-                          >
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    );
-                  }
+                      )}
+                    </button>
+                  )
                 )
               ) : (
                 <div
@@ -801,8 +757,8 @@ function SearchableDropdown({
                     py-8
 
                     text-center
-                    text-sm
                     font-bold
+
                     !text-slate-500
                   "
                 >
@@ -828,11 +784,8 @@ export default function InspectionForm({
   endShortYear,
   materials,
   officers,
+  initialInspectionDate,
 }: Props) {
-  /* =======================================================
-     STATE
-  ======================================================= */
-
   const [
     rows,
     setRows,
@@ -857,6 +810,15 @@ export default function InspectionForm({
       "",
       "",
     ]);
+
+  const [
+    inspectionDate,
+    setInspectionDate,
+  ] =
+    useState(
+      initialInspectionDate ||
+        getTodayDateOnly()
+    );
 
   const [
     searchTerm,
@@ -897,28 +859,28 @@ export default function InspectionForm({
         return materials.filter(
           (
             material
-          ) => {
-            const searchableText =
-              [
-                material.code,
-                material.name,
-                material.unit,
-                material.category,
-              ]
-                .filter(
-                  Boolean
-                )
-                .join(
-                  " "
-                )
-                .toLocaleLowerCase(
-                  "th"
-                );
-
-            return searchableText.includes(
-              keyword
-            );
-          }
+          ) =>
+            [
+              material.code,
+              material.name,
+              material.unit,
+              material.category,
+              CATEGORY_NAMES[
+                material.category
+              ],
+            ]
+              .filter(
+                Boolean
+              )
+              .join(
+                " "
+              )
+              .toLocaleLowerCase(
+                "th"
+              )
+              .includes(
+                keyword
+              )
         );
       },
       [
@@ -928,130 +890,47 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     TABLE SCROLL
+     GROUP BY CATEGORY
   ======================================================= */
 
-  const topScrollRef =
-    useRef<HTMLDivElement>(
-      null
-    );
+  const groupedMaterials =
+    useMemo(
+      () => {
+        return CATEGORY_ORDER
+          .map(
+            (
+              category
+            ) => ({
+              category,
 
-  const bottomScrollRef =
-    useRef<HTMLDivElement>(
-      null
-    );
+              label:
+                CATEGORY_NAMES[
+                  category
+                ] ??
+                category,
 
-  const tableRef =
-    useRef<HTMLTableElement>(
-      null
-    );
-
-  const [
-    tableScrollWidth,
-    setTableScrollWidth,
-  ] =
-    useState(
-      0
-    );
-
-  useEffect(
-    () => {
-      let animationFrame =
-        0;
-
-      function updateTableMeasurements() {
-        cancelAnimationFrame(
-          animationFrame
-        );
-
-        animationFrame =
-          requestAnimationFrame(
-            () => {
-              const table =
-                tableRef.current;
-
-              if (
-                !table
-              ) {
-                return;
-              }
-
-              setTableScrollWidth(
-                table.scrollWidth
-              );
-            }
+              materials:
+                filteredMaterials.filter(
+                  (
+                    material
+                  ) =>
+                    material.category ===
+                    category
+                ),
+            })
+          )
+          .filter(
+            (
+              group
+            ) =>
+              group.materials.length >
+              0
           );
-      }
-
-      updateTableMeasurements();
-
-      window.addEventListener(
-        "resize",
-        updateTableMeasurements
-      );
-
-      const table =
-        tableRef.current;
-
-      const resizeObserver =
-        typeof ResizeObserver !==
-          "undefined" &&
-        table
-          ? new ResizeObserver(
-              updateTableMeasurements
-            )
-          : null;
-
-      if (
-        resizeObserver &&
-        table
-      ) {
-        resizeObserver.observe(
-          table
-        );
-      }
-
-      return () => {
-        cancelAnimationFrame(
-          animationFrame
-        );
-
-        window.removeEventListener(
-          "resize",
-          updateTableMeasurements
-        );
-
-        resizeObserver?.disconnect();
-      };
-    },
-    [
-      filteredMaterials,
-    ]
-  );
-
-  function handleTopScroll() {
-    if (
-      !topScrollRef.current ||
-      !bottomScrollRef.current
-    ) {
-      return;
-    }
-
-    bottomScrollRef.current.scrollLeft =
-      topScrollRef.current.scrollLeft;
-  }
-
-  function handleBottomScroll() {
-    if (
-      !topScrollRef.current ||
-      !bottomScrollRef.current
-    ) {
-      return;
-    }
-
-    topScrollRef.current.scrollLeft =
-      bottomScrollRef.current.scrollLeft;
-  }
+      },
+      [
+        filteredMaterials,
+      ]
+    );
 
   /* =======================================================
      UPDATE ROW
@@ -1069,9 +948,9 @@ export default function InspectionForm({
   ) {
     setRows(
       (
-        currentRows
+        current
       ) =>
-        currentRows.map(
+        current.map(
           (
             row
           ) =>
@@ -1089,48 +968,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     ACCURACY
-  ======================================================= */
-
-  function updateAllAccuracy(
-    value:
-      | "CORRECT"
-      | "INCORRECT"
-  ) {
-    const visibleMaterialIds =
-      new Set(
-        filteredMaterials.map(
-          (
-            material
-          ) =>
-            material.materialId
-        )
-      );
-
-    setRows(
-      (
-        currentRows
-      ) =>
-        currentRows.map(
-          (
-            row
-          ) =>
-            visibleMaterialIds.has(
-              row.materialId
-            )
-              ? {
-                  ...row,
-
-                  accuracy:
-                    value,
-                }
-              : row
-        )
-    );
-  }
-
-  /* =======================================================
-     INSPECTORS
+     INSPECTOR
   ======================================================= */
 
   function updateInspector(
@@ -1159,21 +997,6 @@ export default function InspectionForm({
     );
   }
 
-  function getOfficer(
-    id:
-      string
-  ) {
-    return officers.find(
-      (
-        officer
-      ) =>
-        String(
-          officer.id
-        ) ===
-        id
-    );
-  }
-
   function isOfficerSelected(
     officerId:
       string,
@@ -1195,11 +1018,19 @@ export default function InspectionForm({
 
   /* =======================================================
      SAVE
-
-     ส่งข้อมูลไป API สำหรับ Stock Card Inspection
   ======================================================= */
 
   async function handleSave() {
+    if (
+      !inspectionDate
+    ) {
+      alert(
+        "กรุณาเลือกวันที่ตรวจสอบ"
+      );
+
+      return;
+    }
+
     if (
       inspectorIds.some(
         (
@@ -1215,28 +1046,14 @@ export default function InspectionForm({
       return;
     }
 
-    const uniqueInspectorIds =
+    if (
       new Set(
         inspectorIds
-      );
-
-    if (
-      uniqueInspectorIds.size !==
-      inspectorIds.length
+      ).size !==
+      3
     ) {
       alert(
         "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้"
-      );
-
-      return;
-    }
-
-    if (
-      rows.length ===
-      0
-    ) {
-      alert(
-        "ไม่พบรายการพัสดุสำหรับตรวจสอบ"
       );
 
       return;
@@ -1264,6 +1081,8 @@ export default function InspectionForm({
                 {
                   fiscalYear,
 
+                  inspectionDate,
+
                   inspectorIds:
                     inspectorIds.map(
                       Number
@@ -1275,38 +1094,20 @@ export default function InspectionForm({
           }
         );
 
-      let data:
-        unknown =
-        null;
-
-      try {
-        data =
-          await response.json();
-      } catch {
-        data =
-          null;
-      }
+      const data =
+        await response
+          .json()
+          .catch(
+            () =>
+              null
+          );
 
       if (
         !response.ok
       ) {
-        let errorMessage =
-          "ไม่สามารถบันทึกข้อมูลได้";
-
-        if (
-          data &&
-          typeof data ===
-            "object" &&
-          "error" in data &&
-          typeof data.error ===
-            "string"
-        ) {
-          errorMessage =
-            data.error;
-        }
-
         throw new Error(
-          errorMessage
+          data?.error ||
+            "ไม่สามารถบันทึกข้อมูลได้"
         );
       }
 
@@ -1316,10 +1117,6 @@ export default function InspectionForm({
     } catch (
       error
     ) {
-      console.error(
-        error
-      );
-
       alert(
         error instanceof
           Error
@@ -1335,9 +1132,6 @@ export default function InspectionForm({
 
   /* =======================================================
      INPUT STYLE
-
-     ไม่ใช้กรอบดำ
-     ใช้แบบเดียวกับต้นฉบับครุภัณฑ์
   ======================================================= */
 
   const numberInputClass =
@@ -1363,42 +1157,7 @@ export default function InspectionForm({
 
       outline-none
 
-      transition-all
-
       placeholder:!text-slate-400
-
-      hover:border-slate-400
-
-      focus:border-blue-500
-      focus:ring-2
-      focus:ring-blue-500/10
-    `;
-
-  const remarkInputClass =
-    `
-      h-9
-      w-[160px]
-
-      rounded-[10px]
-
-      border
-      border-slate-300
-
-      bg-white
-
-      px-3
-
-      font-semibold
-
-      !text-slate-900
-
-      outline-none
-
-      transition-all
-
-      placeholder:!text-slate-400
-
-      hover:border-slate-400
 
       focus:border-blue-500
       focus:ring-2
@@ -1412,18 +1171,14 @@ export default function InspectionForm({
   return (
     <div
       className="
-        relative
-
         w-full
         min-w-0
 
-        space-y-5
-
-        sm:space-y-6
+        space-y-6
       "
     >
       {/* =====================================================
-          1. INSPECTION INFORMATION
+          INFORMATION CARD
       ===================================================== */}
 
       <AppCard
@@ -1431,19 +1186,13 @@ export default function InspectionForm({
           relative
           z-20
 
-          w-full
-          min-w-0
-
           !overflow-visible
         "
       >
         <div
           className="
             flex
-            w-full
-            min-w-0
             flex-col
-
             gap-4
 
             sm:flex-row
@@ -1451,16 +1200,11 @@ export default function InspectionForm({
             sm:justify-between
           "
         >
-          <div
-            className="
-              min-w-0
-            "
-          >
+          <div>
             <h2
               className="
                 text-xl
                 font-black
-                tracking-tight
 
                 !text-slate-900
 
@@ -1487,39 +1231,32 @@ export default function InspectionForm({
             </p>
           </div>
 
-          {/* ===============================================
-              PDF BUTTON
-          =============================================== */}
-
-          <div
-            className="
-              shrink-0
-            "
-          >
-            <ExportInspectionPdf
-              fiscalYear={
-                fiscalYear
-              }
-              startShortYear={
-                startShortYear
-              }
-              endShortYear={
-                endShortYear
-              }
-              materials={
-                materials
-              }
-              rows={
-                rows
-              }
-              inspectorIds={
-                inspectorIds
-              }
-              officers={
-                officers
-              }
-            />
-          </div>
+          <ExportInspectionPdf
+            fiscalYear={
+              fiscalYear
+            }
+            startShortYear={
+              startShortYear
+            }
+            endShortYear={
+              endShortYear
+            }
+            inspectionDate={
+              inspectionDate
+            }
+            materials={
+              materials
+            }
+            rows={
+              rows
+            }
+            inspectorIds={
+              inspectorIds
+            }
+            officers={
+              officers
+            }
+          />
         </div>
 
         <div
@@ -1528,10 +1265,9 @@ export default function InspectionForm({
 
             grid
             grid-cols-1
-
             gap-4
 
-            md:grid-cols-3
+            md:grid-cols-4
           "
         >
           <div
@@ -1539,7 +1275,7 @@ export default function InspectionForm({
               rounded-[18px]
 
               border
-              border-slate-200/80
+              border-slate-200
 
               bg-slate-50/60
 
@@ -1574,12 +1310,82 @@ export default function InspectionForm({
             </p>
           </div>
 
+          {/* ===============================================
+              INSPECTION DATE
+          =============================================== */}
+
           <div
             className="
               rounded-[18px]
 
               border
-              border-slate-200/80
+              border-slate-200
+
+              bg-slate-50/60
+
+              p-4
+            "
+          >
+            <label
+              htmlFor="inspectionDate"
+              className="
+                text-sm
+                font-extrabold
+
+                !text-slate-500
+              "
+            >
+              ตรวจสอบเมื่อวันที่
+            </label>
+
+            <input
+              id="inspectionDate"
+              type="date"
+              value={
+                inspectionDate
+              }
+              onChange={(
+                event
+              ) =>
+                setInspectionDate(
+                  event.target.value
+                )
+              }
+              className="
+                mt-2
+
+                min-h-[44px]
+                w-full
+
+                rounded-[12px]
+
+                border
+                border-slate-300
+
+                bg-white
+
+                px-3
+
+                text-base
+                font-bold
+
+                !text-slate-900
+
+                outline-none
+
+                focus:border-blue-500
+                focus:ring-2
+                focus:ring-blue-500/10
+              "
+            />
+          </div>
+
+          <div
+            className="
+              rounded-[18px]
+
+              border
+              border-slate-200
 
               bg-slate-50/60
 
@@ -1619,7 +1425,7 @@ export default function InspectionForm({
               rounded-[18px]
 
               border
-              border-slate-200/80
+              border-slate-200
 
               bg-slate-50/60
 
@@ -1661,181 +1467,54 @@ export default function InspectionForm({
       </AppCard>
 
       {/* =====================================================
-          2. SEARCH
+          SEARCH
       ===================================================== */}
 
-      <div
-        className="
-          relative
-          z-10
-        "
-      >
-        <AppSearchInput
-          value={
-            searchTerm
-          }
-          onChange={(
-            event
-          ) =>
-            setSearchTerm(
-              event.target.value
-            )
-          }
-          onSubmit={() =>
-            setSearchTerm(
-              searchTerm.trim()
-            )
-          }
-          onClear={() =>
-            setSearchTerm(
-              ""
-            )
-          }
-          placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หน่วยนับ"
-          resultCount={
-            filteredMaterials.length
-          }
-          resultLabel="รายการ"
-          showSearchButton
-          showClearButton
-          searchButtonText="ค้นหา"
-          clearButtonText="ล้าง"
-        />
-      </div>
+      <AppSearchInput
+        value={
+          searchTerm
+        }
+        onChange={(
+          event
+        ) =>
+          setSearchTerm(
+            event.target.value
+          )
+        }
+        onClear={() =>
+          setSearchTerm(
+            ""
+          )
+        }
+        placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หมวดวัสดุ"
+        resultCount={
+          filteredMaterials.length
+        }
+        resultLabel="รายการ"
+        showSearchButton
+        showClearButton
+        searchButtonText="ค้นหา"
+        clearButtonText="ล้าง"
+      />
 
       {/* =====================================================
-          3. TABLE
+          TABLE
       ===================================================== */}
 
       <AppTableCard
         title="รายการตรวจสอบบัญชีพัสดุ"
-        subtitle={`ตรวจสอบรายการพัสดุประจำปีงบประมาณ ${fiscalYear}`}
+        subtitle={`ประจำปีงบประมาณ ${fiscalYear}`}
         badge={`${filteredMaterials.length.toLocaleString(
           "th-TH"
         )} รายการ`}
-        className="
-          relative
-          z-0
-
-          w-full
-          min-w-0
-          max-w-full
-        "
       >
-        {/* ===================================================
-            QUICK ACTION
-        =================================================== */}
-
         <div
-          className="
-            border-b
-            border-slate-200
-
-            bg-slate-50/70
-
-            p-3
-
-            sm:p-4
-          "
-        >
-          <p
-            className="
-              mb-3
-
-              text-sm
-              font-extrabold
-
-              !text-slate-700
-            "
-          >
-            กำหนดผลให้รายการที่กำลังแสดงทั้งหมด
-          </p>
-
-          <div
-            className="
-              flex
-              flex-wrap
-              gap-2
-            "
-          >
-            <AppButton
-              type="button"
-              variant="success"
-              size="sm"
-              onClick={() =>
-                updateAllAccuracy(
-                  "CORRECT"
-                )
-              }
-            >
-              ✓ ถูกต้องทั้งหมด
-            </AppButton>
-
-            <AppButton
-              type="button"
-              variant="danger"
-              size="sm"
-              onClick={() =>
-                updateAllAccuracy(
-                  "INCORRECT"
-                )
-              }
-            >
-              ✕ ไม่ถูกต้องทั้งหมด
-            </AppButton>
-          </div>
-        </div>
-
-        {/* ===================================================
-            TOP SCROLL
-        =================================================== */}
-
-        <div
-          ref={
-            topScrollRef
-          }
-          onScroll={
-            handleTopScroll
-          }
           className="
             w-full
             overflow-x-auto
-            overflow-y-hidden
-          "
-        >
-          <div
-            style={{
-              width:
-                tableScrollWidth,
-              height:
-                1,
-            }}
-          />
-        </div>
-
-        {/* ===================================================
-            TABLE SCROLL
-        =================================================== */}
-
-        <div
-          ref={
-            bottomScrollRef
-          }
-          onScroll={
-            handleBottomScroll
-          }
-          className="
-            w-full
-            min-w-0
-
-            overflow-x-auto
-            overscroll-x-contain
           "
         >
           <table
-            ref={
-              tableRef
-            }
             className="
               w-full
               min-w-[2500px]
@@ -1851,27 +1530,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="
-                    w-[70px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    align-middle
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   ลำดับ
                 </th>
@@ -1880,27 +1539,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="
-                    min-w-[320px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-                    align-middle
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center !text-white"
                 >
                   รายการพัสดุ
                 </th>
@@ -1909,27 +1548,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="
-                    min-w-[110px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    align-middle
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   หน่วยนับ
                 </th>
@@ -1938,27 +1557,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="
-                    min-w-[190px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-                    align-middle
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   คงเหลือยอดยกมา
                   <br />
@@ -1972,24 +1571,7 @@ export default function InspectionForm({
                   colSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   01 ต.ค.{" "}
                   {
@@ -2002,27 +1584,7 @@ export default function InspectionForm({
                 </th>
 
                 <th
-                  colSpan={
-                    1
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-4
-
-                    text-center
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   คงเหลือ
                 </th>
@@ -2031,24 +1593,7 @@ export default function InspectionForm({
                   colSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   ผลการตรวจสอบ
                 </th>
@@ -2057,28 +1602,7 @@ export default function InspectionForm({
                   colSpan={
                     4
                   }
-                  className="
-                    min-w-[430px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-
-                    text-sm
-                    font-extrabold
-
-                    leading-relaxed
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   ถ้าไม่ถูกต้องจำนวนที่ขาด
                   จำนวนที่เกินคิดเป็นร้อยละ
@@ -2088,24 +1612,7 @@ export default function InspectionForm({
                   colSpan={
                     3
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   จำนวนที่
                 </th>
@@ -2114,27 +1621,7 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="
-                    min-w-[220px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-4
-                    py-4
-
-                    text-center
-                    align-middle
-
-                    text-sm
-                    font-extrabold
-
-                    !text-white
-                  "
+                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center !text-white"
                 >
                   หมายเหตุ
                 </th>
@@ -2162,26 +1649,7 @@ export default function InspectionForm({
                       key={
                         title
                       }
-                      className="
-                        min-w-[100px]
-
-                        border
-                        border-black
-
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-
-                        px-3
-                        py-3
-
-                        text-center
-
-                        text-sm
-                        font-extrabold
-
-                        !text-white
-                      "
+                      className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center !text-white"
                     >
                       {
                         title
@@ -2193,7 +1661,7 @@ export default function InspectionForm({
             </thead>
 
             <tbody>
-              {filteredMaterials.length ===
+              {groupedMaterials.length ===
               0 ? (
                 <tr>
                   <td
@@ -2204,14 +1672,12 @@ export default function InspectionForm({
                       border
                       border-black
 
-                      bg-white
-
                       px-6
                       py-16
 
                       text-center
-
                       font-bold
+
                       !text-slate-500
                     "
                   >
@@ -2219,575 +1685,294 @@ export default function InspectionForm({
                   </td>
                 </tr>
               ) : (
-                filteredMaterials.map(
+                groupedMaterials.map(
                   (
-                    material,
-                    index
-                  ) => {
-                    const row =
-                      rows.find(
-                        (
-                          item
-                        ) =>
-                          item.materialId ===
-                          material.materialId
-                      );
+                    group
+                  ) => (
+                    <>
+                      {/* ===================================
+                          CATEGORY ROW
+                      =================================== */}
 
-                    if (
-                      !row
-                    ) {
-                      return null;
-                    }
-
-                    return (
                       <tr
-                        key={
-                          material.materialId
-                        }
-                        className={`
-                          text-sm
-                          font-medium
-                          !text-slate-900
-
-                          transition-colors
-
-                          ${
-                            index %
-                              2 ===
-                            0
-                              ? "bg-white"
-                              : "bg-slate-50/60"
-                          }
-
-                          hover:bg-emerald-50/60
-                        `}
+                        key={`category-${group.category}`}
                       >
-                        {/* ===================================
-                            ลำดับ
-                        =================================== */}
-
                         <td
+                          colSpan={
+                            17
+                          }
                           className="
                             border
                             border-black
 
-                            px-2
-                            py-2.5
+                            bg-slate-200
 
-                            text-center
+                            px-4
+                            py-3
+
+                            text-left
+                            text-base
+                            font-black
+
+                            !text-slate-900
                           "
                         >
                           {
-                            index +
-                            1
+                            group.label
                           }
                         </td>
-
-                        {/* ===================================
-                            รายการพัสดุ
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-3
-                            py-2.5
-
-                            font-semibold
-                          "
-                        >
-                          <div
-                            className="
-                              !text-slate-900
-                            "
-                          >
-                            {
-                              material.name
-                            }
-                          </div>
-
-                          {material.code && (
-                            <div
-                              className="
-                                mt-1
-
-                                text-xs
-                                font-semibold
-
-                                !text-slate-500
-                              "
-                            >
-                              รหัส:{" "}
-                              {
-                                material.code
-                              }
-                            </div>
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            หน่วย
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2.5
-
-                            text-center
-                          "
-                        >
-                          {material.unit?.trim()
-                            ? material.unit
-                            : "-"}
-                        </td>
-
-                        {/* ===================================
-                            OPENING
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2.5
-
-                            text-center
-                            font-semibold
-                          "
-                        >
-                          {displayQuantity(
-                            material.openingBalance
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            RECEIVE
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2.5
-
-                            text-center
-                            font-semibold
-                          "
-                        >
-                          {displayQuantity(
-                            material.receiveQty
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            ISSUE
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2.5
-
-                            text-center
-                            font-semibold
-                          "
-                        >
-                          {displayQuantity(
-                            material.issueQty
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            CLOSING
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2.5
-
-                            text-center
-                            font-semibold
-                          "
-                        >
-                          {displayQuantity(
-                            material.closingBalance
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            CORRECT / INCORRECT
-
-                            วงกลมแบบต้นฉบับ
-                        =================================== */}
-
-                        {[
-                          "CORRECT",
-                          "INCORRECT",
-                        ].map(
-                          (
-                            accuracy
-                          ) => (
-                            <td
-                              key={
-                                accuracy
-                              }
-                              className="
-                                border
-                                border-black
-
-                                px-2
-                                py-2
-
-                                text-center
-                              "
-                            >
-                              <input
-                                type="radio"
-                                name={`accuracy-${material.materialId}`}
-                                value={
-                                  accuracy
-                                }
-                                checked={
-                                  row.accuracy ===
-                                  accuracy
-                                }
-                                onChange={(
-                                  event
-                                ) =>
-                                  updateRow(
-                                    material.materialId,
-                                    "accuracy",
-                                    event.target.value
-                                  )
-                                }
-                                className="
-                                  h-4
-                                  w-4
-
-                                  cursor-pointer
-
-                                  accent-blue-600
-                                "
-                              />
-                            </td>
-                          )
-                        )}
-
-                        {/* ===================================
-                            ขาด
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.shortageQty
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "shortageQty",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            เกิน
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.excessQty
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "excessQty",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            บาท
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.baht
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "baht",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            สตางค์
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            max="99"
-                            step="1"
-                            value={
-                              row.satang
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "satang",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            ชำรุด
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.damagedQty
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "damagedQty",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            เสื่อมสภาพ
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.deterioratedQty
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "deterioratedQty",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            ไม่จำเป็นต้องใช้
-                        =================================== */}
-
-                        <td
-                          className="
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                            text-center
-                          "
-                        >
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={
-                              row.unnecessaryQty
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "unnecessaryQty",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              numberInputClass
-                            }
-                          />
-                        </td>
-
-                        {/* ===================================
-                            REMARK
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-
-                            border
-                            border-black
-
-                            px-2
-                            py-2
-                          "
-                        >
-                          <input
-                            type="text"
-                            value={
-                              row.remark
-                            }
-                            placeholder="-"
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                material.materialId,
-                                "remark",
-                                event.target.value
-                              )
-                            }
-                            className={
-                              remarkInputClass
-                            }
-                          />
-                        </td>
                       </tr>
-                    );
-                  }
+
+                      {/* ===================================
+                          MATERIAL ROWS
+                          ลำดับเริ่มใหม่ทุกหมวด
+                      =================================== */}
+
+                      {group.materials.map(
+                        (
+                          material,
+                          index
+                        ) => {
+                          const row =
+                            rows.find(
+                              (
+                                item
+                              ) =>
+                                item.materialId ===
+                                material.materialId
+                            );
+
+                          if (
+                            !row
+                          ) {
+                            return null;
+                          }
+
+                          return (
+                            <tr
+                              key={
+                                material.materialId
+                              }
+                              className={
+                                index %
+                                  2 ===
+                                0
+                                  ? "bg-white"
+                                  : "bg-slate-50/60"
+                              }
+                            >
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {
+                                  index +
+                                  1
+                                }
+                              </td>
+
+                              <td className="border border-black px-3 py-2.5 font-semibold">
+                                {
+                                  material.name
+                                }
+                              </td>
+
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {material.unit ||
+                                  "-"}
+                              </td>
+
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {displayQuantity(
+                                  material.openingBalance
+                                )}
+                              </td>
+
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {displayQuantity(
+                                  material.receiveQty
+                                )}
+                              </td>
+
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {displayQuantity(
+                                  material.issueQty
+                                )}
+                              </td>
+
+                              <td className="border border-black px-2 py-2.5 text-center">
+                                {displayQuantity(
+                                  material.closingBalance
+                                )}
+                              </td>
+
+                              {[
+                                "CORRECT",
+                                "INCORRECT",
+                              ].map(
+                                (
+                                  accuracy
+                                ) => (
+                                  <td
+                                    key={
+                                      accuracy
+                                    }
+                                    className="border border-black px-2 py-2 text-center"
+                                  >
+                                    <input
+                                      type="radio"
+                                      name={`accuracy-${material.materialId}`}
+                                      value={
+                                        accuracy
+                                      }
+                                      checked={
+                                        row.accuracy ===
+                                        accuracy
+                                      }
+                                      onChange={(
+                                        event
+                                      ) =>
+                                        updateRow(
+                                          material.materialId,
+                                          "accuracy",
+                                          event.target.value
+                                        )
+                                      }
+                                      className="
+                                        h-4
+                                        w-4
+
+                                        cursor-pointer
+
+                                        accent-blue-600
+                                      "
+                                    />
+                                  </td>
+                                )
+                              )}
+
+                              {[
+                                {
+                                  field:
+                                    "shortageQty",
+                                  value:
+                                    row.shortageQty,
+                                },
+                                {
+                                  field:
+                                    "excessQty",
+                                  value:
+                                    row.excessQty,
+                                },
+                                {
+                                  field:
+                                    "baht",
+                                  value:
+                                    row.baht,
+                                },
+                                {
+                                  field:
+                                    "satang",
+                                  value:
+                                    row.satang,
+                                },
+                                {
+                                  field:
+                                    "damagedQty",
+                                  value:
+                                    row.damagedQty,
+                                },
+                                {
+                                  field:
+                                    "deterioratedQty",
+                                  value:
+                                    row.deterioratedQty,
+                                },
+                                {
+                                  field:
+                                    "unnecessaryQty",
+                                  value:
+                                    row.unnecessaryQty,
+                                },
+                              ].map(
+                                (
+                                  input
+                                ) => (
+                                  <td
+                                    key={
+                                      input.field
+                                    }
+                                    className="border border-black px-2 py-2 text-center"
+                                  >
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="1"
+                                      value={
+                                        input.value
+                                      }
+                                      placeholder="-"
+                                      onChange={(
+                                        event
+                                      ) =>
+                                        updateRow(
+                                          material.materialId,
+                                          input.field as keyof InspectionRow,
+                                          event.target.value
+                                        )
+                                      }
+                                      className={
+                                        numberInputClass
+                                      }
+                                    />
+                                  </td>
+                                )
+                              )}
+
+                              <td className="border border-black px-2 py-2">
+                                <input
+                                  type="text"
+                                  value={
+                                    row.remark
+                                  }
+                                  placeholder="-"
+                                  onChange={(
+                                    event
+                                  ) =>
+                                    updateRow(
+                                      material.materialId,
+                                      "remark",
+                                      event.target.value
+                                    )
+                                  }
+                                  className="
+                                    h-9
+                                    w-[160px]
+
+                                    rounded-[10px]
+
+                                    border
+                                    border-slate-300
+
+                                    bg-white
+
+                                    px-3
+
+                                    font-semibold
+
+                                    !text-slate-900
+
+                                    outline-none
+
+                                    focus:border-blue-500
+                                    focus:ring-2
+                                    focus:ring-blue-500/10
+                                  "
+                                />
+                              </td>
+                            </tr>
+                          );
+                        }
+                      )}
+                    </>
+                  )
                 )
               )}
             </tbody>
@@ -2796,7 +1981,7 @@ export default function InspectionForm({
       </AppTableCard>
 
       {/* =====================================================
-          4. COMMITTEE
+          COMMITTEE
       ===================================================== */}
 
       <AppCard
@@ -2804,41 +1989,35 @@ export default function InspectionForm({
           relative
           z-10
 
-          w-full
-          min-w-0
-
           !overflow-visible
         "
       >
-        <div>
-          <h2
-            className="
-              text-xl
-              font-black
-              tracking-tight
+        <h2
+          className="
+            text-xl
+            font-black
 
-              !text-slate-900
+            !text-slate-900
 
-              sm:text-2xl
-            "
-          >
-            คณะกรรมการตรวจสอบครุภัณฑ์
-          </h2>
+            sm:text-2xl
+          "
+        >
+          คณะกรรมการตรวจสอบครุภัณฑ์
+        </h2>
 
-          <p
-            className="
-              mt-1
+        <p
+          className="
+            mt-1
 
-              text-sm
-              font-semibold
+            text-sm
+            font-semibold
 
-              !text-slate-500
-            "
-          >
-            เลือกผู้ตรวจสอบจำนวน 3 คน
-            โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
-          </p>
-        </div>
+            !text-slate-500
+          "
+        >
+          เลือกผู้ตรวจสอบจำนวน 3 คน
+          โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
+        </p>
 
         <div
           className="
@@ -2846,7 +2025,6 @@ export default function InspectionForm({
 
             grid
             grid-cols-1
-
             gap-4
 
             lg:grid-cols-3
@@ -2857,26 +2035,22 @@ export default function InspectionForm({
               inspectorId,
               index
             ) => {
-              const officerOptions =
+              const options =
                 officers
                   .filter(
                     (
                       officer
-                    ) => {
-                      const officerId =
+                    ) =>
+                      String(
+                        officer.id
+                      ) ===
+                        inspectorId ||
+                      !isOfficerSelected(
                         String(
                           officer.id
-                        );
-
-                      return (
-                        officerId ===
-                          inspectorId ||
-                        !isOfficerSelected(
-                          officerId,
-                          index
-                        )
-                      );
-                    }
+                        ),
+                        index
+                      )
                   )
                   .map(
                     (
@@ -2897,20 +2071,6 @@ export default function InspectionForm({
                   key={
                     index
                   }
-                  className="
-                    relative
-
-                    min-w-0
-
-                    rounded-[18px]
-
-                    border
-                    border-slate-200/80
-
-                    bg-slate-50/60
-
-                    p-4
-                  "
                 >
                   <label
                     className="
@@ -2935,49 +2095,24 @@ export default function InspectionForm({
                       inspectorId
                     }
                     options={
-                      officerOptions
+                      options
                     }
                     placeholder="-- เลือกผู้ตรวจสอบ --"
-                    searchPlaceholder="พิมพ์ค้นหาผู้ตรวจสอบ..."
-                    emptyText="ไม่พบรายชื่อผู้ตรวจสอบ"
                     required
                     onChange={(
-                      officerId
+                      value
                     ) =>
                       updateInspector(
                         index,
-                        officerId
+                        value
                       )
                     }
                   />
-
-                  {inspectorId && (
-                    <p
-                      className="
-                        mt-2
-
-                        text-xs
-                        font-semibold
-
-                        !text-slate-500
-                      "
-                    >
-                      ตำแหน่ง:{" "}
-                      {getOfficer(
-                        inspectorId
-                      )?.position ||
-                        "-"}
-                    </p>
-                  )}
                 </div>
               );
             }
           )}
         </div>
-
-        {/* ===================================================
-            ACTION BUTTONS
-        =================================================== */}
 
         <div
           className="
@@ -2993,7 +2128,6 @@ export default function InspectionForm({
             pt-5
 
             sm:flex-row
-            sm:items-center
             sm:justify-end
           "
         >
@@ -3001,10 +2135,6 @@ export default function InspectionForm({
             href={`/stock-card?fiscalYear=${fiscalYear}`}
             variant="secondary"
             size="md"
-            className="
-              w-full
-              sm:w-auto
-            "
           >
             ยกเลิก
           </AppButton>
@@ -3022,10 +2152,6 @@ export default function InspectionForm({
             disabled={
               isSaving
             }
-            className="
-              w-full
-              sm:w-auto
-            "
           >
             {isSaving
               ? "กำลังบันทึก..."
