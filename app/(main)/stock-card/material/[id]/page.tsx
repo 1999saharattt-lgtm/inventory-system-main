@@ -15,11 +15,8 @@ import AppTableCard from "@/components/AppTableCard";
    FORCE FRESH DATA
 ========================================================= */
 
-export const dynamic =
-  "force-dynamic";
-
-export const revalidate =
-  0;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /* =========================================================
    TYPES
@@ -35,30 +32,11 @@ type Props = {
   }>;
 };
 
-type Lot = {
-  id: number;
-
-  qty: number;
-
-  manufacture:
-    Date | null;
-
-  expiry:
-    Date | null;
-};
-
 type FiscalYearRange = {
-  fiscalYearThai:
-    number;
-
-  fiscalYearGregorian:
-    number;
-
-  startDate:
-    Date;
-
-  endDate:
-    Date;
+  fiscalYearThai: number;
+  fiscalYearGregorian: number;
+  startDate: Date;
+  endDate: Date;
 };
 
 type ThailandDateParts = {
@@ -67,60 +45,66 @@ type ThailandDateParts = {
   day: number;
 };
 
+type Lot = {
+  id: number;
+  qty: number;
+  manufacture: Date | null;
+  expiry: Date | null;
+};
+
+type MovementRow = {
+  date: Date;
+  sortId: number;
+
+  documentNo: string;
+  owner: string;
+
+  unitPrice: number;
+
+  receiveQty: number;
+  issueQty: number;
+
+  manufacture: Date | null;
+  expiry: Date | null;
+
+  type: "RECEIVE" | "ISSUE";
+};
+
 type StockRow = {
   date: Date;
 
-  documentNo:
-    string;
+  documentNo: string;
+  owner: string;
 
-  owner:
-    string;
+  unitPrice: number;
 
-  unitPrice:
-    number;
+  receiveQty: number;
+  issueQty: number;
+  balance: number;
 
-  receiveQty:
-    number;
-
-  issueQty:
-    number;
-
-  balance:
-    number;
-
-  manufacture:
-    Date | null;
-
-  expiry:
-    Date | null;
+  manufacture: Date | null;
+  expiry: Date | null;
 
   type:
-    string;
+    | "OPENING_BALANCE"
+    | "RECEIVE"
+    | "ISSUE";
 };
 
 /* =========================================================
    CATEGORY
 ========================================================= */
 
-const categoryName:
-  Record<string, string> = {
-  OFFICE:
-    "วัสดุสำนักงาน",
-
-  COMPUTER:
-    "วัสดุคอมพิวเตอร์",
-
-  ELECTRIC:
-    "วัสดุไฟฟ้าและวิทยุ",
-
-  HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
-
-  VEHICLE:
-    "วัสดุยานพาหนะ",
-
-  PRINTING:
-    "วัสดุสื่อสิ่งพิมพ์",
+const categoryName: Record<
+  string,
+  string
+> = {
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
 /* =========================================================
@@ -234,7 +218,6 @@ function getCurrentFiscalYearThai(
    FISCAL YEAR RANGE
 
    FY 2570
-
    1 ต.ค. 2569
    ถึงก่อน
    1 ต.ค. 2570
@@ -276,11 +259,8 @@ function getFiscalYearRange(
 
   return {
     fiscalYearThai,
-
     fiscalYearGregorian,
-
     startDate,
-
     endDate,
   };
 }
@@ -290,26 +270,31 @@ function getFiscalYearRange(
 ========================================================= */
 
 function getDisplayEndDate(
-  range:
-    FiscalYearRange
+  range: FiscalYearRange
 ) {
   return new Date(
     range.endDate.getTime() -
-      24 *
-        60 *
-        60 *
-        1000
+      24 * 60 * 60 * 1000
   );
 }
 
 /* =========================================================
-   DATE IN RANGE
+   DATE RANGE
 ========================================================= */
+
+function isBeforeDate(
+  value: Date,
+  target: Date
+) {
+  return (
+    new Date(value).getTime() <
+    target.getTime()
+  );
+}
 
 function isDateInRange(
   value: Date,
-  range:
-    FiscalYearRange
+  range: FiscalYearRange
 ) {
   const time =
     new Date(
@@ -326,8 +311,6 @@ function isDateInRange(
 
 /* =========================================================
    THAI SHORT DATE
-
-   01 ต.ค. 69
 ========================================================= */
 
 function formatThaiShortDate(
@@ -469,362 +452,153 @@ function formatNumber(
 }
 
 /* =========================================================
-   CREATE OPENING BALANCE FOR ONE MATERIAL
+   ACTUAL ISSUE QTY
 
-   ใช้กรณีเปิดหน้ารายวัสดุโดยตรง
-   โดยไม่ได้ผ่าน /stock-card ก่อน
+   ใช้ค่าที่จ่ายจริง
 
-   หลัก:
-   - สร้างเพียงครั้งเดียว
-   - ไม่เพิ่ม Material.balance
-   - ไม่เพิ่ม ReceiveItem.balance
+   ถ้า issuedQty เป็น null/undefined
+   จึง fallback ไป qty
+
+   หมายเหตุ:
+   issuedQty = 0 ถือว่าเป็น 0 จริง
 ========================================================= */
 
-async function ensureMaterialOpeningBalance(
-  materialId: number,
-  fiscalYearThai: number
+function getActualIssuedQty(
+  item: {
+    qty: number;
+    issuedQty:
+      number | null;
+  }
 ) {
-  const range =
-    getFiscalYearRange(
-      fiscalYearThai
-    );
-
-  /* =======================================================
-     CHECK EXISTING
-  ======================================================= */
-
-  const existing =
-    await prisma.transaction.findFirst({
-      where: {
-        materialId,
-
-        type:
-          "OPENING_BALANCE",
-
-        documentNo:
-          "ยอดยกเข้าระบบ",
-
-        date: {
-          gte:
-            range.startDate,
-
-          lt:
-            new Date(
-              range.startDate.getTime() +
-                24 *
-                  60 *
-                  60 *
-                  1000
-            ),
-        },
-      },
-
-      select: {
-        id:
-          true,
-      },
-    });
-
-  if (existing) {
-    return;
-  }
-
-  /* =======================================================
-     LAST TRANSACTION BEFORE FY
-
-     ใช้ balance ณ สิ้นปีงบเดิม
-  ======================================================= */
-
-  const lastTransaction =
-    await prisma.transaction.findFirst({
-      where: {
-        materialId,
-
-        date: {
-          lt:
-            range.startDate,
-        },
-      },
-
-      orderBy: [
-        {
-          date:
-            "desc",
-        },
-
-        {
-          id:
-            "desc",
-        },
-      ],
-
-      select: {
-        balance:
-          true,
-
-        unitPrice:
-          true,
-
-        vendor:
-          true,
-      },
-    });
-
-  let openingBalance =
-    lastTransaction
-      ? Math.max(
-          0,
-          Math.floor(
-            Number(
-              lastTransaction.balance ??
-                0
-            )
-          )
-        )
-      : 0;
-
-  /* =======================================================
-     FALLBACK
-
-     กรณีข้อมูลเก่าไม่มี Transaction
-     ให้คำนวณจากเอกสารรับและเบิกที่ APPROVED
-     ก่อนวันที่ 1 ต.ค.
-  ======================================================= */
-
   if (
-    !lastTransaction
+    item.issuedQty !==
+      null &&
+    item.issuedQty !==
+      undefined
   ) {
-    const [
-      receiveItems,
-      issueItems,
-    ] =
-      await Promise.all([
-        prisma.receiveItem.findMany({
-          where: {
-            materialId,
-
-            receive: {
-              receiveDate: {
-                lt:
-                  range.startDate,
-              },
-            },
-          },
-
-          select: {
-            qty:
-              true,
-          },
-        }),
-
-        prisma.issueItem.findMany({
-          where: {
-            materialId,
-
-            issue: {
-              issueDate: {
-                lt:
-                  range.startDate,
-              },
-
-              status:
-                "APPROVED",
-            },
-          },
-
-          select: {
-            qty:
-              true,
-
-            issuedQty:
-              true,
-          },
-        }),
-      ]);
-
-    const totalReceive =
-      receiveItems.reduce(
-        (
-          total,
-          item
-        ) =>
-          total +
-          Number(
-            item.qty ??
-              0
-          ),
-        0
-      );
-
-    const totalIssue =
-      issueItems.reduce(
-        (
-          total,
-          item
-        ) =>
-          total +
-          Number(
-            item.issuedQty ??
-              item.qty ??
-              0
-          ),
-        0
-      );
-
-    openingBalance =
-      Math.max(
-        0,
-        totalReceive -
-          totalIssue
-      );
-  }
-
-  /* =======================================================
-     ไม่มีของเหลือ
-  ======================================================= */
-
-  if (
-    openingBalance <=
-    0
-  ) {
-    return;
-  }
-
-  /* =======================================================
-     LATEST PURCHASE BEFORE FY
-
-     ถ้าปีก่อนไม่ได้ซื้อ
-     ย้อนหาการซื้อก่อนหน้านั้นไปเรื่อย ๆ
-  ======================================================= */
-
-  const latestPurchase =
-    await prisma.receiveItem.findFirst({
-      where: {
-        materialId,
-
-        receive: {
-          receiveDate: {
-            lt:
-              range.startDate,
-          },
-        },
-      },
-
-      orderBy: [
-        {
-          receive: {
-            receiveDate:
-              "desc",
-          },
-        },
-
-        {
-          id:
-            "desc",
-        },
-      ],
-
-      select: {
-        unitPrice:
-          true,
-
-        receive: {
-          select: {
-            vendor: {
-              select: {
-                name:
-                  true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-  const material =
-    await prisma.material.findUnique({
-      where: {
-        id:
-          materialId,
-      },
-
-      select: {
-        latestPrice:
-          true,
-
-        vendor: {
-          select: {
-            name:
-              true,
-          },
-        },
-      },
-    });
-
-  const vendorName =
-    latestPurchase
-      ?.receive
-      ?.vendor
-      ?.name ??
-    lastTransaction
-      ?.vendor ??
-    material
-      ?.vendor
-      ?.name ??
-    null;
-
-  const unitPrice =
-    Number(
-      latestPurchase
-        ?.unitPrice ??
-        lastTransaction
-          ?.unitPrice ??
-        material
-          ?.latestPrice ??
-        0
+    return Number(
+      item.issuedQty
     );
+  }
 
-  /* =======================================================
-     CREATE
+  return Number(
+    item.qty ??
+      0
+  );
+}
 
-     ช่องรับ = ยอดคงเหลือต้นปี
-     ช่องคงเหลือ = ยอดคงเหลือต้นปี
-  ======================================================= */
+/* =========================================================
+   FEFO SORT
 
-  await prisma.transaction.create({
-    data: {
-      materialId,
+   1. มีวันหมดอายุก่อน
+   2. วันหมดอายุเร็วกว่า
+   3. วันผลิตเก่ากว่า
+   4. ไม่มีวันหมดอายุอยู่ท้าย
+   5. id เก่าก่อน
+========================================================= */
 
-      date:
-        range.startDate,
+function sortLotsByFefo(
+  lots: Lot[]
+) {
+  return [...lots].sort(
+    (
+      a,
+      b
+    ) => {
+      const aHasExpiry =
+        Boolean(
+          a.expiry
+        );
 
-      type:
-        "OPENING_BALANCE",
+      const bHasExpiry =
+        Boolean(
+          b.expiry
+        );
 
-      documentNo:
-        "ยอดยกเข้าระบบ",
+      if (
+        aHasExpiry &&
+        !bHasExpiry
+      ) {
+        return -1;
+      }
 
-      receiveQty:
-        openingBalance,
+      if (
+        !aHasExpiry &&
+        bHasExpiry
+      ) {
+        return 1;
+      }
 
-      issueQty:
-        0,
+      if (
+        a.expiry &&
+        b.expiry
+      ) {
+        const diff =
+          new Date(
+            a.expiry
+          ).getTime() -
+          new Date(
+            b.expiry
+          ).getTime();
 
-      balance:
-        openingBalance,
+        if (
+          diff !==
+          0
+        ) {
+          return diff;
+        }
+      }
 
-      unitPrice,
+      const aHasManufacture =
+        Boolean(
+          a.manufacture
+        );
 
-      vendor:
-        vendorName,
+      const bHasManufacture =
+        Boolean(
+          b.manufacture
+        );
 
-      department:
-        null,
+      if (
+        aHasManufacture &&
+        !bHasManufacture
+      ) {
+        return -1;
+      }
 
-      remark:
-        `ยอดยกเข้าปีงบประมาณ ${fiscalYearThai}`,
-    },
-  });
+      if (
+        !aHasManufacture &&
+        bHasManufacture
+      ) {
+        return 1;
+      }
+
+      if (
+        a.manufacture &&
+        b.manufacture
+      ) {
+        const diff =
+          new Date(
+            a.manufacture
+          ).getTime() -
+          new Date(
+            b.manufacture
+          ).getTime();
+
+        if (
+          diff !==
+          0
+        ) {
+          return diff;
+        }
+      }
+
+      return (
+        a.id -
+        b.id
+      );
+    }
+  );
 }
 
 /* =========================================================
@@ -895,21 +669,13 @@ export default async function StockCardPage({
     );
 
   /* =======================================================
-     ENSURE OPENING BALANCE
-  ======================================================= */
-
-  await ensureMaterialOpeningBalance(
-    materialId,
-    selectedFiscalYear
-  );
-
-  /* =======================================================
      MATERIAL
 
-     โหลดเฉพาะประวัติที่เกิดก่อนสิ้นปีงบประมาณที่เลือก
-
-     เพราะการคำนวณ FEFO ของรายการเบิกในปีนั้น
-     ต้องรู้ล็อตที่มาจากอดีตด้วย
+     สำคัญ:
+     - READ ONLY
+     - ไม่มี create/update Transaction
+     - โหลด Receive/Approved Issue ตั้งแต่ต้น
+       จนถึงสิ้น FY ที่เลือก
   ======================================================= */
 
   const material =
@@ -942,12 +708,19 @@ export default async function StockCardPage({
             },
           },
 
-          orderBy: {
-            receive: {
-              receiveDate:
+          orderBy: [
+            {
+              receive: {
+                receiveDate:
+                  "asc",
+              },
+            },
+
+            {
+              id:
                 "asc",
             },
-          },
+          ],
         },
 
         issueItems: {
@@ -972,12 +745,19 @@ export default async function StockCardPage({
             },
           },
 
-          orderBy: {
-            issue: {
-              issueDate:
+          orderBy: [
+            {
+              issue: {
+                issueDate:
+                  "asc",
+              },
+            },
+
+            {
+              id:
                 "asc",
             },
-          },
+          ],
         },
       },
     });
@@ -987,9 +767,7 @@ export default async function StockCardPage({
   }
 
   /* =======================================================
-     LATEST PURCHASE AS OF SELECTED FY
-
-     ห้ามเอาการซื้อในอนาคตมาปน
+     LATEST RECEIVE AS OF END OF SELECTED FY
   ======================================================= */
 
   const latestReceiveItem =
@@ -1021,33 +799,30 @@ export default async function StockCardPage({
         );
 
   /* =======================================================
-     FEFO LOTS
+     BUILD ALL EVENTS
 
-     ต้องประมวลผลตั้งแต่ประวัติแรก
-     จนถึงสิ้น FY ที่เลือก
+     เราไม่อ่าน Transaction.balance อีกแล้ว
 
-     เพื่อให้การเบิกใน FY ที่เลือก
-     รู้ว่ากำลังตัด lot ใด
+     Stock Card คำนวณจาก:
+     RECEIVE
+     +
+     APPROVED ISSUE
   ======================================================= */
 
-  const lots:
-    Lot[] =
-    [];
-
-  /* =======================================================
-     EVENTS
-  ======================================================= */
-
-  const events = [
+  const allEvents = [
     ...material.receiveItems.map(
       (
         item
       ) => ({
         type:
-          "receive" as const,
+          "RECEIVE" as const,
 
         date:
-          item.receive.receiveDate,
+          item.receive
+            .receiveDate,
+
+        sortId:
+          item.id,
 
         item,
       })
@@ -1058,10 +833,14 @@ export default async function StockCardPage({
         item
       ) => ({
         type:
-          "issue" as const,
+          "ISSUE" as const,
 
         date:
-          item.issue.issueDate,
+          item.issue
+            .issueDate,
+
+        sortId:
+          item.id,
 
         item,
       })
@@ -1087,201 +866,254 @@ export default async function StockCardPage({
       }
 
       /*
-       * วันเดียวกัน
+       * วันเดียวกัน:
        * รับก่อนจ่าย
        */
 
       if (
         a.type ===
-          "receive" &&
+          "RECEIVE" &&
         b.type ===
-          "issue"
+          "ISSUE"
       ) {
         return -1;
       }
 
       if (
         a.type ===
-          "issue" &&
+          "ISSUE" &&
         b.type ===
-          "receive"
+          "RECEIVE"
       ) {
         return 1;
       }
 
-      return 0;
+      return (
+        a.sortId -
+        b.sortId
+      );
     }
   );
 
   /* =======================================================
-     ISSUE LOT MAP
+     RUNNING STATE
+
+     ใช้คำนวณตั้งแต่ประวัติแรก
+     เพื่อหายอด ณ ก่อน 1 ต.ค.
   ======================================================= */
 
-  const issueLotMap =
-    new Map<
-      number,
-      {
-        manufacture:
-          Date | null;
+  let runningBalance =
+    0;
 
-        expiry:
-          Date | null;
-      }
-    >();
+  let historicalVendor:
+    string | null =
+    null;
+
+  let historicalPrice =
+    0;
+
+  const lots:
+    Lot[] =
+    [];
+
+  const movementRows:
+    MovementRow[] =
+    [];
 
   /* =======================================================
-     FEFO PROCESS
+     OPENING SNAPSHOT
+
+     จะเก็บสถานะทันที "ก่อน" movement
+     ในปีงบประมาณที่เลือก
+  ======================================================= */
+
+  let openingBalance =
+    0;
+
+  let openingVendor:
+    string | null =
+    null;
+
+  let openingPrice =
+    0;
+
+  let openingCaptured =
+    false;
+
+  /* =======================================================
+     PROCESS HISTORY
   ======================================================= */
 
   for (
     const event of
-      events
+      allEvents
   ) {
+    const eventDate =
+      new Date(
+        event.date
+      );
+
+    /* =====================================================
+       ก่อนเข้ารายการแรกของ FY
+       เก็บยอดยกก่อน
+    ===================================================== */
+
+    if (
+      !openingCaptured &&
+      eventDate.getTime() >=
+        fiscalRange.startDate.getTime()
+    ) {
+      openingBalance =
+        runningBalance;
+
+      openingVendor =
+        historicalVendor;
+
+      openingPrice =
+        historicalPrice;
+
+      openingCaptured =
+        true;
+    }
+
+    /* =====================================================
+       RECEIVE
+    ===================================================== */
+
     if (
       event.type ===
-      "receive"
+      "RECEIVE"
     ) {
-      const receiveItem =
+      const item =
         event.item;
+
+      const qty =
+        Number(
+          item.qty ??
+            0
+        );
+
+      const unitPrice =
+        Number(
+          item.unitPrice ??
+            0
+        );
+
+      runningBalance +=
+        qty;
 
       lots.push({
         id:
-          receiveItem.id,
+          item.id,
 
-        qty:
-          Number(
-            receiveItem.qty
-          ),
+        qty,
 
         manufacture:
-          receiveItem.manufacture,
+          item.manufacture,
 
         expiry:
-          receiveItem.expiry,
+          item.expiry,
       });
+
+      historicalVendor =
+        item.receive
+          .vendor
+          ?.name ??
+        historicalVendor;
+
+      historicalPrice =
+        unitPrice;
+
+      if (
+        isDateInRange(
+          item.receive
+            .receiveDate,
+          fiscalRange
+        )
+      ) {
+        movementRows.push({
+          date:
+            item.receive
+              .receiveDate,
+
+          sortId:
+            item.id,
+
+          documentNo:
+            item.receive
+              .documentNo,
+
+          owner:
+            item.receive
+              .vendor
+              ?.name ??
+            "-",
+
+          unitPrice,
+
+          receiveQty:
+            qty,
+
+          issueQty:
+            0,
+
+          manufacture:
+            item.manufacture,
+
+          expiry:
+            item.expiry,
+
+          type:
+            "RECEIVE",
+        });
+      }
 
       continue;
     }
 
-    const issueItem =
+    /* =====================================================
+       ISSUE
+    ===================================================== */
+
+    const item =
       event.item;
 
+    const actualIssuedQty =
+      getActualIssuedQty({
+        qty:
+          Number(
+            item.qty ??
+              0
+          ),
+
+        issuedQty:
+          item.issuedQty,
+      });
+
+    /* =====================================================
+       FEFO
+
+       ใช้เพื่อแสดงวันผลิต/หมดอายุ
+       ของ lot แรกที่ถูกตัด
+    ===================================================== */
+
     let remainingQty =
-      Number(
-        issueItem.issuedQty ??
-          issueItem.qty ??
-          0
-      );
+      actualIssuedQty;
+
+    let selectedLot:
+      Lot | null =
+      null;
 
     const availableLots =
-      lots
-        .filter(
+      sortLotsByFefo(
+        lots.filter(
           (
             lot
           ) =>
             lot.qty >
             0
         )
-        .sort(
-          (
-            a,
-            b
-          ) => {
-            /*
-             * lot ที่ไม่มี manufacture/expiry
-             * ให้มาก่อนตาม logic เดิมของระบบ
-             */
-
-            const aUnspecified =
-              !a.manufacture &&
-              !a.expiry;
-
-            const bUnspecified =
-              !b.manufacture &&
-              !b.expiry;
-
-            if (
-              aUnspecified &&
-              !bUnspecified
-            ) {
-              return -1;
-            }
-
-            if (
-              !aUnspecified &&
-              bUnspecified
-            ) {
-              return 1;
-            }
-
-            if (
-              aUnspecified &&
-              bUnspecified
-            ) {
-              return (
-                a.id -
-                b.id
-              );
-            }
-
-            const aExpiry =
-              a.expiry
-                ? new Date(
-                    a.expiry
-                  ).getTime()
-                : Number.MAX_SAFE_INTEGER;
-
-            const bExpiry =
-              b.expiry
-                ? new Date(
-                    b.expiry
-                  ).getTime()
-                : Number.MAX_SAFE_INTEGER;
-
-            if (
-              aExpiry !==
-              bExpiry
-            ) {
-              return (
-                aExpiry -
-                bExpiry
-              );
-            }
-
-            const aManufacture =
-              a.manufacture
-                ? new Date(
-                    a.manufacture
-                  ).getTime()
-                : Number.MAX_SAFE_INTEGER;
-
-            const bManufacture =
-              b.manufacture
-                ? new Date(
-                    b.manufacture
-                  ).getTime()
-                : Number.MAX_SAFE_INTEGER;
-
-            if (
-              aManufacture !==
-              bManufacture
-            ) {
-              return (
-                aManufacture -
-                bManufacture
-              );
-            }
-
-            return (
-              a.id -
-              b.id
-            );
-          }
-        );
-
-    let selectedLot:
-      Lot | null =
-      null;
+      );
 
     for (
       const lot of
@@ -1301,7 +1133,15 @@ export default async function StockCardPage({
         );
 
       if (
-        !selectedLot
+        issueQty <=
+        0
+      ) {
+        continue;
+      }
+
+      if (
+        selectedLot ===
+        null
       ) {
         selectedLot =
           lot;
@@ -1314,341 +1154,365 @@ export default async function StockCardPage({
         issueQty;
     }
 
-    if (
-      selectedLot
-    ) {
-      issueLotMap.set(
-        issueItem.id,
-        {
-          manufacture:
-            selectedLot.manufacture,
+    /*
+     * คงเหลือใน Stock Card
+     * คำนวณจากเอกสารรับ/จ่าย
+     *
+     * ไม่ใช้ Transaction.balance
+     */
+    runningBalance -=
+      actualIssuedQty;
 
-          expiry:
-            selectedLot.expiry,
-        }
-      );
+    if (
+      isDateInRange(
+        item.issue
+          .issueDate,
+        fiscalRange
+      )
+    ) {
+      movementRows.push({
+        date:
+          item.issue
+            .issueDate,
+
+        sortId:
+          item.id,
+
+        documentNo:
+          item.issue
+            .documentNo,
+
+        owner:
+          item.issue
+            .department
+            ?.name ??
+          "-",
+
+        /*
+         * ใช้ราคาซื้อล่าสุด ณ เวลาที่เกิดรายการ
+         * ไม่ใช้ราคาจากอนาคต
+         */
+        unitPrice:
+          historicalPrice,
+
+        receiveQty:
+          0,
+
+        issueQty:
+          actualIssuedQty,
+
+        manufacture:
+          selectedLot
+            ?.manufacture ??
+          item.manufacture ??
+          null,
+
+        expiry:
+          selectedLot
+            ?.expiry ??
+          item.expiry ??
+          null,
+
+        type:
+          "ISSUE",
+      });
     }
   }
 
   /* =======================================================
-     OPENING BALANCE TRANSACTION
+     กรณีไม่มี movement ใน FY
 
-     ต้องเป็นแถวแรกของปีงบ
+     ก็ยังต้องได้ snapshot ณ 1 ต.ค.
   ======================================================= */
 
-  const openingTransaction =
-    await prisma.transaction.findFirst({
-      where: {
-        materialId,
+  if (
+    !openingCaptured
+  ) {
+    /*
+     * ถ้า allEvents ทั้งหมดอยู่ก่อน endDate
+     * และไม่มี event >= startDate
+     *
+     * ณ จุดนี้ runningBalance คือยอดก่อน/ระหว่าง FY
+     * ที่ไม่มี movement
+     */
+    openingBalance =
+      runningBalance;
 
-        type:
-          "OPENING_BALANCE",
+    openingVendor =
+      historicalVendor;
 
-        documentNo:
-          "ยอดยกเข้าระบบ",
+    openingPrice =
+      historicalPrice;
 
-        date: {
-          gte:
-            fiscalRange.startDate,
-
-          lt:
-            new Date(
-              fiscalRange.startDate.getTime() +
-                24 *
-                  60 *
-                  60 *
-                  1000
-            ),
-        },
-      },
-
-      orderBy: [
-        {
-          date:
-            "asc",
-        },
-
-        {
-          id:
-            "asc",
-        },
-      ],
-    });
+    openingCaptured =
+      true;
+  }
 
   /* =======================================================
-     YEAR RECEIVE ROWS
+     สำคัญมาก
 
-     รับเฉพาะรายการใน FY ที่เลือก
+     วิธีด้านบนถ้ามี event ใน FY
+     จะ capture ถูกต้องก่อน event แรก
 
-     ยอดยกเข้าระบบไม่ซ้ำกับ Receive จริง
+     แต่ถ้าไม่มี event ใน FY แล้วมี event เก่า:
+     runningBalance ถูกต้อง
+
+     ถ้ามี event ก่อน start และ event หลัง end
+     เราไม่ได้โหลดหลัง end อยู่แล้ว
   ======================================================= */
 
-  const receiveRows =
+  /* =======================================================
+     คำนวณ opening ใหม่แบบตรงไปตรงมาอีกชั้น
+     เพื่อป้องกันกรณีไม่มี event ใน FY
+
+     RECEIVE ก่อน 1 ต.ค.
+     -
+     APPROVED ISSUE ก่อน 1 ต.ค.
+  ======================================================= */
+
+  const historicalReceiveTotal =
     material.receiveItems
       .filter(
         (
           item
         ) =>
-          isDateInRange(
+          isBeforeDate(
             item.receive
               .receiveDate,
-            fiscalRange
-          ) &&
-          item.receive
-            .documentNo !==
-            "ยอดยกเข้าระบบ"
+            fiscalRange.startDate
+          )
       )
-      .map(
+      .reduce(
         (
+          total,
           item
-        ) => ({
-          date:
-            item.receive
-              .receiveDate,
-
-          documentNo:
-            item.receive
-              .documentNo,
-
-          owner:
-            item.receive
-              .vendor
-              ?.name ??
-            "-",
-
-          unitPrice:
-            Number(
-              item.unitPrice
-            ),
-
-          receiveQty:
-            Number(
-              item.qty
-            ),
-
-          issueQty:
-            0,
-
-          manufacture:
-            item.manufacture,
-
-          expiry:
-            item.expiry,
-
-          type:
-            "RECEIVE",
-        })
+        ) =>
+          total +
+          Number(
+            item.qty ??
+              0
+          ),
+        0
       );
 
-  /* =======================================================
-     YEAR ISSUE ROWS
-  ======================================================= */
-
-  const issueRows =
+  const historicalIssueTotal =
     material.issueItems
       .filter(
         (
           item
         ) =>
-          isDateInRange(
-            item.issue.issueDate,
-            fiscalRange
+          isBeforeDate(
+            item.issue
+              .issueDate,
+            fiscalRange.startDate
           )
       )
-      .map(
+      .reduce(
         (
+          total,
           item
-        ) => {
-          const lot =
-            issueLotMap.get(
-              item.id
-            );
-
-          return {
-            date:
-              item.issue
-                .issueDate,
-
-            documentNo:
-              item.issue
-                .documentNo,
-
-            owner:
-              item.issue
-                .department
-                ?.name ??
-              "-",
-
-            /*
-             * คงพฤติกรรมเดิม:
-             * รายการเบิกใช้ราคาล่าสุด
-             * ณ FY ที่กำลังดู
-             */
-
-            unitPrice:
-              latestPrice,
-
-            receiveQty:
-              0,
-
-            issueQty:
+        ) =>
+          total +
+          getActualIssuedQty({
+            qty:
               Number(
-                item.issuedQty ??
-                  item.qty ??
+                item.qty ??
                   0
               ),
 
-            manufacture:
-              lot
-                ?.manufacture ??
-              null,
-
-            expiry:
-              lot
-                ?.expiry ??
-              null,
-
-            type:
-              "ISSUE",
-          };
-        }
+            issuedQty:
+              item.issuedQty,
+          }),
+        0
       );
 
-  /* =======================================================
-     MOVEMENT ROWS
+  openingBalance =
+    historicalReceiveTotal -
+    historicalIssueTotal;
 
-     รับก่อนจ่าย ถ้าวันเดียวกัน
+  /* =======================================================
+     OPENING VENDOR + PRICE
+
+     ต้องเป็นการซื้อครั้งล่าสุด
+     ก่อน 1 ต.ค. เท่านั้น
   ======================================================= */
 
-  const movementRows =
-    [
-      ...receiveRows,
-      ...issueRows,
-    ].sort(
-      (
-        a,
-        b
-      ) => {
-        const dateDiff =
-          new Date(
-            a.date
-          ).getTime() -
-          new Date(
-            b.date
-          ).getTime();
+  const latestPurchaseBeforeOpening =
+    [...material.receiveItems]
+      .filter(
+        (
+          item
+        ) =>
+          isBeforeDate(
+            item.receive
+              .receiveDate,
+            fiscalRange.startDate
+          )
+      )
+      .sort(
+        (
+          a,
+          b
+        ) => {
+          const dateDiff =
+            new Date(
+              b.receive
+                .receiveDate
+            ).getTime() -
+            new Date(
+              a.receive
+                .receiveDate
+            ).getTime();
 
-        if (
-          dateDiff !==
-          0
-        ) {
-          return dateDiff;
+          if (
+            dateDiff !==
+            0
+          ) {
+            return dateDiff;
+          }
+
+          return (
+            b.id -
+            a.id
+          );
         }
+      )[0] ??
+    null;
 
-        if (
-          a.type ===
-            "RECEIVE" &&
-          b.type ===
-            "ISSUE"
-        ) {
-          return -1;
-        }
+  openingVendor =
+    latestPurchaseBeforeOpening
+      ?.receive
+      ?.vendor
+      ?.name ??
+    null;
 
-        if (
-          a.type ===
-            "ISSUE" &&
-          b.type ===
-            "RECEIVE"
-        ) {
-          return 1;
-        }
+  openingPrice =
+    latestPurchaseBeforeOpening
+      ? Number(
+          latestPurchaseBeforeOpening.unitPrice
+        )
+      : 0;
 
-        return 0;
+  /* =======================================================
+     SORT FY MOVEMENTS
+  ======================================================= */
+
+  movementRows.sort(
+    (
+      a,
+      b
+    ) => {
+      const dateDiff =
+        new Date(
+          a.date
+        ).getTime() -
+        new Date(
+          b.date
+        ).getTime();
+
+      if (
+        dateDiff !==
+        0
+      ) {
+        return dateDiff;
       }
-    );
+
+      if (
+        a.type ===
+          "RECEIVE" &&
+        b.type ===
+          "ISSUE"
+      ) {
+        return -1;
+      }
+
+      if (
+        a.type ===
+          "ISSUE" &&
+        b.type ===
+          "RECEIVE"
+      ) {
+        return 1;
+      }
+
+      return (
+        a.sortId -
+        b.sortId
+      );
+    }
+  );
 
   /* =======================================================
      STOCK ROWS
 
-     จุดสำคัญ:
+     READ ONLY / VIRTUAL OPENING
 
-     ถ้ามียอดยก:
-       แถวแรก
-       รับ = opening balance
-       คงเหลือ = opening balance
-
-     แล้วค่อยรับ/จ่ายต่อจากยอดนั้น
+     ไม่มี prisma.transaction.create()
   ======================================================= */
 
   const stockRows:
     StockRow[] =
     [];
 
-  let balance =
-    0;
+  let yearBalance =
+    openingBalance;
 
   /* =======================================================
-     OPENING ROW
+     VIRTUAL OPENING ROW
+
+     แสดงเฉพาะเมื่อ:
+     - มีประวัติก่อน FY
+     - และมียอดคงเหลือไม่ใช่ 0
+
+     ไม่เขียน DB
   ======================================================= */
 
-  if (
-    openingTransaction
-  ) {
-    const openingBalance =
-      Math.max(
-        0,
-        Number(
-          openingTransaction
-            .balance ??
-            openingTransaction
-              .receiveQty ??
-            0
+  const hasHistoryBeforeFiscalYear =
+    material.receiveItems.some(
+      (
+        item
+      ) =>
+        isBeforeDate(
+          item.receive
+            .receiveDate,
+          fiscalRange.startDate
         )
-      );
+    ) ||
+    material.issueItems.some(
+      (
+        item
+      ) =>
+        isBeforeDate(
+          item.issue
+            .issueDate,
+          fiscalRange.startDate
+        )
+    );
 
-    balance =
-      openingBalance;
-
+  if (
+    hasHistoryBeforeFiscalYear &&
+    openingBalance !==
+      0
+  ) {
     stockRows.push({
       date:
-        openingTransaction
-          .date,
+        fiscalRange.startDate,
 
       documentNo:
         "ยอดยกเข้าระบบ",
 
       owner:
-        openingTransaction
-          .vendor ??
-        latestVendor ??
+        openingVendor ??
         "-",
 
       unitPrice:
-        Number(
-          openingTransaction
-            .unitPrice ??
-            latestPrice ??
-            0
-        ),
-
-      /*
-       * ตามที่กำหนด:
-       *
-       * ช่องรับ
-       * =
-       * จำนวนคงเหลือต้นปี
-       */
+        openingPrice,
 
       receiveQty:
         openingBalance,
 
       issueQty:
         0,
-
-      /*
-       * ช่องคงเหลือ
-       * =
-       * จำนวนเดียวกัน
-       */
 
       balance:
         openingBalance,
@@ -1665,29 +1529,55 @@ export default async function StockCardPage({
   }
 
   /* =======================================================
-     MOVEMENTS
+     FY MOVEMENTS
   ======================================================= */
 
   for (
     const row of
       movementRows
   ) {
-    balance +=
+    yearBalance +=
       Number(
         row.receiveQty ??
           0
       );
 
-    balance -=
+    yearBalance -=
       Number(
         row.issueQty ??
           0
       );
 
     stockRows.push({
-      ...row,
+      date:
+        row.date,
 
-      balance,
+      documentNo:
+        row.documentNo,
+
+      owner:
+        row.owner,
+
+      unitPrice:
+        row.unitPrice,
+
+      receiveQty:
+        row.receiveQty,
+
+      issueQty:
+        row.issueQty,
+
+      balance:
+        yearBalance,
+
+      manufacture:
+        row.manufacture,
+
+      expiry:
+        row.expiry,
+
+      type:
+        row.type,
     });
   }
 
@@ -1757,18 +1647,16 @@ export default async function StockCardPage({
         className="
           w-full
           min-w-0
-
           p-4
-
           sm:p-5
         "
       >
         <div
           className="
             flex
+            w-full
             min-w-0
             flex-col
-
             gap-3
 
             sm:flex-row
@@ -1776,16 +1664,11 @@ export default async function StockCardPage({
             sm:justify-between
           "
         >
-          <div
-            className="
-              min-w-0
-            "
-          >
+          <div className="min-w-0">
             <p
               className="
                 text-base
                 font-extrabold
-
                 !text-slate-900
               "
             >
@@ -1798,10 +1681,8 @@ export default async function StockCardPage({
             <p
               className="
                 mt-1
-
                 text-sm
                 font-semibold
-
                 !text-slate-500
               "
             >
@@ -1818,15 +1699,11 @@ export default async function StockCardPage({
           <div
             className="
               rounded-full
-
               bg-slate-100
-
               px-4
               py-2
-
               text-sm
               font-extrabold
-
               !text-slate-700
             "
           >
@@ -1846,24 +1723,16 @@ export default async function StockCardPage({
         className="
           w-full
           min-w-0
-
           p-4
-
           sm:p-5
           lg:p-6
         "
       >
-        {/* ===================================================
-            HEADER + EXPORT
-        =================================================== */}
-
         <div
           className="
             mb-5
-
             flex
             flex-col
-
             gap-4
 
             sm:flex-row
@@ -1876,7 +1745,6 @@ export default async function StockCardPage({
               flex
               min-w-0
               items-center
-
               gap-3
             "
           >
@@ -1886,16 +1754,11 @@ export default async function StockCardPage({
                 h-11
                 w-11
                 shrink-0
-
                 items-center
                 justify-center
-
                 rounded-[15px]
-
                 bg-slate-100
-
                 text-xl
-
                 shadow-sm
               "
               aria-hidden="true"
@@ -1903,19 +1766,13 @@ export default async function StockCardPage({
               📦
             </div>
 
-            <div
-              className="
-                min-w-0
-              "
-            >
+            <div className="min-w-0">
               <h2
                 className="
                   text-lg
                   font-black
                   tracking-tight
-
                   !text-slate-900
-
                   sm:text-xl
                 "
               >
@@ -1925,14 +1782,12 @@ export default async function StockCardPage({
               <p
                 className="
                   mt-0.5
-
                   text-sm
                   font-semibold
-
                   !text-slate-500
                 "
               >
-                รายละเอียดข้อมูลพัสดุและข้อมูลล่าสุด ณ ปีงบประมาณ{" "}
+                รายละเอียดข้อมูลพัสดุ ณ ปีงบประมาณ{" "}
                 {
                   selectedFiscalYear
                 }
@@ -1945,7 +1800,6 @@ export default async function StockCardPage({
               flex
               w-full
               flex-col
-
               gap-2
 
               sm:w-auto
@@ -1955,15 +1809,27 @@ export default async function StockCardPage({
             "
           >
             <ExportPdf
-              material={exportMaterial}
-              rows={stockRows}
-              fiscalYear={selectedFiscalYear}
+              material={
+                exportMaterial
+              }
+              rows={
+                stockRows
+              }
+              fiscalYear={
+                selectedFiscalYear
+              }
             />
 
             <ExportExcel
-              material={exportMaterial}
-              rows={stockRows}
-              fiscalYear={selectedFiscalYear}
+              material={
+                exportMaterial
+              }
+              rows={
+                stockRows
+              }
+              fiscalYear={
+                selectedFiscalYear
+              }
             />
           </div>
         </div>
@@ -1978,21 +1844,17 @@ export default async function StockCardPage({
             w-full
             min-w-0
             grid-cols-1
-
             gap-4
 
             md:grid-cols-2
             xl:grid-cols-3
           "
         >
-          {/* CODE */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2002,14 +1864,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 break-words
-
                 text-base
                 font-black
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2018,14 +1876,11 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* NAME */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2035,14 +1890,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 break-words
-
                 text-base
                 font-black
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2051,14 +1902,11 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* CATEGORY */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2068,14 +1916,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 break-words
-
                 text-base
                 font-black
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2087,14 +1931,11 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* UNIT */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2104,12 +1945,9 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 text-base
                 font-black
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2118,14 +1956,11 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* VENDOR */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2135,14 +1970,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 break-words
-
                 text-base
                 font-black
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2152,14 +1983,11 @@ export default async function StockCardPage({
             </p>
           </AppInfoCard>
 
-          {/* PRICE */}
-
           <AppInfoCard>
             <p
               className="
                 text-sm
                 font-extrabold
-
                 !text-slate-500
               "
             >
@@ -2169,13 +1997,10 @@ export default async function StockCardPage({
             <p
               className="
                 mt-2
-
                 text-base
                 font-black
                 tabular-nums
-
                 !text-slate-900
-
                 sm:text-lg
               "
             >
@@ -2208,7 +2033,6 @@ export default async function StockCardPage({
           className="
             w-full
             min-w-0
-
             overflow-x-auto
             overscroll-x-contain
           "
@@ -2217,16 +2041,10 @@ export default async function StockCardPage({
             className="
               w-full
               min-w-[1300px]
-
               border-collapse
-
               bg-white
             "
           >
-            {/* =================================================
-                HEADER
-            ================================================= */}
-
             <thead>
               <tr>
                 {[
@@ -2249,23 +2067,17 @@ export default async function StockCardPage({
                       }
                       className="
                         whitespace-nowrap
-
                         border
                         border-black
-
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-
                         px-4
                         py-4
-
                         text-center
                         text-base
                         font-extrabold
-
                         !text-white
-
                         sm:text-lg
                       "
                     >
@@ -2278,10 +2090,6 @@ export default async function StockCardPage({
               </tr>
             </thead>
 
-            {/* =================================================
-                BODY
-            ================================================= */}
-
             <tbody>
               {stockRows.length ===
               0 ? (
@@ -2293,23 +2101,18 @@ export default async function StockCardPage({
                     className="
                       border
                       border-black
-
                       bg-white
-
                       px-6
                       py-16
-
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
-
                         flex
                         max-w-md
                         flex-col
-
                         items-center
                       "
                     >
@@ -2318,16 +2121,11 @@ export default async function StockCardPage({
                           flex
                           h-16
                           w-16
-
                           items-center
                           justify-center
-
                           rounded-[20px]
-
                           bg-slate-100
-
                           text-3xl
-
                           shadow-inner
                         "
                         aria-hidden="true"
@@ -2338,10 +2136,8 @@ export default async function StockCardPage({
                       <p
                         className="
                           mt-4
-
                           text-lg
                           font-extrabold
-
                           !text-slate-900
                         "
                       >
@@ -2351,10 +2147,8 @@ export default async function StockCardPage({
                       <p
                         className="
                           mt-1
-
                           text-sm
                           font-semibold
-
                           !text-slate-500
                         "
                       >
@@ -2402,16 +2196,12 @@ export default async function StockCardPage({
                           className="
                             min-w-[130px]
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
-
                             !text-slate-700
                           "
                         >
@@ -2426,13 +2216,10 @@ export default async function StockCardPage({
                           className={`
                             min-w-[180px]
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
 
@@ -2452,15 +2239,11 @@ export default async function StockCardPage({
                         <td
                           className="
                             min-w-[280px]
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             font-bold
-
                             !text-slate-900
                           "
                         >
@@ -2474,17 +2257,13 @@ export default async function StockCardPage({
                           className="
                             min-w-[150px]
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-right
                             font-extrabold
                             tabular-nums
-
                             !text-slate-900
                           "
                         >
@@ -2498,13 +2277,10 @@ export default async function StockCardPage({
                         <td
                           className={`
                             min-w-[110px]
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-extrabold
                             tabular-nums
@@ -2529,17 +2305,13 @@ export default async function StockCardPage({
                         <td
                           className="
                             min-w-[110px]
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-extrabold
                             tabular-nums
-
                             !text-slate-900
                           "
                         >
@@ -2556,13 +2328,10 @@ export default async function StockCardPage({
                         <td
                           className={`
                             min-w-[110px]
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-black
                             tabular-nums
@@ -2585,16 +2354,12 @@ export default async function StockCardPage({
                           className="
                             min-w-[130px]
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
-
                             !text-slate-700
                           "
                         >
@@ -2611,16 +2376,12 @@ export default async function StockCardPage({
                           className="
                             min-w-[130px]
                             whitespace-nowrap
-
                             border
                             border-black
-
                             px-4
                             py-3.5
-
                             text-center
                             font-bold
-
                             !text-slate-700
                           "
                         >
