@@ -177,10 +177,6 @@ const SIGNATURE_GAP =
 const SIGNATURE_MIN_START_Y =
   170;
 
-/*
- * 15 รายการข้อมูลต่อหน้า
- * แถวชื่อหมวดไม่นับเป็นรายการ
- */
 const ROWS_PER_PAGE =
   15;
 
@@ -584,9 +580,6 @@ export default function ExportInspectionPdf({
 
   /* =======================================================
      DOCUMENT HEADER
-
-     เหลือเฉพาะ:
-     ตรวจสอบเมื่อวันที่ ...
   ======================================================= */
 
   function drawDocumentHeader(
@@ -1013,17 +1006,28 @@ export default function ExportInspectionPdf({
             }
           );
 
+          /* =================================================
+             HEADER TEXT
+          ================================================= */
+
           const openingHeaderLines =
             [
               "คงเหลือยอดยกมา",
               `เมื่อ 30 ก.ย. ${startShortYear}`,
             ];
 
+          /*
+           * วันที่เหนือช่อง รับ / จ่าย
+           * อยู่บรรทัดเดียวทั้งหมด
+           */
           const movementHeaderLines =
             [
-              `01 ต.ค. ${startShortYear}`,
-              `- 30 ก.ย. ${endShortYear}`,
+              `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`,
             ];
+
+          /* =================================================
+             TABLE
+          ================================================= */
 
           autoTable(
             doc,
