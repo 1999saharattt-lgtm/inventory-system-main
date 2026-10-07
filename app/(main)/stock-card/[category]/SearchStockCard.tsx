@@ -1,15 +1,5 @@
-"use client";
-
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useRouter,
-} from "next/navigation";
-
 import AppButton from "@/components/AppButton";
+import AppCard from "@/components/AppCard";
 
 /* =========================================================
    TYPES
@@ -17,490 +7,181 @@ import AppButton from "@/components/AppButton";
 
 type Props = {
   category: string;
-  defaultSearch?: string;
-  resultCount?: number;
 
-  fiscalYear:
-    number;
+  defaultSearch?: string;
+
+  fiscalYear: number;
 };
 
 /* =========================================================
-   SEARCH STOCK CARD
+   COMPONENT
 ========================================================= */
 
 export default function SearchStockCard({
   category,
   defaultSearch = "",
-  resultCount,
   fiscalYear,
 }: Props) {
-  const router =
-    useRouter();
-
-  const [
-    search,
-    setSearch,
-  ] =
-    useState(
-      defaultSearch
-    );
-
   /* =======================================================
-     SYNC DEFAULT SEARCH
+     URL
+
+     สำคัญ:
+     ค้นหาแล้วต้องรักษาปีงบประมาณเดิมไว้
   ======================================================= */
 
-  useEffect(
-    () => {
-      setSearch(
-        defaultSearch
-      );
-    },
-    [
-      defaultSearch,
-    ]
-  );
-
-  /* =======================================================
-     BASE URL
-
-     ต้องรักษา fiscalYear ไว้เสมอ
-
-     เช่น:
-     /stock-card/COMPUTER?fiscalYear=2570
-  ======================================================= */
-
-  const baseUrl =
+  const clearHref =
     `/stock-card/${category}?fiscalYear=${fiscalYear}`;
 
-  /* =======================================================
-     SUBMIT
-  ======================================================= */
-
-  function handleSubmit(
-    event:
-      React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault();
-
-    const keyword =
-      search.trim();
-
-    if (
-      keyword
-    ) {
-      router.push(
-        `${baseUrl}&search=${encodeURIComponent(
-          keyword
-        )}`
-      );
-
-      return;
-    }
-
-    router.push(
-      baseUrl
-    );
-  }
-
-  /* =======================================================
-     CLEAR
-
-     ล้างเฉพาะ search
-     แต่ต้องคง fiscalYear เดิม
-  ======================================================= */
-
-  function handleClear() {
-    setSearch(
-      ""
-    );
-
-    router.push(
-      baseUrl
-    );
-  }
-
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
-    <form
-      onSubmit={
-        handleSubmit
-      }
+    <AppCard
       className="
         w-full
         min-w-0
+
+        !p-3
+
+        sm:!p-4
       "
     >
-      {/* ===================================================
-          SEARCH CARD
-      =================================================== */}
-
-      <div
+      <form
+        method="get"
+        action={`/stock-card/${category}`}
         className="
-          relative
-
+          flex
           w-full
           min-w-0
+          flex-col
 
-          overflow-hidden
+          gap-2
 
-          rounded-[22px]
-
-          border
-          border-white/80
-
-          bg-white/80
-
-          p-3
-
-          shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]
-
-          backdrop-blur-2xl
+          sm:flex-row
+          sm:items-center
         "
       >
         {/* =================================================
-            AMBIENT BACKGROUND
+            KEEP FISCAL YEAR
+
+            ค้นหาแล้วปีงบประมาณต้องไม่หาย
         ================================================= */}
 
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-
-            absolute
-
-            -left-20
-            -top-24
-
-            h-44
-            w-44
-
-            rounded-full
-
-            bg-blue-400/[0.08]
-
-            blur-3xl
-          "
-        />
-
-        <div
-          aria-hidden="true"
-          className="
-            pointer-events-none
-
-            absolute
-
-            -bottom-24
-            right-0
-
-            h-44
-            w-44
-
-            rounded-full
-
-            bg-cyan-400/[0.08]
-
-            blur-3xl
-          "
+        <input
+          type="hidden"
+          name="fiscalYear"
+          value={
+            fiscalYear
+          }
         />
 
         {/* =================================================
-            SEARCH ROW
+            SEARCH INPUT
         ================================================= */}
 
         <div
           className="
             relative
 
-            flex
-            w-full
             min-w-0
-            flex-col
-
-            gap-2.5
-
-            md:flex-row
-            md:items-center
+            flex-1
           "
         >
-          {/* ===============================================
-              SEARCH INPUT
-          =============================================== */}
-
-          <div
+          <span
+            aria-hidden="true"
             className="
-              min-w-0
-              flex-1
+              pointer-events-none
+
+              absolute
+              left-3
+              top-1/2
+
+              -translate-y-1/2
+
+              text-base
             "
           >
-            <input
-              id="stock-card-search"
-              type="search"
-              value={
-                search
-              }
-              autoComplete="off"
-              aria-label="ค้นหารหัสพัสดุหรือรายการพัสดุ"
-              onChange={(
-                event
-              ) =>
-                setSearch(
-                  event
-                    .target
-                    .value
-                )
-              }
-              placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
-              className="
-                h-11
-                w-full
-                min-w-0
+            🔎
+          </span>
 
-                rounded-[14px]
+          <input
+            type="search"
+            name="search"
+            defaultValue={
+              defaultSearch
+            }
+            placeholder="ค้นหารหัสพัสดุ หรือชื่อรายการพัสดุ"
+            autoComplete="off"
+            className="
+              h-[44px]
+              w-full
+              min-w-0
 
-                border-2
-                !border-black
+              rounded-[13px]
 
-                bg-white
+              border-2
+              border-black
 
-                px-4
+              bg-white
 
-                text-sm
-                font-bold
+              pl-10
+              pr-4
 
-                !text-slate-900
+              text-sm
+              font-semibold
 
-                shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+              !text-slate-900
 
-                outline-none
+              shadow-sm
 
-                transition-all
-                duration-200
+              outline-none
 
-                placeholder:font-semibold
-                placeholder:!text-slate-400
+              transition-all
+              duration-200
 
-                hover:border-slate-700
+              placeholder:font-medium
+              placeholder:!text-slate-400
 
-                focus:border-blue-500
-                focus:bg-white
-                focus:ring-4
-                focus:ring-blue-500/10
+              focus:border-blue-600
+              focus:ring-4
+              focus:ring-blue-100
+            "
+          />
+        </div>
 
-                sm:h-12
-                sm:text-base
-              "
-            />
-          </div>
+        {/* =================================================
+            ACTIONS
+        ================================================= */}
 
-          {/* ===============================================
-              SEARCH BUTTON
-          =============================================== */}
-
+        <div
+          className="
+            flex
+            shrink-0
+            gap-2
+          "
+        >
           <AppButton
             type="submit"
             variant="primary"
-            size="md"
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                🔎
-              </span>
-            }
-            className="
-              w-full
-              shrink-0
-
-              md:w-auto
-            "
+            size="sm"
           >
             ค้นหา
           </AppButton>
 
-          {/* ===============================================
-              RESULT COUNT
-          =============================================== */}
-
-          {typeof resultCount ===
-            "number" && (
-            <div
-              className="
-                inline-flex
-
-                h-11
-                w-full
-                shrink-0
-
-                items-center
-                justify-center
-
-                gap-2
-
-                rounded-[14px]
-
-                border
-                border-slate-300
-
-                bg-slate-50
-
-                px-3
-
-                text-xs
-                font-extrabold
-
-                !text-slate-600
-
-                shadow-sm
-
-                sm:h-12
-                sm:px-4
-                sm:text-sm
-
-                md:w-auto
-              "
-            >
-              <span
-                className="
-                  inline-flex
-
-                  h-7
-                  min-w-7
-
-                  items-center
-                  justify-center
-
-                  rounded-full
-
-                  border
-                  border-slate-300
-
-                  bg-white
-
-                  px-2
-
-                  text-[11px]
-                  font-black
-                  tabular-nums
-
-                  !text-slate-800
-
-                  shadow-sm
-                "
-              >
-                {resultCount.toLocaleString(
-                  "th-TH"
-                )}
-              </span>
-
-              <span
-                className="
-                  whitespace-nowrap
-                "
-              >
-                รายการ
-              </span>
-            </div>
-          )}
-
-          {/* ===============================================
-              CLEAR BUTTON
-          =============================================== */}
-
-          {defaultSearch.trim() !==
-            "" && (
+          {defaultSearch && (
             <AppButton
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={
-                handleClear
+              href={
+                clearHref
               }
-              icon={
-                <span
-                  aria-hidden="true"
-                >
-                  ✕
-                </span>
-              }
-              className="
-                w-full
-                shrink-0
-
-                md:w-auto
-              "
+              variant="secondary"
+              size="sm"
             >
               ล้าง
             </AppButton>
           )}
         </div>
-
-        {/* =================================================
-            CURRENT FISCAL YEAR
-        ================================================= */}
-
-        <div
-          className="
-            relative
-
-            mt-3
-
-            flex
-            flex-wrap
-            items-center
-
-            gap-2
-
-            border-t
-            border-slate-200/80
-
-            pt-3
-          "
-        >
-          <span
-            className="
-              text-xs
-              font-extrabold
-
-              !text-slate-500
-
-              sm:text-sm
-            "
-          >
-            กำลังค้นหาใน:
-          </span>
-
-          <span
-            className="
-              inline-flex
-
-              items-center
-              justify-center
-
-              rounded-full
-
-              bg-slate-100
-
-              px-3
-              py-1.5
-
-              text-xs
-              font-extrabold
-
-              !text-slate-700
-
-              sm:text-sm
-            "
-          >
-            ปีงบประมาณ{" "}
-            {
-              fiscalYear
-            }
-          </span>
-        </div>
-      </div>
-    </form>
+      </form>
+    </AppCard>
   );
 }

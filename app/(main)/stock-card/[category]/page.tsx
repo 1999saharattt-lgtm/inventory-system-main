@@ -6,7 +6,6 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
-import AppCard from "@/components/AppCard";
 
 /* =========================================================
    FORCE FRESH DATA
@@ -49,7 +48,6 @@ type ThailandDateParts = {
 
 type FiscalYearRange = {
   fiscalYearThai: number;
-
   fiscalYearGregorian: number;
 
   startDate: Date;
@@ -105,25 +103,6 @@ const categoryIcons: Record<
   PRINTING:
     "📰",
 };
-
-/* =========================================================
-   THAI MONTH
-========================================================= */
-
-const thaiShortMonths = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
 
 /* =========================================================
    THAILAND DATE PARTS
@@ -223,6 +202,15 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    FISCAL YEAR RANGE
+
+   ใช้สำหรับข้อมูลที่ยังต้องอิงปีงบประมาณ
+   เช่น ผู้จำหน่ายล่าสุด
+
+   FY 2569
+   =
+   1 ต.ค. 2568
+   ถึงก่อน
+   1 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
@@ -271,53 +259,11 @@ function getFiscalYearRange(
 }
 
 /* =========================================================
-   DISPLAY END DATE
-========================================================= */
-
-function getFiscalDisplayEndDate(
-  range: FiscalYearRange
-) {
-  return new Date(
-    range.endDate.getTime() -
-      24 *
-        60 *
-        60 *
-        1000
-  );
-}
-
-/* =========================================================
-   FORMAT THAI DATE
-========================================================= */
-
-function formatThaiFullDate(
-  value: Date
-) {
-  const parts =
-    getThailandDateParts(
-      value
-    );
-
-  const month =
-    thaiShortMonths[
-      parts.month -
-        1
-    ];
-
-  const buddhistYear =
-    parts.year +
-    543;
-
-  return `${parts.day} ${month} ${buddhistYear}`;
-}
-
-/* =========================================================
    CURRENT BALANCE DISPLAY
 
-   ใช้ Material.balance โดยตรง
-   = ยอดคงเหลือปัจจุบันของ Stock Card
-
-   ไม่เปลี่ยนตาม fiscalYear
+   ใช้ Material.balance
+   =
+   ยอดคงเหลือปัจจุบันใน Stock Card
 ========================================================= */
 
 function formatBalance(
@@ -400,23 +346,16 @@ export default async function CategoryPage({
       selectedFiscalYear
     );
 
-  const fiscalDisplayEndDate =
-    getFiscalDisplayEndDate(
-      fiscalRange
-    );
-
   /* =======================================================
-     MATERIAL DATA
+     DATA
 
-     สำคัญ
+     คงเหลือ
+     =
+     material.balance ปัจจุบัน
 
-     คงเหลือ:
-     ใช้ material.balance
-     = ยอดปัจจุบันของ Stock Card
-
-     ผู้จำหน่ายล่าสุด:
-     ยังคงอิงข้อมูลล่าสุดก่อนสิ้น FY ที่เลือก
-     ตาม Logic เดิม
+     ผู้จำหน่ายล่าสุด
+     =
+     ยังคงอิงก่อนสิ้น FY ที่เลือก
   ======================================================= */
 
   const materials =
@@ -448,11 +387,6 @@ export default async function CategoryPage({
 
       include: {
         receiveItems: {
-          /* ===============================================
-             ผู้จำหน่ายล่าสุด
-             ยังคงอิง FY ที่กำลังเปิด
-          =============================================== */
-
           where: {
             receive: {
               receiveDate: {
@@ -514,6 +448,16 @@ export default async function CategoryPage({
 
   /* =======================================================
      URL
+
+     สำคัญ:
+     ปุ่มกลับต้องพาปีเดิมกลับไปด้วย
+
+     ตัวอย่าง:
+     /stock-card/COMPUTER?fiscalYear=2569
+
+     กดกลับ
+     ->
+     /stock-card?fiscalYear=2569
   ======================================================= */
 
   const stockCardHomeHref =
@@ -556,97 +500,11 @@ export default async function CategoryPage({
       />
 
       {/* =====================================================
-          FISCAL YEAR INFORMATION
-      ===================================================== */}
-
-      <AppCard
-        className="
-          w-full
-          min-w-0
-
-          p-4
-
-          sm:p-5
-        "
-      >
-        <div
-          className="
-            flex
-            min-w-0
-            flex-col
-
-            gap-2
-
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <div
-            className="
-              min-w-0
-            "
-          >
-            <p
-              className="
-                text-base
-                font-extrabold
-
-                !text-slate-900
-              "
-            >
-              ปีงบประมาณ{" "}
-              {
-                selectedFiscalYear
-              }
-            </p>
-
-            <p
-              className="
-                mt-1
-
-                text-sm
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              {formatThaiFullDate(
-                fiscalRange
-                  .startDate
-              )}{" "}
-              -{" "}
-              {formatThaiFullDate(
-                fiscalDisplayEndDate
-              )}
-            </p>
-          </div>
-
-          <div
-            className="
-              rounded-full
-
-              bg-slate-100
-
-              px-4
-              py-2
-
-              text-sm
-              font-extrabold
-
-              !text-slate-700
-            "
-          >
-            📚 บัญชีพัสดุ{" "}
-            {
-              selectedFiscalYear
-            }
-          </div>
-        </div>
-      </AppCard>
-
-      {/* =====================================================
           SEARCH
+
+          - ไม่มีการ์ดปีงบประมาณแล้ว
+          - Search อยู่ต่อจาก Header ทันที
+          - fiscalYear ต้องส่งไปด้วยเสมอ
       ===================================================== */}
 
       <SearchStockCard
@@ -655,9 +513,6 @@ export default async function CategoryPage({
         }
         defaultSearch={
           keyword
-        }
-        resultCount={
-          materials.length
         }
         fiscalYear={
           selectedFiscalYear
@@ -719,12 +574,12 @@ export default async function CategoryPage({
                 className="w-[6%]"
               />
 
-              {/* รหัส */}
+              {/* รหัสพัสดุ */}
               <col
                 className="w-[13%]"
               />
 
-              {/* รายการ */}
+              {/* รายการพัสดุ */}
               <col
                 className="w-[27%]"
               />
@@ -739,12 +594,12 @@ export default async function CategoryPage({
                 className="w-[9%]"
               />
 
-              {/* ผู้จำหน่าย */}
+              {/* ผู้จำหน่ายล่าสุด */}
               <col
                 className="w-[23%]"
               />
 
-              {/* บัญชี */}
+              {/* บัญชีพัสดุ */}
               <col
                 className="w-[12%]"
               />
@@ -814,7 +669,7 @@ export default async function CategoryPage({
                     index
                   ) => {
                     /* =========================================
-                       LATEST PURCHASE
+                       LATEST VENDOR
                     ========================================= */
 
                     const latestReceive =
@@ -833,11 +688,7 @@ export default async function CategoryPage({
                     /* =========================================
                        CURRENT BALANCE
 
-                       ตรงนี้คือยอดคงเหลือปัจจุบันจริง
-
-                       ไม่ใช้ Transaction
-                       ไม่ใช้ยอดตาม fiscalYear
-
+                       ใช้ยอดปัจจุบัน
                        Material.balance
                     ========================================= */
 
@@ -1118,21 +969,6 @@ export default async function CategoryPage({
                         {keyword
                           ? "ไม่พบพัสดุที่ค้นหา"
                           : "ยังไม่มีข้อมูลบัญชีพัสดุ"}
-                      </p>
-
-                      <p
-                        className="
-                          mt-1
-
-                          text-sm
-                          font-semibold
-
-                          !text-slate-500
-                        "
-                      >
-                        {keyword
-                          ? "ลองค้นหาด้วยรหัสหรือชื่อพัสดุอื่น"
-                          : `ยังไม่มีข้อมูลพัสดุในหมวดนี้ ปีงบประมาณ ${selectedFiscalYear}`}
                       </p>
 
                       {keyword && (
