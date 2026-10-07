@@ -202,15 +202,6 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    FISCAL YEAR RANGE
-
-   ใช้สำหรับข้อมูลที่ยังต้องอิงปีงบประมาณ
-   เช่น ผู้จำหน่ายล่าสุด
-
-   FY 2569
-   =
-   1 ต.ค. 2568
-   ถึงก่อน
-   1 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
@@ -249,45 +240,110 @@ function getFiscalYearRange(
 
   return {
     fiscalYearThai,
-
     fiscalYearGregorian,
-
     startDate,
-
     endDate,
   };
 }
 
 /* =========================================================
-   CURRENT BALANCE DISPLAY
+   ACTUAL ISSUE QTY
 
-   ใช้ Material.balance
-   =
-   ยอดคงเหลือปัจจุบันใน Stock Card
+   ใช้ Logic เดียวกับหน้า Stock Card จริง
+
+   issuedQty มีค่า
+   -> ใช้ issuedQty
+
+   issuedQty = 0
+   -> ถือเป็น 0 จริง
+
+   fallback qty
+   เฉพาะกรณี null / undefined
 ========================================================= */
 
-function formatBalance(
-  value:
-    | number
-    | null
-    | undefined
+function getActualIssuedQty(
+  item: {
+    qty:
+      | number
+      | null
+      | undefined;
+
+    issuedQty:
+      | number
+      | null
+      | undefined;
+  }
 ) {
-  const balance =
+  if (
+    item.issuedQty !==
+      null &&
+    item.issuedQty !==
+      undefined
+  ) {
+    return Number(
+      item.issuedQty
+    );
+  }
+
+  return Number(
+    item.qty ??
+      0
+  );
+}
+
+/* =========================================================
+   NUMBER
+========================================================= */
+
+function safeNumber(
+  value: unknown
+) {
+  const number =
     Number(
       value ??
         0
     );
 
-  if (
-    !Number.isFinite(
-      balance
-    )
-  ) {
-    return "0";
-  }
+  return Number.isFinite(
+    number
+  )
+    ? number
+    : 0;
+}
 
-  return balance.toLocaleString(
+/* =========================================================
+   DISPLAY BALANCE
+========================================================= */
+
+function formatBalance(
+  value: number
+) {
+  return value.toLocaleString(
     "th-TH"
+  );
+}
+
+/* =========================================================
+   ADD MAP VALUE
+========================================================= */
+
+function addMapValue(
+  map: Map<
+    number,
+    number
+  >,
+  materialId: number,
+  value: number
+) {
+  map.set(
+    materialId,
+    (
+      map.get(
+        materialId
+      ) ??
+      0
+    ) +
+      value
   );
 }
 
@@ -308,17 +364,21 @@ export default async function CategoryPage({
   } =
     await params;
 
-  const searchParamsValue =
+  const query =
     await searchParams;
 
   const keyword =
-    searchParamsValue
-      .search
+    query.search
       ?.trim() ??
     "";
 
   /* =======================================================
-     FISCAL YEAR
+     SELECTED FISCAL YEAR
+
+     ใช้สำหรับ:
+     - URL
+     - ผู้จำหน่ายล่าสุดของปีที่กำลังดู
+     - กลับไปหน้าปีเดิม
   ======================================================= */
 
   const currentFiscalYear =
@@ -326,8 +386,7 @@ export default async function CategoryPage({
 
   const requestedFiscalYear =
     Number(
-      searchParamsValue
-        .fiscalYear
+      query.fiscalYear
     );
 
   const selectedFiscalYear =
@@ -341,21 +400,38 @@ export default async function CategoryPage({
       ? requestedFiscalYear
       : currentFiscalYear;
 
-  const fiscalRange =
+  const selectedFiscalRange =
     getFiscalYearRange(
       selectedFiscalYear
     );
 
   /* =======================================================
-     DATA
+     CURRENT STOCK CARD RANGE
 
-     คงเหลือ
-     =
-     material.balance ปัจจุบัน
+     คงเหลือที่แสดงในหน้าหมวด
+     ต้องเป็นคงเหลือ "ปัจจุบัน"
 
-     ผู้จำหน่ายล่าสุด
-     =
-     ยังคงอิงก่อนสิ้น FY ที่เลือก
+     ดังนั้นไม่ใช้ selectedFiscalYear
+
+     เช่น:
+     เปิดหน้าปี 2569
+     แต่ปัจจุบันอยู่ FY2570
+
+     ช่อง "คงเหลือ"
+     ต้องเป็นยอดปัจจุบันของ Stock Card
+  ======================================================= */
+
+  const currentFiscalRange =
+    getFiscalYearRange(
+      currentFiscalYear
+    );
+
+  /* =======================================================
+     MATERIALS
+
+     receiveItems ตรงนี้ใช้เพื่อหา
+     "ผู้จำหน่ายล่าสุด"
+     ของปีงบประมาณที่กำลังเปิด
   ======================================================= */
 
   const materials =
@@ -391,7 +467,8 @@ export default async function CategoryPage({
             receive: {
               receiveDate: {
                 lt:
-                  fiscalRange.endDate,
+                  selectedFiscalRange
+                    .endDate,
               },
             },
           },
@@ -431,7 +508,218 @@ export default async function CategoryPage({
     });
 
   /* =======================================================
-     CATEGORY INFORMATION
+     MATERIAL IDS
+
+     คำนวณเฉพาะวัสดุที่กำลังอยู่ในหน้าหมวดนี้
+  ======================================================= */
+
+  const materialIds =
+    materials.map(
+      (
+        material
+      ) =>
+        material.id
+    );
+
+  /* =======================================================
+     CURRENT STOCK CARD DATA
+
+     สูตรเดียวกับหน้า Stock Card:
+
+       รับเข้า
+       -
+       เบิกจ่ายที่ APPROVED
+
+     สำคัญ:
+     - ไม่ใช้ Material.balance
+     - ไม่ใช้ Transaction.balance
+     - ใช้ issuedQty จริง
+  ======================================================= */
+
+  const [
+    currentReceiveItems,
+    currentIssueItems,
+  ] =
+    materialIds.length >
+    0
+      ? await Promise.all([
+          /* =============================================
+             RECEIVE
+
+             โหลดตั้งแต่ประวัติแรก
+             จนถึงสิ้น FY ปัจจุบัน
+
+             เหมือนหน้า Stock Card
+          ============================================= */
+
+          prisma.receiveItem.findMany(
+            {
+              where: {
+                materialId: {
+                  in:
+                    materialIds,
+                },
+
+                receive: {
+                  receiveDate: {
+                    lt:
+                      currentFiscalRange
+                        .endDate,
+                  },
+                },
+              },
+
+              select: {
+                materialId:
+                  true,
+
+                qty:
+                  true,
+              },
+            }
+          ),
+
+          /* =============================================
+             ISSUE
+
+             เฉพาะ APPROVED
+             เหมือนหน้า Stock Card
+          ============================================= */
+
+          prisma.issueItem.findMany(
+            {
+              where: {
+                materialId: {
+                  in:
+                    materialIds,
+                },
+
+                issue: {
+                  status:
+                    "APPROVED",
+
+                  issueDate: {
+                    lt:
+                      currentFiscalRange
+                        .endDate,
+                  },
+                },
+              },
+
+              select: {
+                materialId:
+                  true,
+
+                qty:
+                  true,
+
+                issuedQty:
+                  true,
+              },
+            }
+          ),
+        ])
+      : [
+          [],
+          [],
+        ];
+
+  /* =======================================================
+     RECEIVE MAP
+  ======================================================= */
+
+  const receiveMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const item of
+      currentReceiveItems
+  ) {
+    addMapValue(
+      receiveMap,
+      item.materialId,
+      safeNumber(
+        item.qty
+      )
+    );
+  }
+
+  /* =======================================================
+     ISSUE MAP
+
+     ใช้ getActualIssuedQty()
+     เหมือน Stock Card
+  ======================================================= */
+
+  const issueMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const item of
+      currentIssueItems
+  ) {
+    addMapValue(
+      issueMap,
+      item.materialId,
+      getActualIssuedQty(
+        {
+          qty:
+            item.qty,
+
+          issuedQty:
+            item.issuedQty,
+        }
+      )
+    );
+  }
+
+  /* =======================================================
+     CURRENT BALANCE MAP
+
+     current balance
+     =
+     total receive
+     -
+     total approved actual issue
+  ======================================================= */
+
+  const currentBalanceMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const material of
+      materials
+  ) {
+    const totalReceive =
+      receiveMap.get(
+        material.id
+      ) ??
+      0;
+
+    const totalIssue =
+      issueMap.get(
+        material.id
+      ) ??
+      0;
+
+    currentBalanceMap.set(
+      material.id,
+      totalReceive -
+        totalIssue
+    );
+  }
+
+  /* =======================================================
+     CATEGORY
   ======================================================= */
 
   const title =
@@ -449,15 +737,8 @@ export default async function CategoryPage({
   /* =======================================================
      URL
 
-     สำคัญ:
-     ปุ่มกลับต้องพาปีเดิมกลับไปด้วย
-
-     ตัวอย่าง:
-     /stock-card/COMPUTER?fiscalYear=2569
-
      กดกลับ
-     ->
-     /stock-card?fiscalYear=2569
+     ต้องกลับปีเดิมที่เลือก
   ======================================================= */
 
   const stockCardHomeHref =
@@ -501,10 +782,6 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
-
-          - ไม่มีการ์ดปีงบประมาณแล้ว
-          - Search อยู่ต่อจาก Header ทันที
-          - fiscalYear ต้องส่งไปด้วยเสมอ
       ===================================================== */}
 
       <SearchStockCard
@@ -538,10 +815,6 @@ export default async function CategoryPage({
           min-w-0
         "
       >
-        {/* ===================================================
-            TABLE
-        =================================================== */}
-
         <div
           className="
             w-full
@@ -569,37 +842,30 @@ export default async function CategoryPage({
             ================================================= */}
 
             <colgroup>
-              {/* ลำดับ */}
               <col
                 className="w-[6%]"
               />
 
-              {/* รหัสพัสดุ */}
               <col
                 className="w-[13%]"
               />
 
-              {/* รายการพัสดุ */}
               <col
                 className="w-[27%]"
               />
 
-              {/* คงเหลือ */}
               <col
                 className="w-[10%]"
               />
 
-              {/* หน่วย */}
               <col
                 className="w-[9%]"
               />
 
-              {/* ผู้จำหน่ายล่าสุด */}
               <col
                 className="w-[23%]"
               />
 
-              {/* บัญชีพัสดุ */}
               <col
                 className="w-[12%]"
               />
@@ -686,14 +952,16 @@ export default async function CategoryPage({
                       "-";
 
                     /* =========================================
-                       CURRENT BALANCE
+                       CURRENT STOCK CARD BALANCE
 
-                       ใช้ยอดปัจจุบัน
-                       Material.balance
+                       สูตรเดียวกับ Stock Card
                     ========================================= */
 
                     const currentBalance =
-                      material.balance;
+                      currentBalanceMap.get(
+                        material.id
+                      ) ??
+                      0;
 
                     return (
                       <tr
@@ -902,10 +1170,6 @@ export default async function CategoryPage({
                   }
                 )
               ) : (
-                /* =============================================
-                   EMPTY
-                ============================================= */
-
                 <tr>
                   <td
                     colSpan={
