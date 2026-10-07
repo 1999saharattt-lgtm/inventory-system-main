@@ -23,10 +23,12 @@ export default function SearchStockCard({
   fiscalYear,
 }: Props) {
   /* =======================================================
-     URL
+     CLEAR URL
 
-     สำคัญ:
-     ค้นหาแล้วต้องรักษาปีงบประมาณเดิมไว้
+     ต้องรักษาปีงบประมาณเดิมไว้
+
+     เช่น:
+     /stock-card/COMPUTER?fiscalYear=2569
   ======================================================= */
 
   const clearHref =
@@ -43,8 +45,6 @@ export default function SearchStockCard({
         min-w-0
 
         !p-3
-
-        sm:!p-4
       "
     >
       <form
@@ -54,6 +54,7 @@ export default function SearchStockCard({
           flex
           w-full
           min-w-0
+
           flex-col
 
           gap-2
@@ -64,8 +65,6 @@ export default function SearchStockCard({
       >
         {/* =================================================
             KEEP FISCAL YEAR
-
-            ค้นหาแล้วปีงบประมาณต้องไม่หาย
         ================================================= */}
 
         <input
@@ -78,77 +77,55 @@ export default function SearchStockCard({
 
         {/* =================================================
             SEARCH INPUT
+
+            - ไม่มี Emoji
+            - ไม่มี Icon
+            - ไม่มีข้อความด้านล่าง
+            - ความสูงแบบเดิม
         ================================================= */}
 
-        <div
+        <input
+          type="search"
+          name="search"
+          defaultValue={
+            defaultSearch
+          }
+          placeholder="ค้นหารหัสพัสดุ หรือชื่อรายการพัสดุ"
+          autoComplete="off"
           className="
-            relative
-
+            h-[42px]
             min-w-0
             flex-1
+
+            rounded-[12px]
+
+            border-2
+            border-black
+
+            bg-white
+
+            px-4
+
+            text-sm
+            font-semibold
+
+            !text-slate-900
+
+            shadow-sm
+
+            outline-none
+
+            transition-all
+            duration-200
+
+            placeholder:font-medium
+            placeholder:!text-slate-400
+
+            focus:border-blue-600
+            focus:ring-4
+            focus:ring-blue-100
           "
-        >
-          <span
-            aria-hidden="true"
-            className="
-              pointer-events-none
-
-              absolute
-              left-3
-              top-1/2
-
-              -translate-y-1/2
-
-              text-base
-            "
-          >
-            🔎
-          </span>
-
-          <input
-            type="search"
-            name="search"
-            defaultValue={
-              defaultSearch
-            }
-            placeholder="ค้นหารหัสพัสดุ หรือชื่อรายการพัสดุ"
-            autoComplete="off"
-            className="
-              h-[44px]
-              w-full
-              min-w-0
-
-              rounded-[13px]
-
-              border-2
-              border-black
-
-              bg-white
-
-              pl-10
-              pr-4
-
-              text-sm
-              font-semibold
-
-              !text-slate-900
-
-              shadow-sm
-
-              outline-none
-
-              transition-all
-              duration-200
-
-              placeholder:font-medium
-              placeholder:!text-slate-400
-
-              focus:border-blue-600
-              focus:ring-4
-              focus:ring-blue-100
-            "
-          />
-        </div>
+        />
 
         {/* =================================================
             ACTIONS
@@ -158,6 +135,8 @@ export default function SearchStockCard({
           className="
             flex
             shrink-0
+            items-center
+
             gap-2
           "
         >
@@ -169,17 +148,15 @@ export default function SearchStockCard({
             ค้นหา
           </AppButton>
 
-          {defaultSearch && (
-            <AppButton
-              href={
-                clearHref
-              }
-              variant="secondary"
-              size="sm"
-            >
-              ล้าง
-            </AppButton>
-          )}
+          <AppButton
+            href={
+              clearHref
+            }
+            variant="secondary"
+            size="sm"
+          >
+            ล้าง
+          </AppButton>
         </div>
       </form>
     </AppCard>
