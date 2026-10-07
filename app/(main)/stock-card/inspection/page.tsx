@@ -72,33 +72,46 @@ const CATEGORY_ORDER = [
 function getThailandDateParts(
   value: Date
 ): ThailandDateParts {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Bangkok",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: "Asia/Bangkok",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }
+    );
 
-  const parts = formatter.formatToParts(value);
+  const parts =
+    formatter.formatToParts(
+      value
+    );
 
   return {
-    year: Number(
-      parts.find(
-        (part) => part.type === "year"
-      )?.value
-    ),
+    year:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "year"
+        )?.value
+      ),
 
-    month: Number(
-      parts.find(
-        (part) => part.type === "month"
-      )?.value
-    ),
+    month:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "month"
+        )?.value
+      ),
 
-    day: Number(
-      parts.find(
-        (part) => part.type === "day"
-      )?.value
-    ),
+    day:
+      Number(
+        parts.find(
+          (part) =>
+            part.type === "day"
+        )?.value
+      ),
   };
 }
 
@@ -110,87 +123,58 @@ function getCurrentFiscalYearThai(
   value: Date = new Date()
 ) {
   const parts =
-    getThailandDateParts(value);
+    getThailandDateParts(
+      value
+    );
 
   const fiscalYearGregorian =
     parts.month >= 10
       ? parts.year + 1
       : parts.year;
 
-  return fiscalYearGregorian + 543;
-}
-
-/* =========================================================
-   THAILAND LOCAL DATE -> UTC
-
-   สำคัญ:
-   ประเทศไทย = UTC+7
-
-   1 ต.ค. 2568 เวลา 00:00 ประเทศไทย
-   =
-   30 ก.ย. 2025 เวลา 17:00 UTC
-
-   ใช้ boundary นี้เพื่อไม่ให้รายการวันที่ 30 ก.ย.
-   ถูกจัดเข้า FY ใหม่ผิดปี
-========================================================= */
-
-function thailandMidnightToUtc(
-  year: number,
-  month: number,
-  day: number
-) {
-  return new Date(
-    Date.UTC(
-      year,
-      month - 1,
-      day,
-      -7,
-      0,
-      0,
-      0
-    )
+  return (
+    fiscalYearGregorian +
+    543
   );
 }
 
 /* =========================================================
    CURRENT DATE - END EXCLUSIVE
 
-   รวมข้อมูลของวันนี้ตามเวลาไทย
+   ใช้รูปแบบเดียวกับระบบเดิม
 ========================================================= */
 
 function getCurrentThailandEndExclusive() {
   const parts =
-    getThailandDateParts(new Date());
+    getThailandDateParts(
+      new Date()
+    );
 
-  /*
-   * วันพรุ่งนี้ 00:00 ประเทศไทย
-   * ใช้เป็น exclusive end
-   */
-  const tomorrow = new Date(
+  return new Date(
     Date.UTC(
       parts.year,
       parts.month - 1,
       parts.day + 1,
-      -7,
+      0,
       0,
       0,
       0
     )
   );
-
-  return tomorrow;
 }
 
 /* =========================================================
    FISCAL YEAR RANGE
 
+   สำคัญ:
+   ต้องใช้ boundary แบบเดียวกับหน้า Stock Card
+
    FY2569
-
-   เริ่ม
-   01 ต.ค. 2568 เวลา 00:00 ประเทศไทย
-
+   01 ต.ค.2568
    ถึงก่อน
-   01 ต.ค. 2569 เวลา 00:00 ประเทศไทย
+   01 ต.ค.2569
+
+   ห้ามปรับ -7 ชั่วโมงตรงนี้
 ========================================================= */
 
 function getFiscalYearRange(
@@ -201,17 +185,29 @@ function getFiscalYearRange(
 
   return {
     startDate:
-      thailandMidnightToUtc(
-        fiscalYearGregorian - 1,
-        10,
-        1
+      new Date(
+        Date.UTC(
+          fiscalYearGregorian - 1,
+          9,
+          1,
+          0,
+          0,
+          0,
+          0
+        )
       ),
 
     endDate:
-      thailandMidnightToUtc(
-        fiscalYearGregorian,
-        10,
-        1
+      new Date(
+        Date.UTC(
+          fiscalYearGregorian,
+          9,
+          1,
+          0,
+          0,
+          0,
+          0
+        )
       ),
   };
 }
@@ -239,15 +235,21 @@ function safeNumber(
   value: unknown
 ) {
   const number =
-    Number(value ?? 0);
+    Number(
+      value ?? 0
+    );
 
-  return Number.isFinite(number)
+  return Number.isFinite(
+    number
+  )
     ? number
     : 0;
 }
 
 /* =========================================================
    ACTUAL ISSUE QTY
+
+   ใช้ logic เดียวกับ Stock Card
 
    issuedQty มีค่า
    -> ใช้ issuedQty
@@ -295,7 +297,9 @@ function isBeforeDate(
   target: Date
 ) {
   return (
-    new Date(value).getTime() <
+    new Date(
+      value
+    ).getTime() <
     target.getTime()
   );
 }
@@ -306,11 +310,15 @@ function isDateInRange(
   endDate: Date
 ) {
   const time =
-    new Date(value).getTime();
+    new Date(
+      value
+    ).getTime();
 
   return (
-    time >= startDate.getTime() &&
-    time < endDate.getTime()
+    time >=
+      startDate.getTime() &&
+    time <
+      endDate.getTime()
   );
 }
 
@@ -321,7 +329,9 @@ function isDateInRange(
 function sortMaterialRows(
   rows: MaterialRow[]
 ) {
-  return [...rows].sort(
+  return [
+    ...rows,
+  ].sort(
     (
       a,
       b
@@ -349,7 +359,10 @@ function sortMaterialRows(
       if (
         orderA !== orderB
       ) {
-        return orderA - orderB;
+        return (
+          orderA -
+          orderB
+        );
       }
 
       return a.code.localeCompare(
@@ -404,12 +417,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      CURRENT END
-
-     ปีปัจจุบัน
-     -> ถึงวันนี้
-
-     ปีที่จบแล้ว
-     -> ถึงสิ้น FY
   ======================================================= */
 
   const todayEndExclusive =
@@ -440,15 +447,17 @@ export default async function StockCardInspectionPage({
   ======================================================= */
 
   const existingInspection =
-    await prisma.stockCardInspection.findUnique({
-      where: {
-        fiscalYear,
-      },
+    await prisma.stockCardInspection.findUnique(
+      {
+        where: {
+          fiscalYear,
+        },
 
-      select: {
-        id: true,
-      },
-    });
+        select: {
+          id: true,
+        },
+      }
+    );
 
   if (
     existingInspection
@@ -461,12 +470,15 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      LOAD DATA
 
-     หลักเดียวกับ Stock Card
+     ใช้แหล่งข้อมูลเดียวกับ Stock Card
 
-     1. ReceiveItem = รับ
-     2. IssueItem APPROVED = จ่าย
-     3. ไม่ใช้ Transaction.balance
-     4. โหลดตั้งแต่ประวัติแรกจนถึงสิ้น FY
+     RECEIVE
+     = ReceiveItem
+
+     ISSUE
+     = IssueItem ที่ APPROVED
+
+     ไม่ใช้ Transaction.balance
   ======================================================= */
 
   const [
@@ -601,30 +613,31 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      BUILD INSPECTION ROWS
 
-     สำคัญที่สุด
+     หลักการเดียวกับ Stock Card
 
-     openingBalance
-     =
-     รับทั้งหมด "ก่อน" เริ่ม FY
-     -
-     จ่าย APPROVED ทั้งหมด "ก่อน" เริ่ม FY
+     1. openingBalance
+        =
+        รับทั้งหมดก่อน 1 ต.ค.
+        -
+        จ่าย APPROVED ทั้งหมดก่อน 1 ต.ค.
 
-     receiveQty
-     =
-     รับจริงตั้งแต่เริ่ม FY
-     ถึง currentEndExclusive
+     2. receiveQty
+        =
+        Receive ตั้งแต่ 1 ต.ค. ถึงสิ้น FY
 
-     issueQty
-     =
-     จ่ายจริงตั้งแต่เริ่ม FY
-     ถึง currentEndExclusive
+     3. issueQty
+        =
+        Approved Issue ตั้งแต่ 1 ต.ค. ถึงสิ้น FY
 
-     closingBalance
-     =
-     opening + receive - issue
+     4. closingBalance
+        =
+        opening
+        + รับถึงปัจจุบัน
+        - จ่ายถึงปัจจุบัน
 
-     ไม่มีการนำ opening
-     ไปลบ receive ภายหลังอีก
+     สำคัญ:
+     ไม่มีการลบ openingBalance
+     ออกจาก receiveQty อีกครั้ง
   ======================================================= */
 
   const rows =
@@ -634,9 +647,9 @@ export default async function StockCardInspectionPage({
           material
         ): MaterialRow => {
           /* =============================================
-             OPENING RECEIVE
+             1. OPENING RECEIVE
 
-             รับก่อน 1 ต.ค.
+             รับทั้งหมดก่อนเริ่ม FY
           ============================================= */
 
           const historicalReceiveTotal =
@@ -664,9 +677,9 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             OPENING ISSUE
+             2. OPENING ISSUE
 
-             จ่าย APPROVED ก่อน 1 ต.ค.
+             จ่าย APPROVED ทั้งหมดก่อนเริ่ม FY
           ============================================= */
 
           const historicalIssueTotal =
@@ -698,14 +711,14 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             OPENING BALANCE
+             3. OPENING BALANCE
 
-             นี่คือยอดที่ Stock Card
-             แสดงเป็น
+             นี่คือค่าที่หน้า Stock Card
+             นำไปสร้าง Virtual Row
 
              "ยอดยกเข้าระบบ"
 
-             ตัวอย่าง = 150
+             ในตัวอย่าง = 150
           ============================================= */
 
           const openingBalance =
@@ -713,18 +726,86 @@ export default async function StockCardInspectionPage({
             historicalIssueTotal;
 
           /* =============================================
-             RECEIVE IN FY
+             4. RECEIVE IN FULL FISCAL YEAR
 
-             นับเฉพาะรับจริง
-             ตั้งแต่ 1 ต.ค. เป็นต้นไป
+             รับจริงตั้งแต่ 1 ต.ค.
+             ถึงก่อน 1 ต.ค. ปีถัดไป
 
-             ไม่เอา opening มารวม
-             และไม่ต้องลบ opening ทีหลัง
+             opening ไม่เข้ามาตรงนี้
+             เพราะ opening มาจากข้อมูลก่อน startDate
 
              ตัวอย่าง = 435
           ============================================= */
 
           const receiveQty =
+            material.receiveItems
+              .filter(
+                (
+                  item
+                ) =>
+                  isDateInRange(
+                    item.receive
+                      .receiveDate,
+                    fiscalRange.startDate,
+                    fiscalRange.endDate
+                  )
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  safeNumber(
+                    item.qty
+                  ),
+                0
+              );
+
+          /* =============================================
+             5. ISSUE IN FULL FISCAL YEAR
+
+             เฉพาะ APPROVED
+
+             ตัวอย่าง = 310
+          ============================================= */
+
+          const issueQty =
+            material.issueItems
+              .filter(
+                (
+                  item
+                ) =>
+                  isDateInRange(
+                    item.issue
+                      .issueDate,
+                    fiscalRange.startDate,
+                    fiscalRange.endDate
+                  )
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  getActualIssuedQty({
+                    qty:
+                      item.qty,
+
+                    issuedQty:
+                      item.issuedQty,
+                  }),
+                0
+              );
+
+          /* =============================================
+             6. RECEIVE UNTIL CURRENT DATE
+
+             ใช้เฉพาะคำนวณคงเหลือปัจจุบัน
+          ============================================= */
+
+          const currentReceiveQty =
             material.receiveItems
               .filter(
                 (
@@ -750,17 +831,10 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             ISSUE IN FY
-
-             นับเฉพาะ APPROVED
-
-             ใช้ issuedQty จริง
-             ถ้ามีค่า
-
-             ตัวอย่าง = 310
+             7. ISSUE UNTIL CURRENT DATE
           ============================================= */
 
-          const issueQty =
+          const currentIssueQty =
             material.issueItems
               .filter(
                 (
@@ -790,29 +864,19 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             CURRENT BALANCE
+             8. CURRENT BALANCE
 
-             opening
-             +
-             รับจริง
-             -
-             จ่ายจริง
-
-             ตัวอย่าง
-
-             150
-             +
-             435
-             -
-             310
+             150 + 435 - 310
              =
              275
+
+             ห้ามลบ opening จาก receive ซ้ำ
           ============================================= */
 
           const closingBalance =
             openingBalance +
-            receiveQty -
-            issueQty;
+            currentReceiveQty -
+            currentIssueQty;
 
           return {
             materialId:
