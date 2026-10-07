@@ -223,14 +223,6 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    FISCAL YEAR RANGE
-
-   ตัวอย่าง FY 2570
-
-   start
-   1 ต.ค. 2569
-
-   end exclusive
-   1 ต.ค. 2570
 ========================================================= */
 
 function getFiscalYearRange(
@@ -296,8 +288,6 @@ function getFiscalDisplayEndDate(
 
 /* =========================================================
    FORMAT THAI DATE
-
-   1 ต.ค. 2569
 ========================================================= */
 
 function formatThaiFullDate(
@@ -322,7 +312,12 @@ function formatThaiFullDate(
 }
 
 /* =========================================================
-   BALANCE DISPLAY
+   CURRENT BALANCE DISPLAY
+
+   ใช้ Material.balance โดยตรง
+   = ยอดคงเหลือปัจจุบันของ Stock Card
+
+   ไม่เปลี่ยนตาม fiscalYear
 ========================================================= */
 
 function formatBalance(
@@ -411,18 +406,17 @@ export default async function CategoryPage({
     );
 
   /* =======================================================
-     DATA
+     MATERIAL DATA
 
-     1. ผู้จำหน่ายล่าสุด
-        = Receive ล่าสุดก่อนสิ้น FY ที่เลือก
+     สำคัญ
 
-     2. คงเหลือ
-        = balance ของ Transaction ล่าสุด
-          ก่อนสิ้น FY ที่เลือก
+     คงเหลือ:
+     ใช้ material.balance
+     = ยอดปัจจุบันของ Stock Card
 
-     ทำให้เปิด FY2569
-     แล้วไม่เอายอดจาก FY2570
-     มาแสดงย้อนหลัง
+     ผู้จำหน่ายล่าสุด:
+     ยังคงอิงข้อมูลล่าสุดก่อนสิ้น FY ที่เลือก
+     ตาม Logic เดิม
   ======================================================= */
 
   const materials =
@@ -453,11 +447,12 @@ export default async function CategoryPage({
       },
 
       include: {
-        /* =================================================
-           LATEST RECEIVE BEFORE FY END
-        ================================================= */
-
         receiveItems: {
+          /* ===============================================
+             ผู้จำหน่ายล่าสุด
+             ยังคงอิง FY ที่กำลังเปิด
+          =============================================== */
+
           where: {
             receive: {
               receiveDate: {
@@ -491,48 +486,6 @@ export default async function CategoryPage({
                   true,
               },
             },
-          },
-        },
-
-        /* =================================================
-           LATEST STOCK CARD BALANCE BEFORE FY END
-
-           ใช้ยอดที่บันทึกใน Stock Card จริง
-           ไม่คำนวณแก้ข้อมูลย้อนหลัง
-        ================================================= */
-
-        transactions: {
-          where: {
-            date: {
-              lt:
-                fiscalRange.endDate,
-            },
-          },
-
-          orderBy: [
-            {
-              date:
-                "desc",
-            },
-
-            {
-              id:
-                "desc",
-            },
-          ],
-
-          take:
-            1,
-
-          select: {
-            id:
-              true,
-
-            balance:
-              true,
-
-            date:
-              true,
           },
         },
       },
@@ -732,13 +685,6 @@ export default async function CategoryPage({
       >
         {/* ===================================================
             TABLE
-
-            Desktop:
-            จัดสัดส่วนทั้ง 7 คอลัมน์
-            ให้พอดีกับความกว้างการ์ด
-
-            Mobile:
-            เลื่อนได้เฉพาะตาราง
         =================================================== */}
 
         <div
@@ -768,40 +714,44 @@ export default async function CategoryPage({
             ================================================= */}
 
             <colgroup>
+              {/* ลำดับ */}
               <col
                 className="w-[6%]"
               />
 
+              {/* รหัส */}
               <col
                 className="w-[13%]"
               />
 
+              {/* รายการ */}
               <col
                 className="w-[27%]"
               />
 
+              {/* คงเหลือ */}
               <col
                 className="w-[10%]"
               />
 
+              {/* หน่วย */}
               <col
                 className="w-[9%]"
               />
 
+              {/* ผู้จำหน่าย */}
               <col
                 className="w-[23%]"
               />
 
+              {/* บัญชี */}
               <col
                 className="w-[12%]"
               />
             </colgroup>
 
             {/* =================================================
-                TABLE HEADER
-
-                เพิ่ม "คงเหลือ"
-                ไว้หน้า "หน่วย"
+                HEADER
             ================================================= */}
 
             <thead>
@@ -852,7 +802,7 @@ export default async function CategoryPage({
             </thead>
 
             {/* =================================================
-                TABLE BODY
+                BODY
             ================================================= */}
 
             <tbody>
@@ -881,22 +831,18 @@ export default async function CategoryPage({
                       "-";
 
                     /* =========================================
-                       BALANCE
+                       CURRENT BALANCE
 
-                       Transaction ล่าสุด
-                       ก่อนสิ้นปีงบประมาณที่เลือก
+                       ตรงนี้คือยอดคงเหลือปัจจุบันจริง
+
+                       ไม่ใช้ Transaction
+                       ไม่ใช้ยอดตาม fiscalYear
+
+                       Material.balance
                     ========================================= */
 
-                    const latestTransaction =
-                      material
-                        .transactions[
-                        0
-                      ];
-
-                    const balance =
-                      latestTransaction
-                        ?.balance ??
-                      0;
+                    const currentBalance =
+                      material.balance;
 
                     return (
                       <tr
@@ -994,7 +940,7 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
-                            BALANCE
+                            CURRENT BALANCE
                         ===================================== */}
 
                         <td
@@ -1016,7 +962,7 @@ export default async function CategoryPage({
                           "
                         >
                           {formatBalance(
-                            balance
+                            currentBalance
                           )}
                         </td>
 
@@ -1106,7 +1052,7 @@ export default async function CategoryPage({
                 )
               ) : (
                 /* =============================================
-                   EMPTY STATE
+                   EMPTY
                 ============================================= */
 
                 <tr>
