@@ -7,6 +7,10 @@ import {
   useState,
 } from "react";
 
+import {
+  createPortal,
+} from "react-dom";
+
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
@@ -30,26 +34,30 @@ type Material = {
   /*
    * ยอดยกเข้าระบบ ณ 1 ต.ค.
    *
-   * FY2569
+   * ตัวอย่าง FY2569:
    * =
-   * ยอดคงเหลือ ณ 30 ก.ย.68
+   * ยอดยกเข้าระบบ ณ 01 ต.ค.68
+   *
+   * บนแบบตรวจแสดงเป็น
+   * คงเหลือยอดยกมาเมื่อ 30 ก.ย.68
    */
   openingBalance: number;
 
   /*
-   * รับอย่างเดียว
-   * ภายใน FY ที่ตรวจ
+   * รับจริงภายในปีงบประมาณ
+   *
+   * ไม่รวมยอดยกเข้าระบบ
    */
   receiveQty: number;
 
   /*
    * จ่ายจริง APPROVED
-   * ภายใน FY ที่ตรวจ
+   * ภายในปีงบประมาณ
    */
   issueQty: number;
 
   /*
-   * คงเหลือ Stock Card ปัจจุบัน
+   * คงเหลือจริงตาม Stock Card ปัจจุบัน
    */
   closingBalance: number;
 };
@@ -119,6 +127,12 @@ type IOSDatePickerProps = {
   onChange: (
     value: string
   ) => void;
+};
+
+type PopupPosition = {
+  top: number;
+  left: number;
+  width: number;
 };
 
 /* =========================================================
@@ -322,6 +336,9 @@ function formatThaiDate(
 
 /* =========================================================
    IOS DATE PICKER
+
+   ใช้ Portal
+   เพื่อไม่ให้ Calendar ถูก Card/Table บัง
 ========================================================= */
 
 function IOSDatePicker({
@@ -329,7 +346,12 @@ function IOSDatePicker({
   value,
   onChange,
 }: IOSDatePickerProps) {
-  const containerRef =
+  const buttonRef =
+    useRef<HTMLButtonElement>(
+      null
+    );
+
+  const popupRef =
     useRef<HTMLDivElement>(
       null
     );
@@ -358,6 +380,24 @@ function IOSDatePicker({
     );
 
   const [
+    mounted,
+    setMounted,
+  ] =
+    useState(
+      false
+    );
+
+  const [
+    popupPosition,
+    setPopupPosition,
+  ] =
+    useState<PopupPosition>({
+      top: 0,
+      left: 0,
+      width: 330,
+    });
+
+  const [
     displayYear,
     setDisplayYear,
   ] =
@@ -372,6 +412,23 @@ function IOSDatePicker({
     useState(
       initialDate.getMonth()
     );
+
+  /* =======================================================
+     MOUNT
+  ======================================================= */
+
+  useEffect(
+    () => {
+      setMounted(
+        true
+      );
+    },
+    []
+  );
+
+  /* =======================================================
+     SYNC SELECTED DATE
+  ======================================================= */
 
   useEffect(
     () => {
@@ -392,22 +449,119 @@ function IOSDatePicker({
     [value]
   );
 
+  /* =======================================================
+     POSITION POPUP
+  ======================================================= */
+
+  function updatePopupPosition() {
+    const button =
+      buttonRef.current;
+
+    if (!button) {
+      return;
+    }
+
+    const rect =
+      button.getBoundingClientRect();
+
+    const popupWidth =
+      Math.min(
+        330,
+        window.innerWidth -
+          24
+      );
+
+    let left =
+      rect.left;
+
+    if (
+      left +
+        popupWidth >
+      window.innerWidth -
+        12
+    ) {
+      left =
+        window.innerWidth -
+        popupWidth -
+        12;
+    }
+
+    if (
+      left < 12
+    ) {
+      left =
+        12;
+    }
+
+    setPopupPosition({
+      top:
+        rect.bottom +
+        6,
+
+      left,
+
+      width:
+        popupWidth,
+    });
+  }
+
+  /* =======================================================
+     OPEN EVENTS
+  ======================================================= */
+
   useEffect(
     () => {
+      if (!open) {
+        return;
+      }
+
+      updatePopupPosition();
+
+      function handleResize() {
+        updatePopupPosition();
+      }
+
+      function handleScroll() {
+        updatePopupPosition();
+      }
+
       function handleMouseDown(
         event: MouseEvent
       ) {
+        const target =
+          event.target as Node;
+
         if (
-          containerRef.current &&
-          !containerRef.current.contains(
-            event.target as Node
+          buttonRef.current?.contains(
+            target
           )
         ) {
-          setOpen(
-            false
-          );
+          return;
         }
+
+        if (
+          popupRef.current?.contains(
+            target
+          )
+        ) {
+          return;
+        }
+
+        setOpen(
+          false
+        );
       }
+
+      window.addEventListener(
+        "resize",
+        handleResize
+      );
+
+      window.addEventListener(
+        "scroll",
+        handleScroll,
+        true
+      );
 
       document.addEventListener(
         "mousedown",
@@ -415,14 +569,29 @@ function IOSDatePicker({
       );
 
       return () => {
+        window.removeEventListener(
+          "resize",
+          handleResize
+        );
+
+        window.removeEventListener(
+          "scroll",
+          handleScroll,
+          true
+        );
+
         document.removeEventListener(
           "mousedown",
           handleMouseDown
         );
       };
     },
-    []
+    [open]
   );
+
+  /* =======================================================
+     CALENDAR
+  ======================================================= */
 
   const firstDay =
     new Date(
@@ -472,16 +641,23 @@ function IOSDatePicker({
     );
   }
 
+  /* =======================================================
+     MONTH
+  ======================================================= */
+
   function previousMonth() {
     if (
-      displayMonth === 0
+      displayMonth ===
+      0
     ) {
       setDisplayMonth(
         11
       );
 
       setDisplayYear(
-        (current) =>
+        (
+          current
+        ) =>
           current - 1
       );
 
@@ -489,21 +665,26 @@ function IOSDatePicker({
     }
 
     setDisplayMonth(
-      (current) =>
+      (
+        current
+      ) =>
         current - 1
     );
   }
 
   function nextMonth() {
     if (
-      displayMonth === 11
+      displayMonth ===
+      11
     ) {
       setDisplayMonth(
         0
       );
 
       setDisplayYear(
-        (current) =>
+        (
+          current
+        ) =>
           current + 1
       );
 
@@ -511,10 +692,16 @@ function IOSDatePicker({
     }
 
     setDisplayMonth(
-      (current) =>
+      (
+        current
+      ) =>
         current + 1
     );
   }
+
+  /* =======================================================
+     SELECT
+  ======================================================= */
 
   function selectDay(
     day: number
@@ -563,30 +750,32 @@ function IOSDatePicker({
     );
   }
 
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
-    <div
-      ref={
-        containerRef
-      }
-      className="
-        relative
-        w-full
-        min-w-0
-      "
-    >
+    <>
       <button
+        ref={
+          buttonRef
+        }
         id={id}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={
           open
         }
-        onClick={() =>
+        onClick={() => {
+          updatePopupPosition();
+
           setOpen(
-            (current) =>
+            (
+              current
+            ) =>
               !current
-          )
-        }
+          );
+        }}
         className="
           flex
           h-[46px]
@@ -595,9 +784,10 @@ function IOSDatePicker({
 
           items-center
           justify-between
+
           gap-3
 
-          rounded-[14px]
+          rounded-[12px]
 
           border
           border-slate-300
@@ -644,318 +834,348 @@ function IOSDatePicker({
           aria-hidden="true"
           className="
             shrink-0
-            text-base
           "
         >
           📅
         </span>
       </button>
 
-      {open && (
-        <div
-          role="dialog"
-          className="
-            absolute
-            left-0
-            top-[52px]
-            z-[1000]
-
-            w-[330px]
-            max-w-[calc(100vw-32px)]
-
-            rounded-[22px]
-
-            border
-            border-slate-200
-
-            bg-white/95
-
-            p-3
-
-            shadow-2xl
-
-            backdrop-blur-xl
-          "
-        >
+      {mounted &&
+        open &&
+        createPortal(
           <div
-            className="
-              flex
-              items-center
-              justify-between
+            ref={
+              popupRef
+            }
+            role="dialog"
+            style={{
+              position:
+                "fixed",
 
-              px-1
-              pb-3
+              top:
+                popupPosition.top,
+
+              left:
+                popupPosition.left,
+
+              width:
+                popupPosition.width,
+            }}
+            className="
+              z-[99999]
+
+              rounded-[22px]
+
+              border
+              border-slate-200
+
+              bg-white/95
+
+              p-3
+
+              shadow-2xl
+
+              backdrop-blur-xl
             "
           >
-            <button
-              type="button"
-              onClick={
-                previousMonth
-              }
-              className="
-                flex
-                h-9
-                w-9
-
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-slate-100
-
-                text-lg
-                font-black
-
-                !text-slate-700
-
-                hover:bg-slate-200
-              "
-            >
-              ‹
-            </button>
+            {/* =============================================
+                MONTH HEADER
+            ============================================= */}
 
             <div
               className="
-                text-center
+                flex
+                items-center
+                justify-between
+
+                px-1
+                pb-3
               "
             >
-              <div
+              <button
+                type="button"
+                onClick={
+                  previousMonth
+                }
                 className="
-                  text-base
+                  flex
+                  h-9
+                  w-9
+
+                  items-center
+                  justify-center
+
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-lg
                   font-black
 
-                  !text-slate-900
+                  !text-slate-700
+
+                  hover:bg-slate-200
                 "
               >
-                {
-                  THAI_MONTHS[
-                    displayMonth
-                  ]
-                }
-              </div>
+                ‹
+              </button>
 
               <div
                 className="
-                  text-sm
-                  font-bold
-
-                  !text-slate-500
+                  text-center
                 "
               >
-                พ.ศ.{" "}
-                {displayYear +
-                  543}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={
-                nextMonth
-              }
-              className="
-                flex
-                h-9
-                w-9
-
-                items-center
-                justify-center
-
-                rounded-full
-
-                bg-slate-100
-
-                text-lg
-                font-black
-
-                !text-slate-700
-
-                hover:bg-slate-200
-              "
-            >
-              ›
-            </button>
-          </div>
-
-          <div
-            className="
-              grid
-              grid-cols-7
-              gap-1
-            "
-          >
-            {THAI_WEEK_DAYS.map(
-              (
-                day
-              ) => (
                 <div
-                  key={
-                    day
-                  }
                   className="
-                    py-1.5
-
-                    text-center
-                    text-xs
+                    text-base
                     font-black
+
+                    !text-slate-900
+                  "
+                >
+                  {
+                    THAI_MONTHS[
+                      displayMonth
+                    ]
+                  }
+                </div>
+
+                <div
+                  className="
+                    text-sm
+                    font-bold
 
                     !text-slate-500
                   "
                 >
-                  {day}
+                  พ.ศ.{" "}
+                  {displayYear +
+                    543}
                 </div>
-              )
-            )}
-          </div>
+              </div>
 
-          <div
-            className="
-              mt-1
-
-              grid
-              grid-cols-7
-              gap-1
-            "
-          >
-            {calendarCells.map(
-              (
-                day,
-                index
-              ) => {
-                if (
-                  day ===
-                  null
-                ) {
-                  return (
-                    <div
-                      key={`empty-${index}`}
-                      className="h-9"
-                    />
-                  );
+              <button
+                type="button"
+                onClick={
+                  nextMonth
                 }
+                className="
+                  flex
+                  h-9
+                  w-9
 
-                const selected =
-                  selectedDate !==
-                    null &&
-                  selectedDate.getFullYear() ===
-                    displayYear &&
-                  selectedDate.getMonth() ===
-                    displayMonth &&
-                  selectedDate.getDate() ===
-                    day;
+                  items-center
+                  justify-center
 
-                return (
-                  <button
+                  rounded-full
+
+                  bg-slate-100
+
+                  text-lg
+                  font-black
+
+                  !text-slate-700
+
+                  hover:bg-slate-200
+                "
+              >
+                ›
+              </button>
+            </div>
+
+            {/* =============================================
+                WEEK
+            ============================================= */}
+
+            <div
+              className="
+                grid
+                grid-cols-7
+
+                gap-1
+              "
+            >
+              {THAI_WEEK_DAYS.map(
+                (
+                  day
+                ) => (
+                  <div
                     key={
                       day
                     }
-                    type="button"
-                    onClick={() =>
-                      selectDay(
-                        day
-                      )
-                    }
-                    className={`
-                      flex
-                      h-9
+                    className="
+                      py-1.5
 
-                      items-center
-                      justify-center
+                      text-center
+                      text-xs
+                      font-black
 
-                      rounded-full
-
-                      text-sm
-                      font-extrabold
-
-                      transition
-
-                      ${
-                        selected
-                          ? "bg-blue-600 !text-white shadow-md"
-                          : "bg-transparent !text-slate-700 hover:bg-blue-50"
-                      }
-                    `}
+                      !text-slate-500
+                    "
                   >
                     {day}
-                  </button>
-                );
-              }
-            )}
-          </div>
+                  </div>
+                )
+              )}
+            </div>
 
-          <div
-            className="
-              mt-3
+            {/* =============================================
+                DAYS
+            ============================================= */}
 
-              flex
-              items-center
-              justify-between
-
-              border-t
-              border-slate-200
-
-              pt-3
-            "
-          >
-            <button
-              type="button"
-              onClick={() => {
-                onChange(
-                  ""
-                );
-
-                setOpen(
-                  false
-                );
-              }}
+            <div
               className="
-                rounded-[10px]
+                mt-1
 
-                px-3
-                py-2
+                grid
+                grid-cols-7
 
-                text-xs
-                font-extrabold
-
-                !text-red-600
-
-                hover:bg-red-50
+                gap-1
               "
             >
-              ล้างวันที่
-            </button>
+              {calendarCells.map(
+                (
+                  day,
+                  index
+                ) => {
+                  if (
+                    day ===
+                    null
+                  ) {
+                    return (
+                      <div
+                        key={`empty-${index}`}
+                        className="h-9"
+                      />
+                    );
+                  }
 
-            <button
-              type="button"
-              onClick={
-                selectToday
-              }
+                  const selected =
+                    selectedDate !==
+                      null &&
+                    selectedDate.getFullYear() ===
+                      displayYear &&
+                    selectedDate.getMonth() ===
+                      displayMonth &&
+                    selectedDate.getDate() ===
+                      day;
+
+                  return (
+                    <button
+                      key={
+                        day
+                      }
+                      type="button"
+                      onClick={() =>
+                        selectDay(
+                          day
+                        )
+                      }
+                      className={`
+                        flex
+                        h-9
+
+                        items-center
+                        justify-center
+
+                        rounded-full
+
+                        text-sm
+                        font-extrabold
+
+                        transition
+
+                        ${
+                          selected
+                            ? "bg-blue-600 !text-white shadow-md"
+                            : "bg-transparent !text-slate-700 hover:bg-blue-50"
+                        }
+                      `}
+                    >
+                      {day}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            {/* =============================================
+                FOOTER
+            ============================================= */}
+
+            <div
               className="
-                rounded-[10px]
+                mt-3
 
-                px-3
-                py-2
+                flex
+                items-center
+                justify-between
 
-                text-xs
-                font-extrabold
+                border-t
+                border-slate-200
 
-                !text-blue-600
-
-                hover:bg-blue-50
+                pt-3
               "
             >
-              วันนี้
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(
+                    ""
+                  );
+
+                  setOpen(
+                    false
+                  );
+                }}
+                className="
+                  rounded-[10px]
+
+                  px-3
+                  py-2
+
+                  text-xs
+                  font-extrabold
+
+                  !text-red-600
+
+                  hover:bg-red-50
+                "
+              >
+                ล้างวันที่
+              </button>
+
+              <button
+                type="button"
+                onClick={
+                  selectToday
+                }
+                className="
+                  rounded-[10px]
+
+                  px-3
+                  py-2
+
+                  text-xs
+                  font-extrabold
+
+                  !text-blue-600
+
+                  hover:bg-blue-50
+                "
+              >
+                วันนี้
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 
 /* =========================================================
-   INITIAL ROWS
+   INITIAL ROW
 ========================================================= */
 
 function createInitialRows(
@@ -999,7 +1219,10 @@ function createInitialRows(
 }
 
 /* =========================================================
-   STOCK DISPLAY
+   DISPLAY STOCK
+
+   เหมือน PDF
+   0 = -
 ========================================================= */
 
 function displayStockValue(
@@ -1020,7 +1243,7 @@ function displayStockValue(
 }
 
 /* =========================================================
-   OPTIONAL INTEGER
+   INTEGER VALIDATION
 ========================================================= */
 
 function isValidOptionalInteger(
@@ -1047,7 +1270,7 @@ function isValidOptionalInteger(
 }
 
 /* =========================================================
-   COMPONENT
+   FORM
 ========================================================= */
 
 export default function InspectionForm({
@@ -1058,7 +1281,7 @@ export default function InspectionForm({
   officers,
 }: Props) {
   /* =======================================================
-     DATE
+     DATES
   ======================================================= */
 
   const [
@@ -1078,7 +1301,7 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     ROWS
+     INSPECTION ROWS
   ======================================================= */
 
   const [
@@ -1124,17 +1347,6 @@ export default function InspectionForm({
 
   /* =======================================================
      CATEGORY
-
-     ALL
-     =
-     ทุกหมวด
-
-     PDF:
-     ถ้าทุกหมวด
-     จะขึ้นหน้าใหม่ทุกหมวด
-
-     WEB:
-     แสดงเป็นชุดหมวดต่อกัน
   ======================================================= */
 
   const [
@@ -1332,7 +1544,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     UPDATE ROW
+     UPDATE
   ======================================================= */
 
   function updateRow(
@@ -1368,10 +1580,6 @@ export default function InspectionForm({
     );
   }
 
-  /* =======================================================
-     ACCURACY
-  ======================================================= */
-
   function updateAccuracy(
     materialId: number,
     accuracy: string
@@ -1398,8 +1606,7 @@ export default function InspectionForm({
   /* =======================================================
      QUICK ACTION
 
-     เปลี่ยนเฉพาะรายการ
-     ที่กำลังแสดง
+     เฉพาะรายการที่กำลังแสดง
   ======================================================= */
 
   function updateVisibleAccuracy(
@@ -1436,7 +1643,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     NUMBER
+     NUMBER FIELD
   ======================================================= */
 
   function updateNumberField(
@@ -1592,7 +1799,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       INSPECTOR
+       INSPECTORS
     =============================================== */
 
     if (
@@ -1626,7 +1833,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       ROW VALIDATION
+       ROWS
     =============================================== */
 
     if (
@@ -1661,7 +1868,7 @@ export default function InspectionForm({
         return;
       }
 
-      const values = [
+      const numericValues = [
         row.shortageQty,
         row.excessQty,
         row.baht,
@@ -1672,7 +1879,7 @@ export default function InspectionForm({
       ];
 
       if (
-        values.some(
+        numericValues.some(
           (
             value
           ) =>
@@ -1693,7 +1900,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       POST
+       API
     =============================================== */
 
     try {
@@ -1718,19 +1925,9 @@ export default function InspectionForm({
                 {
                   fiscalYear,
 
-                  /*
-                   * Schema ปัจจุบัน
-                   * เก็บ inspectionDate
-                   *
-                   * ใช้วันที่เริ่มตรวจสอบ
-                   */
                   inspectionDate:
                     inspectionStartDate,
 
-                  /*
-                   * ส่งไว้ด้วย
-                   * เพื่อรองรับการเพิ่ม field ภายหลัง
-                   */
                   inspectionEndDate,
 
                   inspectorIds:
@@ -1835,44 +2032,40 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     TABLE INPUT STYLE
+     INPUT
 
-     PDF ใช้ Font 15
-     Form ใช้ 15px
-
-     ความสูงแถวมาตรฐาน
-     23.25 px
+     ตารางหน้าจอเลียนแบบ PDF
+     ฟอนต์ข้อมูล 12px
   ======================================================= */
 
-  const compactInputClass = `
+  const tableInputClass = `
     h-[22px]
     w-full
     min-w-0
 
-    rounded-[4px]
+    rounded-none
 
-    border
-    border-slate-300
+    border-0
 
-    bg-white
+    bg-transparent
 
     px-1
 
     text-center
-    text-[15px]
+    text-[12px]
     font-normal
     leading-none
+
     tabular-nums
 
-    !text-slate-900
+    !text-black
 
     outline-none
 
-    placeholder:!text-slate-400
+    placeholder:!text-slate-300
 
-    focus:border-blue-500
-    focus:ring-1
-    focus:ring-blue-100
+    focus:bg-blue-50
+    focus:ring-0
   `;
 
   /* =========================================================
@@ -1882,6 +2075,8 @@ export default function InspectionForm({
   return (
     <div
       className="
+        relative
+
         w-full
         min-w-0
 
@@ -1890,152 +2085,156 @@ export default function InspectionForm({
     >
       {/* =====================================================
           1. INSPECTION INFO
+
+          เตี้ย / เรียบ
+          และ Calendar ไม่โดน Card บัง
       ===================================================== */}
 
-      <AppCard
-        padding={
-          false
-        }
+      <div
         className="
-          !overflow-visible
-          !rounded-[22px]
+          relative
+          z-[100]
         "
       >
-        <div
+        <AppCard
+          padding={
+            false
+          }
           className="
-            relative
-            z-20
-
-            p-3
-
-            sm:p-4
+            !overflow-visible
+            !rounded-[18px]
           "
         >
           <div
             className="
-              flex
-              flex-col
+              relative
 
-              gap-3
+              p-3
 
-              lg:flex-row
-              lg:items-end
+              sm:p-4
             "
           >
             <div
               className="
-                shrink-0
-
-                lg:w-[210px]
-              "
-            >
-              <h2
-                className="
-                  text-lg
-                  font-black
-                  tracking-tight
-
-                  !text-slate-900
-                "
-              >
-                ข้อมูลการตรวจสอบ
-              </h2>
-
-              <p
-                className="
-                  mt-0.5
-
-                  text-xs
-                  font-semibold
-
-                  !text-slate-500
-                "
-              >
-                ระบุช่วงวันที่ดำเนินการตรวจสอบ
-              </p>
-            </div>
-
-            <div
-              className="
-                grid
-                min-w-0
-                flex-1
-                grid-cols-1
+                flex
+                flex-col
 
                 gap-3
 
-                md:grid-cols-2
+                lg:flex-row
+                lg:items-end
               "
             >
+              {/* =============================================
+                  TITLE
+              ============================================= */}
+
               <div
                 className="
-                  relative
-                  z-30
-                  min-w-0
+                  shrink-0
+
+                  lg:w-[190px]
                 "
               >
-                <label
-                  htmlFor="inspectionStartDate"
+                <h2
                   className="
-                    mb-1.5
-                    block
+                    text-lg
+                    font-black
 
-                    text-sm
-                    font-extrabold
-
-                    !text-slate-700
+                    !text-slate-900
                   "
                 >
-                  วันที่เริ่มตรวจสอบ
-                </label>
-
-                <IOSDatePicker
-                  id="inspectionStartDate"
-                  value={
-                    inspectionStartDate
-                  }
-                  onChange={
-                    setInspectionStartDate
-                  }
-                />
+                  ข้อมูลการตรวจสอบ
+                </h2>
               </div>
 
+              {/* =============================================
+                  START DATE
+              ============================================= */}
+
               <div
                 className="
-                  relative
-                  z-20
+                  grid
                   min-w-0
+                  flex-1
+
+                  grid-cols-1
+
+                  gap-3
+
+                  md:grid-cols-2
                 "
               >
-                <label
-                  htmlFor="inspectionEndDate"
+                <div
                   className="
-                    mb-1.5
-                    block
-
-                    text-sm
-                    font-extrabold
-
-                    !text-slate-700
+                    min-w-0
                   "
                 >
-                  วันที่ตรวจสอบแล้วเสร็จ
-                </label>
+                  <label
+                    htmlFor="inspectionStartDate"
+                    className="
+                      mb-1.5
+                      block
 
-                <IOSDatePicker
-                  id="inspectionEndDate"
-                  value={
-                    inspectionEndDate
-                  }
-                  onChange={
-                    setInspectionEndDate
-                  }
-                />
+                      text-sm
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    วันที่เริ่มตรวจสอบ
+                  </label>
+
+                  <IOSDatePicker
+                    id="inspectionStartDate"
+                    value={
+                      inspectionStartDate
+                    }
+                    onChange={
+                      setInspectionStartDate
+                    }
+                  />
+                </div>
+
+                {/* ===========================================
+                    END DATE
+                =========================================== */}
+
+                <div
+                  className="
+                    min-w-0
+                  "
+                >
+                  <label
+                    htmlFor="inspectionEndDate"
+                    className="
+                      mb-1.5
+                      block
+
+                      text-sm
+                      font-extrabold
+
+                      !text-slate-700
+                    "
+                  >
+                    วันที่ตรวจสอบแล้วเสร็จ
+                  </label>
+
+                  <IOSDatePicker
+                    id="inspectionEndDate"
+                    value={
+                      inspectionEndDate
+                    }
+                    onChange={
+                      setInspectionEndDate
+                    }
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </AppCard>
+        </AppCard>
+      </div>
 
       {/* =====================================================
           2. SEARCH
@@ -2081,7 +2280,7 @@ export default function InspectionForm({
       </div>
 
       {/* =====================================================
-          3. TABLE
+          3. INSPECTION TABLE
       ===================================================== */}
 
       <AppTableCard
@@ -2099,13 +2298,13 @@ export default function InspectionForm({
         "
       >
         {/* ===================================================
-            CATEGORY / PDF / QUICK ACTION
+            CONTROL
         =================================================== */}
 
         <div
           className="
             border-b
-            border-slate-200
+            border-slate-300
 
             bg-white
 
@@ -2131,7 +2330,7 @@ export default function InspectionForm({
             <div
               className="
                 relative
-                z-30
+                z-20
 
                 w-full
 
@@ -2169,7 +2368,7 @@ export default function InspectionForm({
             </div>
 
             {/* ===============================================
-                ACTIONS
+                BUTTON
             =============================================== */}
 
             <div
@@ -2207,13 +2406,6 @@ export default function InspectionForm({
                 ไม่ถูกต้องทั้งหมด
               </AppButton>
 
-              {/* =============================================
-                  PDF
-
-                  ใช้ข้อมูลชุดเดียวกับตาราง
-                  และหมวดที่เลือกอยู่
-              ============================================= */}
-
               <ExportInspectionPdf
                 fiscalYear={
                   fiscalYear
@@ -2248,13 +2440,17 @@ export default function InspectionForm({
         </div>
 
         {/* ===================================================
-            TABLE
+            DOCUMENT TABLE
 
-            สัดส่วนคอลัมน์เดียวกับ PDF
+            ทำหน้าตาคล้าย PDF
 
-            PDF = 285 mm
-            WEB = scale × 6
-            รวมประมาณ 1710 px
+            - หัวขาว
+            - ตัวหนังสือดำ
+            - เส้นดำ
+            - หัว 14px
+            - ข้อมูล 12px
+            - หมวดอยู่ในตาราง
+            - หมวดไม่มีพื้นหลัง
         =================================================== */}
 
         <div
@@ -2264,6 +2460,8 @@ export default function InspectionForm({
 
             overflow-x-auto
             overscroll-x-contain
+
+            bg-white
           "
         >
           <table
@@ -2276,13 +2474,13 @@ export default function InspectionForm({
 
               bg-white
 
-              text-[15px]
+              text-[12px]
+
+              !text-black
             "
           >
             {/* =================================================
-                WIDTH
-
-                อัตราส่วนเดียวกับ PDF
+                SAME RATIO AS PDF
             ================================================= */}
 
             <colgroup>
@@ -2412,391 +2610,124 @@ export default function InspectionForm({
 
             <thead>
               <tr>
-                {/* 1 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ลำดับ
-                </th>
+                </PdfStyleHeader>
 
-                {/* 2 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ชื่อหรือชนิดวัสดุหรือครุภัณฑ์
-                </th>
+                </PdfStyleHeader>
 
-                {/* 3 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   หน่วยนับ
-                </th>
+                </PdfStyleHeader>
 
-                {/* 4 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
-                  <div>
-                    คงเหลือยอดยกมาเมื่อ
+                  <div
+                    className="
+                      leading-tight
+                    "
+                  >
+                    <div>
+                      คงเหลือยอดยกมาเมื่อ
+                    </div>
+
+                    <div>
+                      30 ก.ย.{" "}
+                      {
+                        startShortYear
+                      }
+                    </div>
                   </div>
+                </PdfStyleHeader>
 
-                  <div>
-                    30 ก.ย.{" "}
-                    {
-                      startShortYear
-                    }
-                  </div>
-                </th>
-
-                {/* 5-6 */}
-
-                <th
+                <PdfStyleHeader
                   colSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
-                </th>
+                </PdfStyleHeader>
 
-                {/* 7 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   คงเหลือปัจจุบัน
-                </th>
+                </PdfStyleHeader>
 
-                {/* 8 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ถูกต้อง
-                </th>
+                </PdfStyleHeader>
 
-                {/* 9 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ไม่ถูกต้อง
-                </th>
+                </PdfStyleHeader>
 
-                {/* 10-13 */}
-
-                <th
+                <PdfStyleHeader
                   colSpan={
                     4
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   รายละเอียดกรณีไม่ถูกต้อง
-                </th>
+                </PdfStyleHeader>
 
-                {/* 14 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ชำรุด
-                </th>
+                </PdfStyleHeader>
 
-                {/* 15 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   เสื่อมสภาพ
-                </th>
+                </PdfStyleHeader>
 
-                {/* 16 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   ไม่จำเป็นต้องใช้
-                </th>
+                </PdfStyleHeader>
 
-                {/* 17 */}
-
-                <th
+                <PdfStyleHeader
                   rowSpan={
                     2
                   }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-1
-                    py-2
-
-                    text-center
-                    align-middle
-                    text-[15px]
-                    font-extrabold
-                    leading-tight
-
-                    !text-white
-                  "
                 >
                   หมายเหตุ
-                </th>
+                </PdfStyleHeader>
               </tr>
 
               <tr>
@@ -2811,33 +2742,13 @@ export default function InspectionForm({
                   (
                     title
                   ) => (
-                    <th
+                    <PdfStyleHeader
                       key={
                         title
                       }
-                      className="
-                        border
-                        border-black
-
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-
-                        px-1
-                        py-1
-
-                        text-center
-                        text-[15px]
-                        font-extrabold
-                        leading-tight
-
-                        !text-white
-                      "
                     >
-                      {
-                        title
-                      }
-                    </th>
+                      {title}
+                    </PdfStyleHeader>
                   )
                 )}
               </tr>
@@ -2864,7 +2775,7 @@ export default function InspectionForm({
                       bg-white
 
                       text-center
-                      text-[15px]
+                      text-sm
                       font-bold
 
                       !text-slate-500
@@ -2892,7 +2803,7 @@ export default function InspectionForm({
                         getRow
                       }
                       inputClass={
-                        compactInputClass
+                        tableInputClass
                       }
                       updateAccuracy={
                         updateAccuracy
@@ -2921,27 +2832,34 @@ export default function InspectionForm({
 
       {/* =====================================================
           4. COMMITTEE
+
+          ปรับเป็นขาวแบบเอกสาร
       ===================================================== */}
 
       <AppCard
         className="
           relative
-          z-20
+          z-10
 
           w-full
           min-w-0
 
           !overflow-visible
-
           !p-4
         "
       >
-        <div>
+        <div
+          className="
+            border-b
+            border-slate-200
+
+            pb-3
+          "
+        >
           <h2
             className="
               text-xl
               font-black
-              tracking-tight
 
               !text-slate-900
             "
@@ -3032,6 +2950,11 @@ export default function InspectionForm({
                     })
                   );
 
+              const selectedOfficer =
+                getOfficer(
+                  inspectorId
+                );
+
               return (
                 <div
                   key={
@@ -3041,12 +2964,12 @@ export default function InspectionForm({
                     relative
                     min-w-0
 
-                    rounded-[16px]
+                    rounded-[14px]
 
                     border
-                    border-slate-200/80
+                    border-slate-300
 
-                    bg-slate-50/60
+                    bg-white
 
                     p-3
                   "
@@ -3059,7 +2982,7 @@ export default function InspectionForm({
                       text-sm
                       font-extrabold
 
-                      !text-slate-700
+                      !text-slate-800
                     "
                   >
                     {index === 0
@@ -3088,24 +3011,45 @@ export default function InspectionForm({
                     }
                   />
 
-                  {inspectorId && (
-                    <p
+                  {selectedOfficer && (
+                    <div
                       className="
-                        mt-2
+                        mt-3
 
-                        text-xs
-                        font-semibold
+                        border-t
+                        border-slate-200
 
-                        !text-slate-500
+                        pt-2
+
+                        text-center
                       "
                     >
-                      ตำแหน่ง:{" "}
-                      {getOfficer(
-                        inspectorId
-                      )
-                        ?.position ||
-                        "-"}
-                    </p>
+                      <div
+                        className="
+                          text-sm
+                          font-bold
+
+                          !text-slate-900
+                        "
+                      >
+                        {selectedOfficer.firstName}{" "}
+                        {selectedOfficer.lastName}
+                      </div>
+
+                      <div
+                        className="
+                          mt-0.5
+
+                          text-xs
+                          font-semibold
+
+                          !text-slate-500
+                        "
+                      >
+                        {selectedOfficer.position ||
+                          "-"}
+                      </div>
+                    </div>
                   )}
                 </div>
               );
@@ -3186,13 +3130,69 @@ export default function InspectionForm({
 }
 
 /* =========================================================
-   CATEGORY ROWS
+   PDF STYLE HEADER
 
-   รูปแบบให้ตรงกับ PDF
+   หน้าจอให้คล้าย PDF:
+   - พื้นขาว
+   - ขอบดำ
+   - ตัวหนา
+   - Font 14px
+========================================================= */
+
+function PdfStyleHeader({
+  children,
+  rowSpan,
+  colSpan,
+}: {
+  children:
+    React.ReactNode;
+
+  rowSpan?:
+    number;
+
+  colSpan?:
+    number;
+}) {
+  return (
+    <th
+      rowSpan={
+        rowSpan
+      }
+      colSpan={
+        colSpan
+      }
+      className="
+        border
+        border-black
+
+        bg-white
+
+        px-1
+        py-1.5
+
+        text-center
+        align-middle
+        text-[14px]
+        font-black
+        leading-tight
+
+        !text-black
+      "
+    >
+      {children}
+    </th>
+  );
+}
+
+/* =========================================================
+   CATEGORY + MATERIAL ROWS
+
+   ให้เหมือน PDF:
 
    - หมวดอยู่ด้านในตาราง
-   - อยู่ก่อนเลข 1
-   - ไม่มีสีพื้นหลัง
+   - ก่อนลำดับ 1
+   - ไม่มีสีพื้น
+   - หมวดตัวหนา
    - เลขเริ่มใหม่ทุกหมวด
 ========================================================= */
 
@@ -3244,15 +3244,10 @@ function MaterialCategoryRows({
     <>
       {/* =====================================================
           CATEGORY
-
-          ไม่มี background
-          เหมือน PDF
       ===================================================== */}
 
       <tr
         className="
-          h-[23.25px]
-
           bg-white
         "
       >
@@ -3269,12 +3264,12 @@ function MaterialCategoryRows({
             bg-white
 
             px-2
-            py-0
+            py-1
 
             text-left
-            text-[15px]
-            font-bold
-            leading-none
+            text-[14px]
+            font-black
+            leading-tight
 
             !text-black
           "
@@ -3284,7 +3279,7 @@ function MaterialCategoryRows({
       </tr>
 
       {/* =====================================================
-          ITEMS
+          MATERIAL
       ===================================================== */}
 
       {materials.map(
@@ -3306,50 +3301,25 @@ function MaterialCategoryRows({
               key={
                 material.materialId
               }
-              className={`
-                min-h-[23.25px]
+              className="
+                bg-white
 
                 transition-colors
 
-                hover:bg-blue-50/50
-
-                ${
-                  index %
-                    2 ===
-                  0
-                    ? "bg-white"
-                    : "bg-slate-50/35"
-                }
-              `}
+                hover:bg-blue-50/40
+              "
             >
               {/* ===========================================
-                  1. ORDER
+                  1 ORDER
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-
-                  !text-black
-                "
-              >
+              <PdfDataCell>
                 {index +
                   1}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  2. NAME
+                  2 NAME
               =========================================== */}
 
               <td
@@ -3359,11 +3329,13 @@ function MaterialCategoryRows({
                   border
                   border-black
 
+                  bg-white
+
                   px-2
-                  py-[2px]
+                  py-1
 
                   text-left
-                  text-[15px]
+                  text-[12px]
                   font-normal
                   leading-tight
 
@@ -3374,157 +3346,69 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  3. UNIT
+                  3 UNIT
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-
-                  !text-black
-                "
-              >
+              <PdfDataCell>
                 {material.unit ||
                   "-"}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  4. OPENING
+                  4 OPENING BALANCE
 
-                  FY2569
-                  =
-                  ยอดยกเข้าระบบ
-                  ณ 01 ต.ค.68
-
-                  แสดงใต้หัว
-                  30 ก.ย.68
+                  ยอดยกเข้าระบบ ณ 1 ต.ค.
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-                  tabular-nums
-
-                  !text-black
-                "
+              <PdfDataCell
+                numeric
               >
                 {displayStockValue(
                   material.openingBalance
                 )}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  5. RECEIVE
+                  5 RECEIVE
 
-                  รับอย่างเดียวใน FY
+                  รับจริงในปีเท่านั้น
+                  ไม่รวมยอดยก
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-                  tabular-nums
-
-                  !text-black
-                "
+              <PdfDataCell
+                numeric
               >
                 {displayStockValue(
                   material.receiveQty
                 )}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  6. ISSUE
-
-                  จ่ายจริง APPROVED ใน FY
+                  6 ISSUE
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-                  tabular-nums
-
-                  !text-black
-                "
+              <PdfDataCell
+                numeric
               >
                 {displayStockValue(
                   material.issueQty
                 )}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  7. CURRENT BALANCE
+                  7 CURRENT BALANCE
               =========================================== */}
 
-              <td
-                className="
-                  h-[23.25px]
-
-                  border
-                  border-black
-
-                  px-1
-                  py-0
-
-                  text-center
-                  text-[15px]
-                  font-normal
-                  leading-none
-                  tabular-nums
-
-                  !text-black
-                "
+              <PdfDataCell
+                numeric
               >
                 {displayStockValue(
                   material.closingBalance
                 )}
-              </td>
+              </PdfDataCell>
 
               {/* ===========================================
-                  8. CORRECT
+                  8 CORRECT
               =========================================== */}
 
               <td
@@ -3534,9 +3418,12 @@ function MaterialCategoryRows({
                   border
                   border-black
 
+                  bg-white
+
                   p-0
 
                   text-center
+                  align-middle
                 "
               >
                 <input
@@ -3553,8 +3440,8 @@ function MaterialCategoryRows({
                     )
                   }
                   className="
-                    h-[15px]
-                    w-[15px]
+                    h-4
+                    w-4
 
                     cursor-pointer
 
@@ -3564,7 +3451,7 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  9. INCORRECT
+                  9 INCORRECT
               =========================================== */}
 
               <td
@@ -3574,9 +3461,12 @@ function MaterialCategoryRows({
                   border
                   border-black
 
+                  bg-white
+
                   p-0
 
                   text-center
+                  align-middle
                 "
               >
                 <input
@@ -3593,8 +3483,8 @@ function MaterialCategoryRows({
                     )
                   }
                   className="
-                    h-[15px]
-                    w-[15px]
+                    h-4
+                    w-4
 
                     cursor-pointer
 
@@ -3604,7 +3494,7 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  10. SHORTAGE
+                  10 SHORTAGE
               =========================================== */}
 
               <CompactNumberCell
@@ -3626,7 +3516,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  11. EXCESS
+                  11 EXCESS
               =========================================== */}
 
               <CompactNumberCell
@@ -3648,7 +3538,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  12. BAHT
+                  12 BAHT
               =========================================== */}
 
               <CompactNumberCell
@@ -3670,7 +3560,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  13. SATANG
+                  13 SATANG
               =========================================== */}
 
               <CompactNumberCell
@@ -3692,7 +3582,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  14. DAMAGED
+                  14 DAMAGED
               =========================================== */}
 
               <CompactNumberCell
@@ -3714,7 +3604,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  15. DETERIORATED
+                  15 DETERIORATED
               =========================================== */}
 
               <CompactNumberCell
@@ -3736,7 +3626,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  16. UNNECESSARY
+                  16 UNNECESSARY
               =========================================== */}
 
               <CompactNumberCell
@@ -3758,7 +3648,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  17. REMARK
+                  17 REMARK
               =========================================== */}
 
               <td
@@ -3767,6 +3657,8 @@ function MaterialCategoryRows({
 
                   border
                   border-black
+
+                  bg-white
 
                   p-0
                 "
@@ -3798,7 +3690,7 @@ function MaterialCategoryRows({
                     px-1
 
                     text-left
-                    text-[15px]
+                    text-[12px]
                     font-normal
                     leading-none
 
@@ -3820,10 +3712,54 @@ function MaterialCategoryRows({
 }
 
 /* =========================================================
-   COMPACT NUMBER CELL
+   PDF STYLE DATA CELL
+========================================================= */
 
-   Height 23.25 px
-   เหมือน PDF / Excel Standard
+function PdfDataCell({
+  children,
+  numeric = false,
+}: {
+  children:
+    React.ReactNode;
+
+  numeric?:
+    boolean;
+}) {
+  return (
+    <td
+      className={`
+        h-[23.25px]
+
+        border
+        border-black
+
+        bg-white
+
+        px-1
+        py-0
+
+        text-center
+        align-middle
+        text-[12px]
+        font-normal
+        leading-none
+
+        !text-black
+
+        ${
+          numeric
+            ? "tabular-nums"
+            : ""
+        }
+      `}
+    >
+      {children}
+    </td>
+  );
+}
+
+/* =========================================================
+   NUMBER CELL
 ========================================================= */
 
 function CompactNumberCell({
@@ -3846,6 +3782,8 @@ function CompactNumberCell({
 
         border
         border-black
+
+        bg-white
 
         p-0
       "
