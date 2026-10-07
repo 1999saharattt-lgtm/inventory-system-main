@@ -1,10 +1,5 @@
-import {
-  prisma,
-} from "@/lib/prisma";
-
-import {
-  redirect,
-} from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -15,8 +10,8 @@ import InspectionForm from "./InspectionForm";
 /* =========================================================
    FORCE FRESH DATA
 
-   หน้านี้อ่านข้อมูลเพื่อทำกระดาษตรวจสอบเท่านั้น
-   ห้ามสร้าง / แก้ Transaction จาก GET
+   หน้านี้เป็น READ ONLY
+   ไม่สร้าง / ไม่แก้ Transaction
 ========================================================= */
 
 export const dynamic =
@@ -39,6 +34,11 @@ type ThailandDateParts = {
   year: number;
   month: number;
   day: number;
+};
+
+type FiscalYearRange = {
+  startDate: Date;
+  endDate: Date;
 };
 
 type MaterialRow = {
@@ -167,45 +167,48 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    FISCAL YEAR RANGE
+
+   FY 2569
+   =
+   1 ต.ค. 2568
+   ถึงก่อน
+   1 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
   fiscalYearThai: number
-) {
+): FiscalYearRange {
   const fiscalYearGregorian =
     fiscalYearThai -
     543;
 
-  const startDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian -
-          1,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-  const endDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian,
-        9,
-        1,
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
   return {
-    startDate,
-    endDate,
+    startDate:
+      new Date(
+        Date.UTC(
+          fiscalYearGregorian -
+            1,
+          9,
+          1,
+          0,
+          0,
+          0,
+          0
+        )
+      ),
+
+    endDate:
+      new Date(
+        Date.UTC(
+          fiscalYearGregorian,
+          9,
+          1,
+          0,
+          0,
+          0,
+          0
+        )
+      ),
   };
 }
 
@@ -222,6 +225,67 @@ function getShortYear(
   ).padStart(
     2,
     "0"
+  );
+}
+
+/* =========================================================
+   SAFE NUMBER
+========================================================= */
+
+function safeNumber(
+  value: unknown
+) {
+  const number =
+    Number(
+      value ??
+        0
+    );
+
+  return Number.isFinite(
+    number
+  )
+    ? number
+    : 0;
+}
+
+/* =========================================================
+   ACTUAL ISSUE QTY
+
+   ต้องเหมือน Stock Card
+
+   issuedQty = 0
+   ถือว่าเป็น 0 จริง
+
+   fallback qty
+   เฉพาะ null / undefined
+========================================================= */
+
+function getActualIssuedQty(
+  item: {
+    qty:
+      | number
+      | null
+      | undefined;
+
+    issuedQty:
+      | number
+      | null
+      | undefined;
+  }
+) {
+  if (
+    item.issuedQty !==
+      null &&
+    item.issuedQty !==
+      undefined
+  ) {
+    return safeNumber(
+      item.issuedQty
+    );
+  }
+
+  return safeNumber(
+    item.qty
   );
 }
 
@@ -246,32 +310,6 @@ function addMapValue(
       0
     ) +
       value
-  );
-}
-
-/* =========================================================
-   SAFE INTEGER
-========================================================= */
-
-function safeInteger(
-  value: unknown
-) {
-  const number =
-    Number(
-      value ??
-        0
-    );
-
-  if (
-    !Number.isFinite(
-      number
-    )
-  ) {
-    return 0;
-  }
-
-  return Math.trunc(
-    number
   );
 }
 
@@ -347,7 +385,7 @@ export default async function StockCardInspectionPage({
     await searchParams;
 
   /* =======================================================
-     FISCAL YEAR
+     SELECTED FY
   ======================================================= */
 
   const currentFiscalYear =
@@ -369,13 +407,39 @@ export default async function StockCardInspectionPage({
       ? requestedFiscalYear
       : currentFiscalYear;
 
-  const {
-    startDate,
-    endDate,
-  } =
+  const selectedRange =
     getFiscalYearRange(
       fiscalYear
     );
+
+  /* =======================================================
+     CURRENT FY
+
+     ใช้สำหรับคำนวณ
+     "คงเหลือปัจจุบัน"
+
+     ไม่ว่ากำลังเปิด FY2569 หรือปีเก่า
+     ยกไปต้องเป็นยอด Stock Card ปัจจุบัน
+  ======================================================= */
+
+  const currentRange =
+    getFiscalYearRange(
+      currentFiscalYear
+    );
+
+  /* =======================================================
+     QUERY END DATE
+
+     ต้องครอบคลุมทั้ง:
+     - ปีที่เลือก
+     - ปีปัจจุบัน
+  ======================================================= */
+
+  const queryEndDate =
+    selectedRange.endDate.getTime() >
+    currentRange.endDate.getTime()
+      ? selectedRange.endDate
+      : currentRange.endDate;
 
   /* =======================================================
      YEAR LABEL
@@ -394,9 +458,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      EXISTING INSPECTION
-
-     ถ้ามีข้อมูลปีนี้แล้ว
-     ไปหน้ารายละเอียดประวัติ
   ======================================================= */
 
   const existingInspection =
@@ -407,7 +468,8 @@ export default async function StockCardInspectionPage({
         },
 
         select: {
-          id: true,
+          id:
+            true,
         },
       }
     );
@@ -426,14 +488,13 @@ export default async function StockCardInspectionPage({
 
   const [
     materials,
-    openingReceiveItems,
-    fiscalReceiveItems,
+    receiveItems,
     approvedIssueItems,
     officers,
   ] =
     await Promise.all([
       /* =================================================
-         MATERIALS
+         MATERIAL
       ================================================= */
 
       prisma.material.findMany(
@@ -463,7 +524,15 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         RECEIVE BEFORE FY
+         RECEIVE
+
+         โหลดครั้งเดียวตั้งแต่อดีต
+         จนถึงสิ้น FY ที่จำเป็น
+
+         แล้วค่อยแยก:
+         - ยอดยก
+         - รับใน FY
+         - current balance
       ================================================= */
 
       prisma.receiveItem.findMany(
@@ -472,7 +541,7 @@ export default async function StockCardInspectionPage({
             receive: {
               receiveDate: {
                 lt:
-                  startDate,
+                  queryEndDate,
               },
             },
           },
@@ -483,40 +552,21 @@ export default async function StockCardInspectionPage({
 
             qty:
               true,
-          },
-        }
-      ),
 
-      /* =================================================
-         RECEIVE IN FY
-      ================================================= */
-
-      prisma.receiveItem.findMany(
-        {
-          where: {
             receive: {
-              receiveDate: {
-                gte:
-                  startDate,
-
-                lt:
-                  endDate,
+              select: {
+                receiveDate:
+                  true,
               },
             },
-          },
-
-          select: {
-            materialId:
-              true,
-
-            qty:
-              true,
           },
         }
       ),
 
       /* =================================================
          APPROVED ISSUE
+
+         ใช้เฉพาะรายการที่อนุมัติแล้ว
       ================================================= */
 
       prisma.issueItem.findMany(
@@ -528,7 +578,7 @@ export default async function StockCardInspectionPage({
 
               issueDate: {
                 lt:
-                  endDate,
+                  queryEndDate,
               },
             },
           },
@@ -555,8 +605,6 @@ export default async function StockCardInspectionPage({
 
       /* =================================================
          OFFICERS
-
-         ส่งข้อมูลให้ครบตาม Officer ของ InspectionForm
       ================================================= */
 
       prisma.officer.findMany(
@@ -613,67 +661,148 @@ export default async function StockCardInspectionPage({
     ]);
 
   /* =======================================================
-     MAP
+     MAPS
   ======================================================= */
 
-  const openingMap =
+  /*
+   * ยอดยกมาระบบ
+   *
+   * =
+   * รับทั้งหมดก่อน 1 ต.ค.
+   * -
+   * จ่ายจริง APPROVED ทั้งหมดก่อน 1 ต.ค.
+   */
+  const openingBalanceMap =
     new Map<
       number,
       number
     >();
 
-  const receiveMap =
+  /*
+   * รับทั้งหมดภายใน FY ที่เลือก
+   */
+  const fiscalReceiveMap =
     new Map<
       number,
       number
     >();
 
-  const issueMap =
+  /*
+   * จ่ายจริง APPROVED
+   * ภายใน FY ที่เลือก
+   */
+  const fiscalIssueMap =
+    new Map<
+      number,
+      number
+    >();
+
+  /*
+   * รับทั้งหมดจนถึง Stock Card ปัจจุบัน
+   */
+  const currentReceiveMap =
+    new Map<
+      number,
+      number
+    >();
+
+  /*
+   * จ่ายจริง APPROVED ทั้งหมด
+   * จนถึง Stock Card ปัจจุบัน
+   */
+  const currentIssueMap =
     new Map<
       number,
       number
     >();
 
   /* =======================================================
-     OPENING RECEIVE
+     RECEIVE
   ======================================================= */
 
   for (
     const item of
-      openingReceiveItems
+      receiveItems
   ) {
-    addMapValue(
-      openingMap,
-      item.materialId,
-      safeInteger(
-        item.qty
-      )
-    );
-  }
+    const receiveDate =
+      new Date(
+        item.receive
+          .receiveDate
+      );
 
-  /* =======================================================
-     RECEIVE IN FY
-  ======================================================= */
-
-  for (
-    const item of
-      fiscalReceiveItems
-  ) {
-    addMapValue(
-      receiveMap,
-      item.materialId,
-      safeInteger(
+    const qty =
+      safeNumber(
         item.qty
-      )
-    );
+      );
+
+    const receiveTime =
+      receiveDate.getTime();
+
+    /* ===============================================
+       OPENING BALANCE
+
+       รับก่อน 1 ต.ค. ของ FY ที่เลือก
+    =============================================== */
+
+    if (
+      receiveTime <
+      selectedRange
+        .startDate
+        .getTime()
+    ) {
+      addMapValue(
+        openingBalanceMap,
+        item.materialId,
+        qty
+      );
+    }
+
+    /* ===============================================
+       RECEIVE DURING SELECTED FY
+
+       FY2569:
+       01 ต.ค. 68 - 30 ก.ย. 69
+    =============================================== */
+
+    if (
+      receiveTime >=
+        selectedRange
+          .startDate
+          .getTime() &&
+      receiveTime <
+        selectedRange
+          .endDate
+          .getTime()
+    ) {
+      addMapValue(
+        fiscalReceiveMap,
+        item.materialId,
+        qty
+      );
+    }
+
+    /* ===============================================
+       CURRENT STOCK CARD
+
+       ใช้ช่วงเดียวกับ Stock Card ปีปัจจุบัน
+    =============================================== */
+
+    if (
+      receiveTime <
+      currentRange
+        .endDate
+        .getTime()
+    ) {
+      addMapValue(
+        currentReceiveMap,
+        item.materialId,
+        qty
+      );
+    }
   }
 
   /* =======================================================
      ISSUE
-
-     FY2569 เดิม:
-     ใช้ issuedQty จริง
-     ไม่ fallback qty
   ======================================================= */
 
   for (
@@ -686,40 +815,96 @@ export default async function StockCardInspectionPage({
           .issueDate
       );
 
-    const issuedQty =
-      safeInteger(
-        item.issuedQty
+    const issueTime =
+      issueDate.getTime();
+
+    const actualIssuedQty =
+      getActualIssuedQty(
+        {
+          qty:
+            item.qty,
+
+          issuedQty:
+            item.issuedQty,
+        }
       );
+
+    /* ===============================================
+       OPENING BALANCE
+
+       หักจ่ายก่อน 1 ต.ค.
+    =============================================== */
 
     if (
-      issueDate.getTime() <
-      startDate.getTime()
+      issueTime <
+      selectedRange
+        .startDate
+        .getTime()
     ) {
       addMapValue(
-        openingMap,
+        openingBalanceMap,
         item.materialId,
-        -issuedQty
+        -actualIssuedQty
       );
-
-      continue;
     }
 
+    /* ===============================================
+       ISSUE DURING SELECTED FY
+    =============================================== */
+
     if (
-      issueDate.getTime() >=
-        startDate.getTime() &&
-      issueDate.getTime() <
-        endDate.getTime()
+      issueTime >=
+        selectedRange
+          .startDate
+          .getTime() &&
+      issueTime <
+        selectedRange
+          .endDate
+          .getTime()
     ) {
       addMapValue(
-        issueMap,
+        fiscalIssueMap,
         item.materialId,
-        issuedQty
+        actualIssuedQty
+      );
+    }
+
+    /* ===============================================
+       CURRENT STOCK CARD
+    =============================================== */
+
+    if (
+      issueTime <
+      currentRange
+        .endDate
+        .getTime()
+    ) {
+      addMapValue(
+        currentIssueMap,
+        item.materialId,
+        actualIssuedQty
       );
     }
   }
 
   /* =======================================================
      MATERIAL ROWS
+
+     openingBalance
+     =
+     ยอดยกมาระบบ
+
+     receiveQty
+     =
+     รับรวม FY
+
+     issueQty
+     =
+     จ่ายรวม FY
+
+     closingBalance
+     =
+     คงเหลือปัจจุบันของ Stock Card
   ======================================================= */
 
   const rows =
@@ -729,27 +914,50 @@ export default async function StockCardInspectionPage({
           material
         ): MaterialRow => {
           const openingBalance =
-            openingMap.get(
+            openingBalanceMap.get(
               material.id
             ) ??
             0;
 
           const receiveQty =
-            receiveMap.get(
+            fiscalReceiveMap.get(
               material.id
             ) ??
             0;
 
           const issueQty =
-            issueMap.get(
+            fiscalIssueMap.get(
               material.id
             ) ??
             0;
 
+          const currentReceive =
+            currentReceiveMap.get(
+              material.id
+            ) ??
+            0;
+
+          const currentIssue =
+            currentIssueMap.get(
+              material.id
+            ) ??
+            0;
+
+          /*
+           * สำคัญ:
+           *
+           * ไม่ใช้
+           * opening + receive - issue
+           *
+           * เพราะผู้ใช้ต้องการ
+           * "คงเหลือปัจจุบัน"
+           *
+           * แม้เปิด FY2569
+           * ก็ต้องเห็นยอด Stock Card ปัจจุบัน
+           */
           const closingBalance =
-            openingBalance +
-            receiveQty -
-            issueQty;
+            currentReceive -
+            currentIssue;
 
           return {
             materialId:
@@ -783,9 +991,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      BACK
-
-     กลับหน้าบัญชีคุมพัสดุ
-     ของปีงบประมาณเดิม
   ======================================================= */
 
   const backHref =
@@ -797,15 +1002,6 @@ export default async function StockCardInspectionPage({
 
   return (
     <AppPage>
-      {/* =====================================================
-          HEADER
-
-          ลบปุ่ม:
-          ประวัติการตรวจสอบ
-
-          เหลือปุ่มกลับตัวกลางอย่างเดียว
-      ===================================================== */}
-
       <AppPageHeader
         icon="🔎"
         title="ตรวจสอบบัญชีพัสดุประจำปี"
@@ -822,10 +1018,6 @@ export default async function StockCardInspectionPage({
           </AppButton>
         }
       />
-
-      {/* =====================================================
-          INSPECTION FORM
-      ===================================================== */}
 
       <InspectionForm
         fiscalYear={
