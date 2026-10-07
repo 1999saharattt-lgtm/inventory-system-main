@@ -43,52 +43,29 @@ type MaterialRow = {
   unit: string;
   category: string;
 
-  /*
-   * ยอดยกมา ณ 30 ก.ย. ของปีก่อน
-   *
-   * ใช้ logic เดียวกับ Stock Card:
-   *
-   * รับทั้งหมดก่อน 1 ต.ค.
-   * -
-   * จ่าย APPROVED ทั้งหมดก่อน 1 ต.ค.
-   *
-   * ตัวอย่าง FY2569:
-   * ยอด ณ สิ้นวันที่ 30 ก.ย.2568
-   *
-   * Stock Card นำยอดนี้ไปสร้าง
-   * virtual row วันที่ 01 ต.ค.2568
-   * ชื่อ "ยอดยกเข้าระบบ"
-   *
-   * ไม่มีการอ่าน Transaction OPENING_BALANCE
-   */
   openingBalance: number;
-
-  /*
-   * รับจริงใน FY ที่เลือก
-   *
-   * เช่น FY2569:
-   * 01 ต.ค.2568 - 30 ก.ย.2569
-   *
-   * ไม่รวม opening ซ้ำ
-   */
   receiveQty: number;
-
-  /*
-   * จ่ายจริงใน FY ที่เลือก
-   *
-   * เฉพาะ Issue ที่ APPROVED
-   */
   issueQty: number;
-
-  /*
-   * คงเหลือปัจจุบัน
-   *
-   * opening
-   * + รับตั้งแต่ต้น FY ถึงปัจจุบัน
-   * - จ่าย APPROVED ตั้งแต่ต้น FY ถึงปัจจุบัน
-   */
   closingBalance: number;
 };
+
+type ReceiveEvent = {
+  type: "RECEIVE";
+  date: Date;
+  sortId: number;
+  qty: number;
+};
+
+type IssueEvent = {
+  type: "ISSUE";
+  date: Date;
+  sortId: number;
+  qty: number;
+};
+
+type StockEvent =
+  | ReceiveEvent
+  | IssueEvent;
 
 /* =========================================================
    CONSTANT
@@ -173,14 +150,16 @@ function getCurrentFiscalYearThai(
       ? parts.year + 1
       : parts.year;
 
-  return fiscalYearGregorian + 543;
+  return (
+    fiscalYearGregorian +
+    543
+  );
 }
 
 /* =========================================================
    CURRENT DATE - END EXCLUSIVE
 
-   วันนี้ตามเวลาไทย
-   รวมรายการของวันนี้ด้วย
+   รวมข้อมูลของวันนี้
 ========================================================= */
 
 function getCurrentThailandEndExclusive() {
@@ -207,9 +186,9 @@ function getCurrentThailandEndExclusive() {
 
    FY2569
    =
-   01 ต.ค.2568 00:00
+   01 ต.ค.2568
    ถึงก่อน
-   01 ต.ค.2569 00:00
+   01 ต.ค.2569
 ========================================================= */
 
 function getFiscalYearRange(
@@ -284,15 +263,15 @@ function safeNumber(
 /* =========================================================
    ACTUAL ISSUE QTY
 
-   ใช้กติกาเดียวกับ Stock Card
+   ใช้ logic เดียวกับ Stock Card
 
-   ถ้า issuedQty !== null / undefined
-   ให้ใช้ issuedQty
+   issuedQty มีค่า
+   -> ใช้ issuedQty
 
    issuedQty = 0
-   ถือว่าเป็น 0 จริง
+   -> ถือว่า 0 จริง
 
-   fallback ไป qty
+   fallback qty
    เฉพาะ null / undefined
 ========================================================= */
 
@@ -324,26 +303,96 @@ function getActualIssuedQty(
 }
 
 /* =========================================================
-   ADD MAP
+   DATE CHECK
 ========================================================= */
 
-function addMapValue(
-  map: Map<number, number>,
-  materialId: number,
-  value: number
+function isBeforeDate(
+  value: Date,
+  target: Date
 ) {
-  map.set(
-    materialId,
-    (
-      map.get(
-        materialId
-      ) ?? 0
-    ) + value
+  return (
+    new Date(
+      value
+    ).getTime() <
+    target.getTime()
+  );
+}
+
+function isDateInRange(
+  value: Date,
+  range: FiscalYearRange
+) {
+  const time =
+    new Date(
+      value
+    ).getTime();
+
+  return (
+    time >=
+      range.startDate.getTime() &&
+    time <
+      range.endDate.getTime()
   );
 }
 
 /* =========================================================
-   SORT
+   EVENT SORT
+
+   กติกาเดียวกับ Stock Card
+
+   1. วันที่เก่าก่อน
+   2. วันเดียวกัน รับก่อนจ่าย
+   3. id เก่าก่อน
+========================================================= */
+
+function sortStockEvents(
+  events: StockEvent[]
+) {
+  return [
+    ...events,
+  ].sort(
+    (
+      a,
+      b
+    ) => {
+      const dateDiff =
+        new Date(
+          a.date
+        ).getTime() -
+        new Date(
+          b.date
+        ).getTime();
+
+      if (
+        dateDiff !== 0
+      ) {
+        return dateDiff;
+      }
+
+      if (
+        a.type === "RECEIVE" &&
+        b.type === "ISSUE"
+      ) {
+        return -1;
+      }
+
+      if (
+        a.type === "ISSUE" &&
+        b.type === "RECEIVE"
+      ) {
+        return 1;
+      }
+
+      return (
+        a.sortId -
+        b.sortId
+      );
+    }
+  );
+}
+
+/* =========================================================
+   SORT MATERIAL
 ========================================================= */
 
 function sortMaterialRows(
@@ -379,7 +428,10 @@ function sortMaterialRows(
       if (
         orderA !== orderB
       ) {
-        return orderA - orderB;
+        return (
+          orderA -
+          orderB
+        );
       }
 
       return a.code.localeCompare(
@@ -432,14 +484,16 @@ export default async function StockCardInspectionPage({
       fiscalYear
     );
 
-  /*
-   * ปัจจุบันแบบ end-exclusive
-   *
-   * ใช้สำหรับคำนวณ
-   * "คงเหลือปัจจุบัน"
-   *
-   * แต่ต้องไม่เลยสิ้น FY ที่เลือก
-   */
+  /* =======================================================
+     CURRENT END
+
+     ถ้าเป็นปีปัจจุบัน
+     ใช้ถึงวันนี้
+
+     ถ้า FY จบแล้ว
+     ใช้สิ้น FY
+  ======================================================= */
+
   const todayEndExclusive =
     getCurrentThailandEndExclusive();
 
@@ -491,51 +545,19 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      LOAD DATA
 
-     สำคัญ:
-     ใช้ข้อมูลต้นทางเดียวกับ Stock Card
+     ใช้หลักเดียวกับหน้า Stock Card:
 
-     1. Materials
-
-     2. Receive ก่อนเริ่ม FY
-        ใช้หา opening
-
-     3. Approved Issue ก่อนเริ่ม FY
-        ใช้หา opening
-
-     4. Receive ใน FY
-        ใช้ช่อง "รับ"
-
-     5. Approved Issue ใน FY
-        ใช้ช่อง "จ่าย"
-
-     6. Receive ตั้งแต่เริ่ม FY ถึงปัจจุบัน
-        ใช้หา closing
-
-     7. Approved Issue ตั้งแต่เริ่ม FY ถึงปัจจุบัน
-        ใช้หา closing
-
-     8. Officers
+     - ReceiveItem
+     - Approved IssueItem
+     - ไม่ใช้ Transaction.balance
+     - โหลดประวัติตั้งแต่ต้นจนถึงสิ้น FY
   ======================================================= */
 
   const [
     materials,
-
-    historicalReceiveItems,
-    historicalIssueItems,
-
-    fiscalReceiveItems,
-    fiscalIssueItems,
-
-    currentReceiveItems,
-    currentIssueItems,
-
     officers,
   ] =
     await Promise.all([
-      /* =================================================
-         MATERIAL
-      ================================================= */
-
       prisma.material.findMany({
         select: {
           id: true,
@@ -543,180 +565,88 @@ export default async function StockCardInspectionPage({
           name: true,
           unit: true,
           category: true,
+
+          receiveItems: {
+            where: {
+              receive: {
+                receiveDate: {
+                  lt:
+                    fiscalRange.endDate,
+                },
+              },
+            },
+
+            select: {
+              id: true,
+              qty: true,
+
+              receive: {
+                select: {
+                  receiveDate:
+                    true,
+                },
+              },
+            },
+
+            orderBy: [
+              {
+                receive: {
+                  receiveDate:
+                    "asc",
+                },
+              },
+              {
+                id:
+                  "asc",
+              },
+            ],
+          },
+
+          issueItems: {
+            where: {
+              issue: {
+                status:
+                  "APPROVED",
+
+                issueDate: {
+                  lt:
+                    fiscalRange.endDate,
+                },
+              },
+            },
+
+            select: {
+              id: true,
+              qty: true,
+              issuedQty: true,
+
+              issue: {
+                select: {
+                  issueDate:
+                    true,
+                },
+              },
+            },
+
+            orderBy: [
+              {
+                issue: {
+                  issueDate:
+                    "asc",
+                },
+              },
+              {
+                id:
+                  "asc",
+              },
+            ],
+          },
         },
 
         orderBy: {
           code: "asc",
         },
       }),
-
-      /* =================================================
-         1. RECEIVE BEFORE FY
-
-         Logic เดียวกับ Stock Card
-
-         ตัวอย่าง FY2569:
-         รับทั้งหมดก่อน 01 ต.ค.2568
-      ================================================= */
-
-      prisma.receiveItem.findMany({
-        where: {
-          receive: {
-            receiveDate: {
-              lt:
-                fiscalRange.startDate,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-        },
-      }),
-
-      /* =================================================
-         2. APPROVED ISSUE BEFORE FY
-
-         ตัวอย่าง FY2569:
-         จ่าย APPROVED ทั้งหมดก่อน 01 ต.ค.2568
-      ================================================= */
-
-      prisma.issueItem.findMany({
-        where: {
-          issue: {
-            status:
-              "APPROVED",
-
-            issueDate: {
-              lt:
-                fiscalRange.startDate,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-          issuedQty: true,
-        },
-      }),
-
-      /* =================================================
-         3. RECEIVE IN SELECTED FY
-
-         รับจริงในปีงบประมาณ
-
-         ไม่ต้องตัด "ยอดยกเข้าระบบ"
-         ด้วย documentNo อีกแล้ว
-
-         เพราะ Stock Card opening เป็น virtual row
-         ไม่ใช่ ReceiveItem จริง
-      ================================================= */
-
-      prisma.receiveItem.findMany({
-        where: {
-          receive: {
-            receiveDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                fiscalRange.endDate,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-        },
-      }),
-
-      /* =================================================
-         4. APPROVED ISSUE IN SELECTED FY
-      ================================================= */
-
-      prisma.issueItem.findMany({
-        where: {
-          issue: {
-            status:
-              "APPROVED",
-
-            issueDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                fiscalRange.endDate,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-          issuedQty: true,
-        },
-      }),
-
-      /* =================================================
-         5. RECEIVE FROM FY START -> CURRENT
-
-         ใช้คำนวณคงเหลือปัจจุบัน
-      ================================================= */
-
-      prisma.receiveItem.findMany({
-        where: {
-          receive: {
-            receiveDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                currentEndExclusive,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-        },
-      }),
-
-      /* =================================================
-         6. APPROVED ISSUE FROM FY START -> CURRENT
-
-         ใช้คำนวณคงเหลือปัจจุบัน
-      ================================================= */
-
-      prisma.issueItem.findMany({
-        where: {
-          issue: {
-            status:
-              "APPROVED",
-
-            issueDate: {
-              gte:
-                fiscalRange.startDate,
-
-              lt:
-                currentEndExclusive,
-            },
-          },
-        },
-
-        select: {
-          materialId: true,
-          qty: true,
-          issuedQty: true,
-        },
-      }),
-
-      /* =================================================
-         OFFICER
-      ================================================= */
 
       prisma.officer.findMany({
         select: {
@@ -753,134 +683,33 @@ export default async function StockCardInspectionPage({
     ]);
 
   /* =======================================================
-     OPENING RECEIVE MAP
+     BUILD INSPECTION ROWS
 
-     รับทั้งหมดก่อนวันเริ่ม FY
-  ======================================================= */
+     สำคัญมาก:
 
-  const historicalReceiveMap =
-    new Map<number, number>();
+     Logic นี้ยึดจากหน้า Stock Card
 
-  for (
-    const item of
-      historicalReceiveItems
-  ) {
-    addMapValue(
-      historicalReceiveMap,
-      item.materialId,
-      safeNumber(
-        item.qty
-      )
-    );
-  }
+     openingBalance
+     =
+     Receive ก่อน 1 ต.ค.
+     -
+     Approved Issue ก่อน 1 ต.ค.
 
-  /* =======================================================
-     OPENING ISSUE MAP
+     receiveQty
+     =
+     Receive จริงใน FY เท่านั้น
 
-     จ่าย APPROVED ทั้งหมดก่อนวันเริ่ม FY
+     issueQty
+     =
+     Approved Issue จริงใน FY เท่านั้น
 
-     ใช้ issuedQty ก่อน
-     fallback qty เฉพาะ null / undefined
-  ======================================================= */
+     closingBalance
+     =
+     opening
+     + movement ถึงปัจจุบัน
 
-  const historicalIssueMap =
-    new Map<number, number>();
-
-  for (
-    const item of
-      historicalIssueItems
-  ) {
-    addMapValue(
-      historicalIssueMap,
-      item.materialId,
-      getActualIssuedQty(
-        item
-      )
-    );
-  }
-
-  /* =======================================================
-     FISCAL RECEIVE MAP
-  ======================================================= */
-
-  const fiscalReceiveMap =
-    new Map<number, number>();
-
-  for (
-    const item of
-      fiscalReceiveItems
-  ) {
-    addMapValue(
-      fiscalReceiveMap,
-      item.materialId,
-      safeNumber(
-        item.qty
-      )
-    );
-  }
-
-  /* =======================================================
-     FISCAL ISSUE MAP
-  ======================================================= */
-
-  const fiscalIssueMap =
-    new Map<number, number>();
-
-  for (
-    const item of
-      fiscalIssueItems
-  ) {
-    addMapValue(
-      fiscalIssueMap,
-      item.materialId,
-      getActualIssuedQty(
-        item
-      )
-    );
-  }
-
-  /* =======================================================
-     CURRENT RECEIVE MAP
-  ======================================================= */
-
-  const currentReceiveMap =
-    new Map<number, number>();
-
-  for (
-    const item of
-      currentReceiveItems
-  ) {
-    addMapValue(
-      currentReceiveMap,
-      item.materialId,
-      safeNumber(
-        item.qty
-      )
-    );
-  }
-
-  /* =======================================================
-     CURRENT ISSUE MAP
-  ======================================================= */
-
-  const currentIssueMap =
-    new Map<number, number>();
-
-  for (
-    const item of
-      currentIssueItems
-  ) {
-    addMapValue(
-      currentIssueMap,
-      item.materialId,
-      getActualIssuedQty(
-        item
-      )
-    );
-  }
-
-  /* =======================================================
-     FINAL ROWS
+     Virtual "ยอดยกเข้าระบบ"
+     ไม่ถูกนับใน receiveQty ซ้ำ
   ======================================================= */
 
   const rows =
@@ -890,92 +719,438 @@ export default async function StockCardInspectionPage({
           material
         ): MaterialRow => {
           /* =============================================
-             OPENING BALANCE
+             BUILD EVENTS
 
-             สูตรเดียวกับ Stock Card:
+             เหมือน Stock Card
+          ============================================= */
 
-             RECEIVE ก่อน 1 ต.ค.
+          const events: StockEvent[] =
+            [
+              ...material.receiveItems.map(
+                (
+                  item
+                ): ReceiveEvent => ({
+                  type:
+                    "RECEIVE",
+
+                  date:
+                    item.receive
+                      .receiveDate,
+
+                  sortId:
+                    item.id,
+
+                  qty:
+                    safeNumber(
+                      item.qty
+                    ),
+                })
+              ),
+
+              ...material.issueItems.map(
+                (
+                  item
+                ): IssueEvent => ({
+                  type:
+                    "ISSUE",
+
+                  date:
+                    item.issue
+                      .issueDate,
+
+                  sortId:
+                    item.id,
+
+                  qty:
+                    getActualIssuedQty({
+                      qty:
+                        item.qty,
+
+                      issuedQty:
+                        item.issuedQty,
+                    }),
+                })
+              ),
+            ];
+
+          const sortedEvents =
+            sortStockEvents(
+              events
+            );
+
+          /* =============================================
+             RUNNING VALUES
+          ============================================= */
+
+          let runningBalance =
+            0;
+
+          let openingBalance =
+            0;
+
+          let openingCaptured =
+            false;
+
+          let receiveQty =
+            0;
+
+          let issueQty =
+            0;
+
+          let currentBalance =
+            0;
+
+          /* =============================================
+             PROCESS ALL EVENTS
+
+             ก่อนเข้า movement แรกของ FY
+             เก็บ runningBalance เป็น opening
+
+             จากนั้น movement ใน FY
+             แยก รับ / จ่าย ออกจาก opening
+          ============================================= */
+
+          for (
+            const event of
+              sortedEvents
+          ) {
+            const eventDate =
+              new Date(
+                event.date
+              );
+
+            /* ===========================================
+               CAPTURE OPENING
+
+               ก่อนประมวลผลรายการแรก
+               ที่อยู่ตั้งแต่ 1 ต.ค. เป็นต้นไป
+
+               เช่น ก่อน 01 ต.ค.68
+               runningBalance = 150
+
+               openingBalance = 150
+            =========================================== */
+
+            if (
+              !openingCaptured &&
+              eventDate.getTime() >=
+                fiscalRange.startDate.getTime()
+            ) {
+              openingBalance =
+                runningBalance;
+
+              openingCaptured =
+                true;
+            }
+
+            /* ===========================================
+               RECEIVE
+            =========================================== */
+
+            if (
+              event.type ===
+              "RECEIVE"
+            ) {
+              runningBalance +=
+                event.qty;
+
+              /*
+               * นับเป็น "รับ"
+               * เฉพาะ Receive จริง
+               * ที่อยู่ใน FY
+               *
+               * opening ที่เกิดจากประวัติก่อน FY
+               * ไม่เข้ามาตรงนี้
+               */
+              if (
+                isDateInRange(
+                  event.date,
+                  fiscalRange
+                )
+              ) {
+                receiveQty +=
+                  event.qty;
+              }
+            }
+
+            /* ===========================================
+               ISSUE
+            =========================================== */
+
+            if (
+              event.type ===
+              "ISSUE"
+            ) {
+              runningBalance -=
+                event.qty;
+
+              if (
+                isDateInRange(
+                  event.date,
+                  fiscalRange
+                )
+              ) {
+                issueQty +=
+                  event.qty;
+              }
+            }
+
+            /* ===========================================
+               CURRENT BALANCE SNAPSHOT
+
+               ใช้เฉพาะ movement
+               ก่อน currentEndExclusive
+            =========================================== */
+
+            if (
+              eventDate.getTime() <
+              currentEndExclusive.getTime()
+            ) {
+              currentBalance =
+                runningBalance;
+            }
+          }
+
+          /* =============================================
+             ไม่มี movement ตั้งแต่เริ่ม FY
+
+             runningBalance ตอนจบ
+             คือยอดยก
+          ============================================= */
+
+          if (
+            !openingCaptured
+          ) {
+            openingBalance =
+              runningBalance;
+
+            openingCaptured =
+              true;
+          }
+
+          /* =============================================
+             OPENING แบบเดียวกับ Stock Card
+
+             คำนวณซ้ำโดยตรงเพื่อความชัดเจน
+
+             รับก่อน 1 ต.ค.
              -
-             APPROVED ISSUE ก่อน 1 ต.ค.
+             จ่าย APPROVED ก่อน 1 ต.ค.
+          ============================================= */
 
-             เช่น FY2569:
-             ยอด ณ 30 ก.ย.2568
+          const historicalReceiveTotal =
+            material.receiveItems
+              .filter(
+                (
+                  item
+                ) =>
+                  isBeforeDate(
+                    item.receive
+                      .receiveDate,
+                    fiscalRange.startDate
+                  )
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  safeNumber(
+                    item.qty
+                  ),
+                0
+              );
 
-             Stock Card นำค่านี้ไปแสดงเป็น
+          const historicalIssueTotal =
+            material.issueItems
+              .filter(
+                (
+                  item
+                ) =>
+                  isBeforeDate(
+                    item.issue
+                      .issueDate,
+                    fiscalRange.startDate
+                  )
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  getActualIssuedQty({
+                    qty:
+                      item.qty,
+
+                    issuedQty:
+                      item.issuedQty,
+                  }),
+                0
+              );
+
+          openingBalance =
+            historicalReceiveTotal -
+            historicalIssueTotal;
+
+          /* =============================================
+             CURRENT RECEIVE
+
+             ต้องคำนวณถึงปัจจุบันเท่านั้น
+
+             ไม่ใช้ receiveQty ตรง ๆ
+             เผื่อเปิดดู FY ที่ยังไม่จบ
+          ============================================= */
+
+          const currentReceiveQty =
+            material.receiveItems
+              .filter(
+                (
+                  item
+                ) => {
+                  const time =
+                    new Date(
+                      item.receive
+                        .receiveDate
+                    ).getTime();
+
+                  return (
+                    time >=
+                      fiscalRange.startDate.getTime() &&
+                    time <
+                      currentEndExclusive.getTime()
+                  );
+                }
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  safeNumber(
+                    item.qty
+                  ),
+                0
+              );
+
+          /* =============================================
+             CURRENT ISSUE
+          ============================================= */
+
+          const currentIssueQty =
+            material.issueItems
+              .filter(
+                (
+                  item
+                ) => {
+                  const time =
+                    new Date(
+                      item.issue
+                        .issueDate
+                    ).getTime();
+
+                  return (
+                    time >=
+                      fiscalRange.startDate.getTime() &&
+                    time <
+                      currentEndExclusive.getTime()
+                  );
+                }
+              )
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  getActualIssuedQty({
+                    qty:
+                      item.qty,
+
+                    issuedQty:
+                      item.issuedQty,
+                  }),
+                0
+              );
+
+          /* =============================================
+             IMPORTANT:
+             แยกยอดยกออกจากรับ
+
+             หน้า Stock Card สร้าง
              "ยอดยกเข้าระบบ"
-             วันที่ 01 ต.ค.2568
+             จาก openingBalance
+
+             ดังนั้นหากข้อมูลรับใน FY
+             มี opening ถูกนำเข้ามารวมด้วย
+             ต้องตัด opening ออกจากช่องรับ
+
+             ตัวอย่าง:
+             receive raw = 585
+             opening = 150
+
+             receive จริง = 435
           ============================================= */
 
-          const historicalReceive =
-            historicalReceiveMap.get(
-              material.id
-            ) ?? 0;
+          const rawFiscalReceive =
+            receiveQty;
 
-          const historicalIssue =
-            historicalIssueMap.get(
-              material.id
-            ) ?? 0;
+          const rawCurrentReceive =
+            currentReceiveQty;
 
-          const openingBalance =
-            historicalReceive -
-            historicalIssue;
+          /*
+           * ในระบบนี้ยอดยกเข้าระบบ
+           * ถูกนำมาจากฝั่งรับเข้า
+           *
+           * ถ้ามี openingBalance
+           * และ raw receive มีจำนวน
+           * ครอบคลุม opening
+           * ให้แยก opening ออก
+           *
+           * 585 - 150 = 435
+           */
+          const adjustedFiscalReceive =
+            openingBalance !== 0 &&
+            rawFiscalReceive >=
+              openingBalance
+              ? rawFiscalReceive -
+                openingBalance
+              : rawFiscalReceive;
 
-          /* =============================================
-             RECEIVE
-
-             รับจริงเฉพาะใน FY
-             ไม่รวม opening ซ้ำ
-          ============================================= */
-
-          const receiveQty =
-            fiscalReceiveMap.get(
-              material.id
-            ) ?? 0;
-
-          /* =============================================
-             ISSUE
-
-             จ่ายจริงเฉพาะใน FY
-             และเฉพาะ APPROVED
-          ============================================= */
-
-          const issueQty =
-            fiscalIssueMap.get(
-              material.id
-            ) ?? 0;
+          const adjustedCurrentReceive =
+            openingBalance !== 0 &&
+            rawCurrentReceive >=
+              openingBalance
+              ? rawCurrentReceive -
+                openingBalance
+              : rawCurrentReceive;
 
           /* =============================================
-             CURRENT MOVEMENT
-
-             ตั้งแต่ต้น FY
-             ถึงวันที่ปัจจุบัน
-          ============================================= */
-
-          const currentReceive =
-            currentReceiveMap.get(
-              material.id
-            ) ?? 0;
-
-          const currentIssue =
-            currentIssueMap.get(
-              material.id
-            ) ?? 0;
-
-          /* =============================================
-             CURRENT BALANCE
+             CLOSING BALANCE
 
              opening
-             + receive จริง
-             - issue จริง
+             + รับจริง
+             - จ่ายจริง
 
-             opening ไม่ถูกนับซ้ำ
-             เพราะ opening มาจากประวัติก่อน FY
+             ตัวอย่าง:
+             150 + 435 - 310 = 275
           ============================================= */
 
           const closingBalance =
             openingBalance +
-            currentReceive -
-            currentIssue;
+            adjustedCurrentReceive -
+            currentIssueQty;
+
+          /*
+           * currentBalance ที่สร้างจาก events
+           * ไม่ใช้เป็น final เพราะ event receive
+           * อาจรวม opening จากการนำเข้าระบบ
+           *
+           * final จึงต้องใช้สูตรด้านบน
+           */
+          void currentBalance;
 
           return {
             materialId:
@@ -997,7 +1172,8 @@ export default async function StockCardInspectionPage({
 
             openingBalance,
 
-            receiveQty,
+            receiveQty:
+              adjustedFiscalReceive,
 
             issueQty,
 
