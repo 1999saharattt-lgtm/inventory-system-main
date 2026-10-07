@@ -299,15 +299,6 @@ function safeInteger(
 
 /* =========================================================
    MATERIAL SORT
-
-   1 OFFICE
-   2 COMPUTER
-   3 ELECTRIC
-   4 HOUSEHOLD
-   5 VEHICLE
-   6 PRINTING
-
-   แล้วเรียงรหัสภายในหมวด
 ========================================================= */
 
 function sortMaterialRows(
@@ -410,10 +401,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      YEAR LABEL
-
-     FY 2569
-     start = 68
-     end   = 69
   ======================================================= */
 
   const startShortYear =
@@ -434,9 +421,8 @@ export default async function StockCardInspectionPage({
      =
      1 รอบการตรวจ
 
-     ถ้าบันทึกแล้ว
-     ไม่เปิด Form ใหม่ซ้ำ
-     ให้ไปดูประวัติของปีนั้น
+     ถ้ามีข้อมูลแล้ว
+     ไปหน้าประวัติของปีนั้น
   ======================================================= */
 
   const existingInspection =
@@ -463,10 +449,8 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      DATA
 
-     อ่านเท่านั้น
-     ไม่มีการสร้าง OPENING_BALANCE
-     ไม่มีการแก้ Material.balance
-     ไม่มีการแก้ Transaction
+     READ ONLY
+     ไม่สร้าง / แก้ Transaction
   ======================================================= */
 
   const [
@@ -484,10 +468,18 @@ export default async function StockCardInspectionPage({
       prisma.material.findMany(
         {
           select: {
-            id: true,
-            code: true,
-            name: true,
-            unit: true,
+            id:
+              true,
+
+            code:
+              true,
+
+            name:
+              true,
+
+            unit:
+              true,
+
             category:
               true,
           },
@@ -501,8 +493,6 @@ export default async function StockCardInspectionPage({
 
       /* =================================================
          RECEIVE ก่อนเริ่มปีงบประมาณ
-
-         ใช้คำนวณยอดยกมา
       ================================================= */
 
       prisma.receiveItem.findMany(
@@ -555,14 +545,9 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         ISSUE ที่ APPROVED
+         ISSUE APPROVED
 
-         ดึงตั้งแต่อดีต
-         จนก่อนสิ้นปีงบประมาณที่เลือก
-
-         แล้วค่อยแบ่ง:
-         - ก่อน FY = ใช้คำนวณ opening
-         - ใน FY   = ใช้คำนวณ issue
+         ดึงตั้งแต่อดีตจนถึงก่อนสิ้น FY
       ================================================= */
 
       prisma.issueItem.findMany(
@@ -602,14 +587,19 @@ export default async function StockCardInspectionPage({
       /* =================================================
          OFFICERS
 
-         ใช้ Dropdown
-         คณะกรรมการ 3 คน
+         ต้องส่งให้ตรงกับ Officer[] ของ InspectionForm
+
+         FIX:
+         - type
+         - departmentId
+         - sectionId
       ================================================= */
 
       prisma.officer.findMany(
         {
           select: {
-            id: true,
+            id:
+              true,
 
             firstName:
               true,
@@ -620,17 +610,32 @@ export default async function StockCardInspectionPage({
             position:
               true,
 
+            type:
+              true,
+
+            departmentId:
+              true,
+
+            sectionId:
+              true,
+
             department: {
               select: {
-                id: true,
-                name: true,
+                id:
+                  true,
+
+                name:
+                  true,
               },
             },
 
             section: {
               select: {
-                id: true,
-                name: true,
+                id:
+                  true,
+
+                name:
+                  true,
               },
             },
           },
@@ -667,9 +672,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      OPENING RECEIVE
-
-     ยอดรับสะสม
-     ก่อนวันที่ 1 ต.ค.
   ======================================================= */
 
   for (
@@ -705,12 +707,9 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      APPROVED ISSUE
 
-     สำคัญ:
-     ใช้ issuedQty ตามข้อมูลที่บันทึกจริง
-
-     สำหรับข้อมูลปี 2569 เดิม
-     ไม่ fallback issuedQty = 0 ไปใช้ qty
-     เพราะจะเป็นการแก้ประวัติย้อนหลังโดยไม่ตั้งใจ
+     ใช้ issuedQty จริง
+     ไม่ fallback เป็น qty
+     เพื่อไม่เปลี่ยนข้อมูลย้อนหลัง FY2569
   ======================================================= */
 
   for (
@@ -729,9 +728,9 @@ export default async function StockCardInspectionPage({
       );
 
     /* ===============================================
-       ISSUE ก่อน FY
+       ISSUE ก่อนปีงบประมาณ
 
-       หักออกจากยอดเปิด
+       หักออกจากยอดยกมา
     =============================================== */
 
     if (
@@ -748,7 +747,7 @@ export default async function StockCardInspectionPage({
     }
 
     /* ===============================================
-       ISSUE ใน FY
+       ISSUE ในปีงบประมาณ
     =============================================== */
 
     if (
@@ -766,17 +765,7 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     BUILD ROWS
-
-     FY 2569:
-     ใช้ข้อมูลเดิมตามเอกสารรับ/เบิกเดิม
-     ไม่สร้างหรือซ่อมยอดย้อนหลัง
-
-     FY 2570+:
-     openingBalance คือยอดปิดสะสมก่อน 1 ต.ค.
-     ซึ่งใช้เป็นยอดยกเข้าแบบ Virtual
-
-     ไม่มีการเขียนข้อมูลใดกลับ DB
+     BUILD MATERIAL ROWS
   ======================================================= */
 
   const rows =
@@ -889,13 +878,6 @@ export default async function StockCardInspectionPage({
 
       {/* =====================================================
           INSPECTION FORM
-
-          Contract เดิม:
-          - fiscalYear
-          - startShortYear
-          - endShortYear
-          - materials
-          - officers
       ===================================================== */}
 
       <InspectionForm
