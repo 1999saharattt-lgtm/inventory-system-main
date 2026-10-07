@@ -11,8 +11,11 @@ import InspectionForm from "./InspectionForm";
    FORCE FRESH DATA
 ========================================================= */
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const dynamic =
+  "force-dynamic";
+
+export const revalidate =
+  0;
 
 /* =========================================================
    TYPES
@@ -55,10 +58,13 @@ type MaterialRow = {
    CONSTANT
 ========================================================= */
 
-const BASE_FISCAL_YEAR = 2569;
-const MAX_FISCAL_YEAR = 3000;
+const BASE_FISCAL_YEAR =
+  2569;
 
-const categoryOrder = [
+const MAX_FISCAL_YEAR =
+  3000;
+
+const CATEGORY_ORDER = [
   "OFFICE",
   "COMPUTER",
   "ELECTRIC",
@@ -78,10 +84,17 @@ function getThailandDateParts(
     new Intl.DateTimeFormat(
       "en-US",
       {
-        timeZone: "Asia/Bangkok",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
       }
     );
 
@@ -91,26 +104,38 @@ function getThailandDateParts(
     );
 
   return {
-    year: Number(
-      parts.find(
-        (part) =>
-          part.type === "year"
-      )?.value
-    ),
+    year:
+      Number(
+        parts.find(
+          (
+            part
+          ) =>
+            part.type ===
+            "year"
+        )?.value
+      ),
 
-    month: Number(
-      parts.find(
-        (part) =>
-          part.type === "month"
-      )?.value
-    ),
+    month:
+      Number(
+        parts.find(
+          (
+            part
+          ) =>
+            part.type ===
+            "month"
+        )?.value
+      ),
 
-    day: Number(
-      parts.find(
-        (part) =>
-          part.type === "day"
-      )?.value
-    ),
+    day:
+      Number(
+        parts.find(
+          (
+            part
+          ) =>
+            part.type ===
+            "day"
+        )?.value
+      ),
   };
 }
 
@@ -119,7 +144,8 @@ function getThailandDateParts(
 ========================================================= */
 
 function getCurrentFiscalYearThai(
-  value: Date = new Date()
+  value: Date =
+    new Date()
 ) {
   const parts =
     getThailandDateParts(
@@ -127,22 +153,21 @@ function getCurrentFiscalYearThai(
     );
 
   const fiscalYearGregorian =
-    parts.month >= 10
-      ? parts.year + 1
+    parts.month >=
+    10
+      ? parts.year +
+        1
       : parts.year;
 
-  return fiscalYearGregorian + 543;
+  return (
+    fiscalYearGregorian +
+    543
+  );
 }
 
 /* =========================================================
-   CURRENT DATE END EXCLUSIVE
-
-   วันนี้ในประเทศไทย
-   ->
-   วันพรุ่งนี้ 00:00 UTC แบบ date-only
-
-   ใช้เพื่อไม่ดึงรายการลงวันที่ในอนาคต
-   เข้ามาเป็น "คงเหลือปัจจุบัน"
+   CURRENT THAILAND DATE
+   END EXCLUSIVE
 ========================================================= */
 
 function getCurrentThailandEndExclusive() {
@@ -154,8 +179,10 @@ function getCurrentThailandEndExclusive() {
   return new Date(
     Date.UTC(
       parts.year,
-      parts.month - 1,
-      parts.day + 1,
+      parts.month -
+        1,
+      parts.day +
+        1,
       0,
       0,
       0,
@@ -167,24 +194,26 @@ function getCurrentThailandEndExclusive() {
 /* =========================================================
    FISCAL YEAR RANGE
 
-   FY 2569
+   FY2569
    =
-   1 ต.ค. 2568 00:00
+   01 ต.ค. 2568
    ถึงก่อน
-   1 ต.ค. 2569 00:00
+   01 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
   fiscalYearThai: number
 ): FiscalYearRange {
   const fiscalYearGregorian =
-    fiscalYearThai - 543;
+    fiscalYearThai -
+    543;
 
   return {
     startDate:
       new Date(
         Date.UTC(
-          fiscalYearGregorian - 1,
+          fiscalYearGregorian -
+            1,
           9,
           1,
           0,
@@ -210,14 +239,15 @@ function getFiscalYearRange(
 }
 
 /* =========================================================
-   SHORT BUDDHIST YEAR
+   SHORT YEAR
 ========================================================= */
 
 function getShortYear(
   buddhistYear: number
 ) {
   return String(
-    buddhistYear % 100
+    buddhistYear %
+      100
   ).padStart(
     2,
     "0"
@@ -233,7 +263,8 @@ function safeNumber(
 ) {
   const number =
     Number(
-      value ?? 0
+      value ??
+        0
     );
 
   return Number.isFinite(
@@ -246,16 +277,11 @@ function safeNumber(
 /* =========================================================
    ACTUAL ISSUE QTY
 
-   ใช้กฎเดียวกับ Stock Card
-
-   issuedQty มีค่า
-   -> ใช้จำนวนจ่ายจริง
-
    issuedQty = 0
-   -> ถือเป็น 0 จริง
+   ถือเป็น 0 จริง
 
    fallback qty
-   -> เฉพาะ null / undefined
+   เฉพาะ null / undefined
 ========================================================= */
 
 function getActualIssuedQty(
@@ -272,8 +298,10 @@ function getActualIssuedQty(
   }
 ) {
   if (
-    item.issuedQty !== null &&
-    item.issuedQty !== undefined
+    item.issuedQty !==
+      null &&
+    item.issuedQty !==
+      undefined
   ) {
     return safeNumber(
       item.issuedQty
@@ -290,7 +318,10 @@ function getActualIssuedQty(
 ========================================================= */
 
 function addMapValue(
-  map: Map<number, number>,
+  map: Map<
+    number,
+    number
+  >,
   materialId: number,
   value: number
 ) {
@@ -299,8 +330,10 @@ function addMapValue(
     (
       map.get(
         materialId
-      ) ?? 0
-    ) + value
+      ) ??
+      0
+    ) +
+      value
   );
 }
 
@@ -318,31 +351,35 @@ function sortMaterialRows(
       a,
       b
     ) => {
-      const indexA =
-        categoryOrder.indexOf(
+      const categoryA =
+        CATEGORY_ORDER.indexOf(
           a.category
         );
 
-      const indexB =
-        categoryOrder.indexOf(
+      const categoryB =
+        CATEGORY_ORDER.indexOf(
           b.category
         );
 
       const orderA =
-        indexA >= 0
-          ? indexA
+        categoryA >=
+        0
+          ? categoryA
           : Number.MAX_SAFE_INTEGER;
 
       const orderB =
-        indexB >= 0
-          ? indexB
+        categoryB >=
+        0
+          ? categoryB
           : Number.MAX_SAFE_INTEGER;
 
       if (
-        orderA !== orderB
+        orderA !==
+        orderB
       ) {
         return (
-          orderA - orderB
+          orderA -
+          orderB
         );
       }
 
@@ -350,8 +387,11 @@ function sortMaterialRows(
         b.code,
         "th",
         {
-          numeric: true,
-          sensitivity: "base",
+          numeric:
+            true,
+
+          sensitivity:
+            "base",
         }
       );
     }
@@ -396,19 +436,9 @@ export default async function StockCardInspectionPage({
       fiscalYear
     );
 
-  /*
-   * คงเหลือปัจจุบัน
-   * นับถึงวันนี้จริงเท่านั้น
-   */
   const currentEndExclusive =
     getCurrentThailandEndExclusive();
 
-  /*
-   * Query ต้องครอบคลุม
-   * - สิ้นปีงบประมาณที่กำลังตรวจ
-   * - หรือวันนี้
-   * แล้วแต่ว่าอันไหนไกลกว่า
-   */
   const queryEndDate =
     selectedRange.endDate.getTime() >
     currentEndExclusive.getTime()
@@ -416,12 +446,34 @@ export default async function StockCardInspectionPage({
       : currentEndExclusive;
 
   /* =======================================================
+     OPENING DAY
+
+     FY2569
+     =
+     01 ต.ค. 2568
+
+     หา Transaction
+     "ยอดยกเข้าระบบ"
+     เฉพาะวันนี้
+  ======================================================= */
+
+  const openingDayEnd =
+    new Date(
+      selectedRange.startDate.getTime() +
+        24 *
+          60 *
+          60 *
+          1000
+    );
+
+  /* =======================================================
      YEAR LABEL
   ======================================================= */
 
   const startShortYear =
     getShortYear(
-      fiscalYear - 1
+      fiscalYear -
+        1
     );
 
   const endShortYear =
@@ -441,7 +493,8 @@ export default async function StockCardInspectionPage({
         },
 
         select: {
-          id: true,
+          id:
+            true,
         },
       }
     );
@@ -462,33 +515,46 @@ export default async function StockCardInspectionPage({
     materials,
     receiveItems,
     approvedIssueItems,
+    openingTransactions,
     officers,
   ] =
     await Promise.all([
       /* =================================================
-         MATERIAL
+         MATERIALS
       ================================================= */
 
       prisma.material.findMany(
         {
           select: {
-            id: true,
-            code: true,
-            name: true,
-            unit: true,
-            category: true,
+            id:
+              true,
+
+            code:
+              true,
+
+            name:
+              true,
+
+            unit:
+              true,
+
+            category:
+              true,
           },
 
           orderBy: {
-            code: "asc",
+            code:
+              "asc",
           },
         }
       ),
 
       /* =================================================
-         RECEIVE
+         RECEIVE ITEMS
 
          รับจริงเท่านั้น
+
+         ไม่มี OPENING_BALANCE อยู่ใน query นี้
       ================================================= */
 
       prisma.receiveItem.findMany(
@@ -496,18 +562,23 @@ export default async function StockCardInspectionPage({
           where: {
             receive: {
               receiveDate: {
-                lt: queryEndDate,
+                lt:
+                  queryEndDate,
               },
             },
           },
 
           select: {
-            materialId: true,
-            qty: true,
+            materialId:
+              true,
+
+            qty:
+              true,
 
             receive: {
               select: {
-                receiveDate: true,
+                receiveDate:
+                  true,
               },
             },
           },
@@ -515,9 +586,7 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         ISSUE
-
-         เฉพาะ APPROVED
+         APPROVED ISSUE
       ================================================= */
 
       prisma.issueItem.findMany(
@@ -528,20 +597,26 @@ export default async function StockCardInspectionPage({
                 "APPROVED",
 
               issueDate: {
-                lt: queryEndDate,
+                lt:
+                  queryEndDate,
               },
             },
           },
 
           select: {
-            materialId: true,
+            materialId:
+              true,
 
-            qty: true,
-            issuedQty: true,
+            qty:
+              true,
+
+            issuedQty:
+              true,
 
             issue: {
               select: {
-                issueDate: true,
+                issueDate:
+                  true,
               },
             },
           },
@@ -549,97 +624,204 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         OFFICER
+         EXACT OPENING TRANSACTION
+
+         ดึงแถว "ยอดยกเข้าระบบ"
+         วันที่ 1 ต.ค. ของ FY ที่เลือกโดยตรง
+
+         FY2569
+         =
+         01 ต.ค.2568
+      ================================================= */
+
+      prisma.transaction.findMany(
+        {
+          where: {
+            type:
+              "OPENING_BALANCE",
+
+            documentNo:
+              "ยอดยกเข้าระบบ",
+
+            date: {
+              gte:
+                selectedRange.startDate,
+
+              lt:
+                openingDayEnd,
+            },
+          },
+
+          select: {
+            id:
+              true,
+
+            materialId:
+              true,
+
+            receiveQty:
+              true,
+
+            balance:
+              true,
+          },
+
+          orderBy: {
+            id:
+              "asc",
+          },
+        }
+      ),
+
+      /* =================================================
+         OFFICERS
       ================================================= */
 
       prisma.officer.findMany(
         {
           select: {
-            id: true,
+            id:
+              true,
 
-            firstName: true,
-            lastName: true,
-            position: true,
+            firstName:
+              true,
 
-            type: true,
+            lastName:
+              true,
 
-            departmentId: true,
-            sectionId: true,
+            position:
+              true,
+
+            type:
+              true,
+
+            departmentId:
+              true,
+
+            sectionId:
+              true,
 
             department: {
               select: {
-                id: true,
-                name: true,
+                id:
+                  true,
+
+                name:
+                  true,
               },
             },
 
             section: {
               select: {
-                id: true,
-                name: true,
+                id:
+                  true,
+
+                name:
+                  true,
               },
             },
           },
 
           orderBy: {
-            id: "asc",
+            id:
+              "asc",
           },
         }
       ),
     ]);
 
   /* =======================================================
-     MAP
+     EXACT OPENING MAP
+
+     materialId
+     ->
+     ยอดยกเข้าระบบของวันที่ 1 ต.ค.
+
+     ถ้ามีมากกว่า 1 record
+     ใช้ record id ล่าสุด
   ======================================================= */
 
-  /*
-   * ยอดยกเข้าระบบ ณ 1 ต.ค.
-   *
-   * =
-   * รับทั้งหมดก่อน 1 ต.ค.
-   * -
-   * จ่ายจริง APPROVED ก่อน 1 ต.ค.
-   */
-  const openingBalanceMap =
+  const exactOpeningMap =
     new Map<
       number,
       number
     >();
 
-  /*
-   * รับอย่างเดียว
-   * ใน FY ที่กำลังตรวจ
-   */
+  for (
+    const transaction of
+      openingTransactions
+  ) {
+    const openingValue =
+      transaction.balance !==
+        null &&
+      transaction.balance !==
+        undefined
+        ? safeNumber(
+            transaction.balance
+          )
+        : safeNumber(
+            transaction.receiveQty
+          );
+
+    exactOpeningMap.set(
+      transaction.materialId,
+      openingValue
+    );
+  }
+
+  /* =======================================================
+     VIRTUAL OPENING FALLBACK
+
+     ใช้เฉพาะกรณีไม่มี
+     Transaction "ยอดยกเข้าระบบ"
+
+     Logic เดียวกับ Stock Card READ ONLY:
+
+     รับก่อน 1 ต.ค.
+     -
+     APPROVED Issue ก่อน 1 ต.ค.
+  ======================================================= */
+
+  const virtualOpeningMap =
+    new Map<
+      number,
+      number
+    >();
+
+  /* =======================================================
+     FY RECEIVE
+  ======================================================= */
+
   const fiscalReceiveMap =
     new Map<
       number,
       number
     >();
 
-  /*
-   * จ่ายจริงอย่างเดียว
-   * ใน FY ที่กำลังตรวจ
-   */
+  /* =======================================================
+     FY ISSUE
+  ======================================================= */
+
   const fiscalIssueMap =
     new Map<
       number,
       number
     >();
 
-  /*
-   * รับจริงทั้งหมด
-   * จนถึงวันนี้
-   */
+  /* =======================================================
+     CURRENT RECEIVE
+  ======================================================= */
+
   const currentReceiveMap =
     new Map<
       number,
       number
     >();
 
-  /*
-   * จ่ายจริงทั้งหมด
-   * จนถึงวันนี้
-   */
+  /* =======================================================
+     CURRENT ISSUE
+  ======================================================= */
+
   const currentIssueMap =
     new Map<
       number,
@@ -647,11 +829,16 @@ export default async function StockCardInspectionPage({
     >();
 
   /* =======================================================
-     RECEIVE
+     RECEIVE LOOP
+
+     สำคัญ:
+     opening balance ไม่ได้อยู่ใน receiveItems
+     ดังนั้นรับจะไม่รวมยอดยกเข้าระบบ
   ======================================================= */
 
   for (
-    const item of receiveItems
+    const item of
+      receiveItems
   ) {
     const receiveTime =
       new Date(
@@ -664,9 +851,7 @@ export default async function StockCardInspectionPage({
       );
 
     /* ===============================================
-       ยอดยกเข้าระบบ
-
-       ก่อน 1 ต.ค. ของ FY ที่เลือก
+       VIRTUAL OPENING FALLBACK
     =============================================== */
 
     if (
@@ -674,17 +859,19 @@ export default async function StockCardInspectionPage({
       selectedRange.startDate.getTime()
     ) {
       addMapValue(
-        openingBalanceMap,
+        virtualOpeningMap,
         item.materialId,
         qty
       );
     }
 
     /* ===============================================
-       รับในปีงบประมาณ
+       RECEIVE IN SELECTED FY ONLY
 
        FY2569:
-       1 ต.ค.68 - 30 ก.ย.69
+       01 ต.ค.68 - 30 ก.ย.69
+
+       ไม่รวมยอดยก
     =============================================== */
 
     if (
@@ -701,7 +888,7 @@ export default async function StockCardInspectionPage({
     }
 
     /* ===============================================
-       รับถึงปัจจุบัน
+       RECEIVE CURRENT
     =============================================== */
 
     if (
@@ -717,7 +904,7 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     ISSUE
+     ISSUE LOOP
   ======================================================= */
 
   for (
@@ -729,13 +916,13 @@ export default async function StockCardInspectionPage({
         item.issue.issueDate
       ).getTime();
 
-    const issuedQty =
+    const actualIssueQty =
       getActualIssuedQty(
         item
       );
 
     /* ===============================================
-       หักออกจากยอดยก
+       VIRTUAL OPENING FALLBACK
     =============================================== */
 
     if (
@@ -743,14 +930,14 @@ export default async function StockCardInspectionPage({
       selectedRange.startDate.getTime()
     ) {
       addMapValue(
-        openingBalanceMap,
+        virtualOpeningMap,
         item.materialId,
-        -issuedQty
+        -actualIssueQty
       );
     }
 
     /* ===============================================
-       จ่ายในปีงบประมาณ
+       ISSUE IN SELECTED FY ONLY
     =============================================== */
 
     if (
@@ -762,12 +949,12 @@ export default async function StockCardInspectionPage({
       addMapValue(
         fiscalIssueMap,
         item.materialId,
-        issuedQty
+        actualIssueQty
       );
     }
 
     /* ===============================================
-       จ่ายถึงปัจจุบัน
+       ISSUE CURRENT
     =============================================== */
 
     if (
@@ -777,13 +964,13 @@ export default async function StockCardInspectionPage({
       addMapValue(
         currentIssueMap,
         item.materialId,
-        issuedQty
+        actualIssueQty
       );
     }
   }
 
   /* =======================================================
-     ROWS
+     FINAL MATERIAL ROWS
   ======================================================= */
 
   const rows =
@@ -792,30 +979,72 @@ export default async function StockCardInspectionPage({
         (
           material
         ): MaterialRow => {
+          /* =============================================
+             OPENING BALANCE
+
+             ลำดับความสำคัญ:
+
+             1. Transaction "ยอดยกเข้าระบบ"
+                วันที่ 1 ต.ค.
+
+             2. fallback virtual opening
+                จาก Stock Card
+          ============================================= */
+
           const openingBalance =
-            openingBalanceMap.get(
+            exactOpeningMap.has(
               material.id
-            ) ?? 0;
+            )
+              ? exactOpeningMap.get(
+                  material.id
+                ) ??
+                0
+              : virtualOpeningMap.get(
+                  material.id
+                ) ??
+                0;
+
+          /* =============================================
+             RECEIVE
+
+             รับจริงใน FY เท่านั้น
+             ไม่บวก openingBalance
+          ============================================= */
 
           const receiveQty =
             fiscalReceiveMap.get(
               material.id
-            ) ?? 0;
+            ) ??
+            0;
+
+          /* =============================================
+             ISSUE
+
+             จ่ายจริง APPROVED
+             ใน FY เท่านั้น
+          ============================================= */
 
           const issueQty =
             fiscalIssueMap.get(
               material.id
-            ) ?? 0;
+            ) ??
+            0;
+
+          /* =============================================
+             CURRENT BALANCE
+          ============================================= */
 
           const currentReceive =
             currentReceiveMap.get(
               material.id
-            ) ?? 0;
+            ) ??
+            0;
 
           const currentIssue =
             currentIssueMap.get(
               material.id
-            ) ?? 0;
+            ) ??
+            0;
 
           const closingBalance =
             currentReceive -
@@ -839,28 +1068,12 @@ export default async function StockCardInspectionPage({
                 material.category
               ),
 
-            /*
-             * ยอดเดียวกับ
-             * virtual "ยอดยกเข้าระบบ"
-             * วันที่ 1 ต.ค.
-             */
             openingBalance,
 
-            /*
-             * รับอย่างเดียว
-             * ในปีที่เลือก
-             */
             receiveQty,
 
-            /*
-             * จ่ายจริง APPROVED
-             * ในปีที่เลือก
-             */
             issueQty,
 
-            /*
-             * คงเหลือจริงถึงวันนี้
-             */
             closingBalance,
           };
         }
