@@ -785,15 +785,10 @@ export default async function CategoryPage({
       ===================================================== */}
 
       <SearchStockCard
-        category={
-          category
-        }
-        defaultSearch={
-          keyword
-        }
-        fiscalYear={
-          selectedFiscalYear
-        }
+        category={category}
+        defaultSearch={keyword}
+        resultCount={materials.length}
+        fiscalYear={selectedFiscalYear}
       />
 
       {/* =====================================================
