@@ -49,24 +49,6 @@ type MaterialRow = {
   closingBalance: number;
 };
 
-type ReceiveEvent = {
-  type: "RECEIVE";
-  date: Date;
-  sortId: number;
-  qty: number;
-};
-
-type IssueEvent = {
-  type: "ISSUE";
-  date: Date;
-  sortId: number;
-  qty: number;
-};
-
-type StockEvent =
-  | ReceiveEvent
-  | IssueEvent;
-
 /* =========================================================
    CONSTANT
 ========================================================= */
@@ -90,46 +72,33 @@ const CATEGORY_ORDER = [
 function getThailandDateParts(
   value: Date
 ): ThailandDateParts {
-  const formatter =
-    new Intl.DateTimeFormat(
-      "en-US",
-      {
-        timeZone: "Asia/Bangkok",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }
-    );
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 
-  const parts =
-    formatter.formatToParts(
-      value
-    );
+  const parts = formatter.formatToParts(value);
 
   return {
-    year:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "year"
-        )?.value
-      ),
+    year: Number(
+      parts.find(
+        (part) => part.type === "year"
+      )?.value
+    ),
 
-    month:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "month"
-        )?.value
-      ),
+    month: Number(
+      parts.find(
+        (part) => part.type === "month"
+      )?.value
+    ),
 
-    day:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "day"
-        )?.value
-      ),
+    day: Number(
+      parts.find(
+        (part) => part.type === "day"
+      )?.value
+    ),
   };
 }
 
@@ -141,39 +110,41 @@ function getCurrentFiscalYearThai(
   value: Date = new Date()
 ) {
   const parts =
-    getThailandDateParts(
-      value
-    );
+    getThailandDateParts(value);
 
   const fiscalYearGregorian =
     parts.month >= 10
       ? parts.year + 1
       : parts.year;
 
-  return (
-    fiscalYearGregorian +
-    543
-  );
+  return fiscalYearGregorian + 543;
 }
 
 /* =========================================================
-   CURRENT DATE - END EXCLUSIVE
+   THAILAND LOCAL DATE -> UTC
 
-   รวมข้อมูลของวันนี้
+   สำคัญ:
+   ประเทศไทย = UTC+7
+
+   1 ต.ค. 2568 เวลา 00:00 ประเทศไทย
+   =
+   30 ก.ย. 2025 เวลา 17:00 UTC
+
+   ใช้ boundary นี้เพื่อไม่ให้รายการวันที่ 30 ก.ย.
+   ถูกจัดเข้า FY ใหม่ผิดปี
 ========================================================= */
 
-function getCurrentThailandEndExclusive() {
-  const parts =
-    getThailandDateParts(
-      new Date()
-    );
-
+function thailandMidnightToUtc(
+  year: number,
+  month: number,
+  day: number
+) {
   return new Date(
     Date.UTC(
-      parts.year,
-      parts.month - 1,
-      parts.day + 1,
-      0,
+      year,
+      month - 1,
+      day,
+      -7,
       0,
       0,
       0
@@ -182,13 +153,44 @@ function getCurrentThailandEndExclusive() {
 }
 
 /* =========================================================
+   CURRENT DATE - END EXCLUSIVE
+
+   รวมข้อมูลของวันนี้ตามเวลาไทย
+========================================================= */
+
+function getCurrentThailandEndExclusive() {
+  const parts =
+    getThailandDateParts(new Date());
+
+  /*
+   * วันพรุ่งนี้ 00:00 ประเทศไทย
+   * ใช้เป็น exclusive end
+   */
+  const tomorrow = new Date(
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day + 1,
+      -7,
+      0,
+      0,
+      0
+    )
+  );
+
+  return tomorrow;
+}
+
+/* =========================================================
    FISCAL YEAR RANGE
 
    FY2569
-   =
-   01 ต.ค.2568
+
+   เริ่ม
+   01 ต.ค. 2568 เวลา 00:00 ประเทศไทย
+
    ถึงก่อน
-   01 ต.ค.2569
+   01 ต.ค. 2569 เวลา 00:00 ประเทศไทย
 ========================================================= */
 
 function getFiscalYearRange(
@@ -199,29 +201,17 @@ function getFiscalYearRange(
 
   return {
     startDate:
-      new Date(
-        Date.UTC(
-          fiscalYearGregorian - 1,
-          9,
-          1,
-          0,
-          0,
-          0,
-          0
-        )
+      thailandMidnightToUtc(
+        fiscalYearGregorian - 1,
+        10,
+        1
       ),
 
     endDate:
-      new Date(
-        Date.UTC(
-          fiscalYearGregorian,
-          9,
-          1,
-          0,
-          0,
-          0,
-          0
-        )
+      thailandMidnightToUtc(
+        fiscalYearGregorian,
+        10,
+        1
       ),
   };
 }
@@ -249,13 +239,9 @@ function safeNumber(
   value: unknown
 ) {
   const number =
-    Number(
-      value ?? 0
-    );
+    Number(value ?? 0);
 
-  return Number.isFinite(
-    number
-  )
+  return Number.isFinite(number)
     ? number
     : 0;
 }
@@ -263,13 +249,11 @@ function safeNumber(
 /* =========================================================
    ACTUAL ISSUE QTY
 
-   ใช้ logic เดียวกับ Stock Card
-
    issuedQty มีค่า
    -> ใช้ issuedQty
 
    issuedQty = 0
-   -> ถือว่า 0 จริง
+   -> ใช้ 0 จริง
 
    fallback qty
    เฉพาะ null / undefined
@@ -311,83 +295,22 @@ function isBeforeDate(
   target: Date
 ) {
   return (
-    new Date(
-      value
-    ).getTime() <
+    new Date(value).getTime() <
     target.getTime()
   );
 }
 
 function isDateInRange(
   value: Date,
-  range: FiscalYearRange
+  startDate: Date,
+  endDate: Date
 ) {
   const time =
-    new Date(
-      value
-    ).getTime();
+    new Date(value).getTime();
 
   return (
-    time >=
-      range.startDate.getTime() &&
-    time <
-      range.endDate.getTime()
-  );
-}
-
-/* =========================================================
-   EVENT SORT
-
-   กติกาเดียวกับ Stock Card
-
-   1. วันที่เก่าก่อน
-   2. วันเดียวกัน รับก่อนจ่าย
-   3. id เก่าก่อน
-========================================================= */
-
-function sortStockEvents(
-  events: StockEvent[]
-) {
-  return [
-    ...events,
-  ].sort(
-    (
-      a,
-      b
-    ) => {
-      const dateDiff =
-        new Date(
-          a.date
-        ).getTime() -
-        new Date(
-          b.date
-        ).getTime();
-
-      if (
-        dateDiff !== 0
-      ) {
-        return dateDiff;
-      }
-
-      if (
-        a.type === "RECEIVE" &&
-        b.type === "ISSUE"
-      ) {
-        return -1;
-      }
-
-      if (
-        a.type === "ISSUE" &&
-        b.type === "RECEIVE"
-      ) {
-        return 1;
-      }
-
-      return (
-        a.sortId -
-        b.sortId
-      );
-    }
+    time >= startDate.getTime() &&
+    time < endDate.getTime()
   );
 }
 
@@ -398,9 +321,7 @@ function sortStockEvents(
 function sortMaterialRows(
   rows: MaterialRow[]
 ) {
-  return [
-    ...rows,
-  ].sort(
+  return [...rows].sort(
     (
       a,
       b
@@ -428,10 +349,7 @@ function sortMaterialRows(
       if (
         orderA !== orderB
       ) {
-        return (
-          orderA -
-          orderB
-        );
+        return orderA - orderB;
       }
 
       return a.code.localeCompare(
@@ -487,11 +405,11 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      CURRENT END
 
-     ถ้าเป็นปีปัจจุบัน
-     ใช้ถึงวันนี้
+     ปีปัจจุบัน
+     -> ถึงวันนี้
 
-     ถ้า FY จบแล้ว
-     ใช้สิ้น FY
+     ปีที่จบแล้ว
+     -> ถึงสิ้น FY
   ======================================================= */
 
   const todayEndExclusive =
@@ -522,17 +440,15 @@ export default async function StockCardInspectionPage({
   ======================================================= */
 
   const existingInspection =
-    await prisma.stockCardInspection.findUnique(
-      {
-        where: {
-          fiscalYear,
-        },
+    await prisma.stockCardInspection.findUnique({
+      where: {
+        fiscalYear,
+      },
 
-        select: {
-          id: true,
-        },
-      }
-    );
+      select: {
+        id: true,
+      },
+    });
 
   if (
     existingInspection
@@ -545,12 +461,12 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      LOAD DATA
 
-     ใช้หลักเดียวกับหน้า Stock Card:
+     หลักเดียวกับ Stock Card
 
-     - ReceiveItem
-     - Approved IssueItem
-     - ไม่ใช้ Transaction.balance
-     - โหลดประวัติตั้งแต่ต้นจนถึงสิ้น FY
+     1. ReceiveItem = รับ
+     2. IssueItem APPROVED = จ่าย
+     3. ไม่ใช้ Transaction.balance
+     4. โหลดตั้งแต่ประวัติแรกจนถึงสิ้น FY
   ======================================================= */
 
   const [
@@ -685,31 +601,30 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      BUILD INSPECTION ROWS
 
-     สำคัญมาก:
-
-     Logic นี้ยึดจากหน้า Stock Card
+     สำคัญที่สุด
 
      openingBalance
      =
-     Receive ก่อน 1 ต.ค.
+     รับทั้งหมด "ก่อน" เริ่ม FY
      -
-     Approved Issue ก่อน 1 ต.ค.
+     จ่าย APPROVED ทั้งหมด "ก่อน" เริ่ม FY
 
      receiveQty
      =
-     Receive จริงใน FY เท่านั้น
+     รับจริงตั้งแต่เริ่ม FY
+     ถึง currentEndExclusive
 
      issueQty
      =
-     Approved Issue จริงใน FY เท่านั้น
+     จ่ายจริงตั้งแต่เริ่ม FY
+     ถึง currentEndExclusive
 
      closingBalance
      =
-     opening
-     + movement ถึงปัจจุบัน
+     opening + receive - issue
 
-     Virtual "ยอดยกเข้าระบบ"
-     ไม่ถูกนับใน receiveQty ซ้ำ
+     ไม่มีการนำ opening
+     ไปลบ receive ภายหลังอีก
   ======================================================= */
 
   const rows =
@@ -719,223 +634,9 @@ export default async function StockCardInspectionPage({
           material
         ): MaterialRow => {
           /* =============================================
-             BUILD EVENTS
-
-             เหมือน Stock Card
-          ============================================= */
-
-          const events: StockEvent[] =
-            [
-              ...material.receiveItems.map(
-                (
-                  item
-                ): ReceiveEvent => ({
-                  type:
-                    "RECEIVE",
-
-                  date:
-                    item.receive
-                      .receiveDate,
-
-                  sortId:
-                    item.id,
-
-                  qty:
-                    safeNumber(
-                      item.qty
-                    ),
-                })
-              ),
-
-              ...material.issueItems.map(
-                (
-                  item
-                ): IssueEvent => ({
-                  type:
-                    "ISSUE",
-
-                  date:
-                    item.issue
-                      .issueDate,
-
-                  sortId:
-                    item.id,
-
-                  qty:
-                    getActualIssuedQty({
-                      qty:
-                        item.qty,
-
-                      issuedQty:
-                        item.issuedQty,
-                    }),
-                })
-              ),
-            ];
-
-          const sortedEvents =
-            sortStockEvents(
-              events
-            );
-
-          /* =============================================
-             RUNNING VALUES
-          ============================================= */
-
-          let runningBalance =
-            0;
-
-          let openingBalance =
-            0;
-
-          let openingCaptured =
-            false;
-
-          let receiveQty =
-            0;
-
-          let issueQty =
-            0;
-
-          let currentBalance =
-            0;
-
-          /* =============================================
-             PROCESS ALL EVENTS
-
-             ก่อนเข้า movement แรกของ FY
-             เก็บ runningBalance เป็น opening
-
-             จากนั้น movement ใน FY
-             แยก รับ / จ่าย ออกจาก opening
-          ============================================= */
-
-          for (
-            const event of
-              sortedEvents
-          ) {
-            const eventDate =
-              new Date(
-                event.date
-              );
-
-            /* ===========================================
-               CAPTURE OPENING
-
-               ก่อนประมวลผลรายการแรก
-               ที่อยู่ตั้งแต่ 1 ต.ค. เป็นต้นไป
-
-               เช่น ก่อน 01 ต.ค.68
-               runningBalance = 150
-
-               openingBalance = 150
-            =========================================== */
-
-            if (
-              !openingCaptured &&
-              eventDate.getTime() >=
-                fiscalRange.startDate.getTime()
-            ) {
-              openingBalance =
-                runningBalance;
-
-              openingCaptured =
-                true;
-            }
-
-            /* ===========================================
-               RECEIVE
-            =========================================== */
-
-            if (
-              event.type ===
-              "RECEIVE"
-            ) {
-              runningBalance +=
-                event.qty;
-
-              /*
-               * นับเป็น "รับ"
-               * เฉพาะ Receive จริง
-               * ที่อยู่ใน FY
-               *
-               * opening ที่เกิดจากประวัติก่อน FY
-               * ไม่เข้ามาตรงนี้
-               */
-              if (
-                isDateInRange(
-                  event.date,
-                  fiscalRange
-                )
-              ) {
-                receiveQty +=
-                  event.qty;
-              }
-            }
-
-            /* ===========================================
-               ISSUE
-            =========================================== */
-
-            if (
-              event.type ===
-              "ISSUE"
-            ) {
-              runningBalance -=
-                event.qty;
-
-              if (
-                isDateInRange(
-                  event.date,
-                  fiscalRange
-                )
-              ) {
-                issueQty +=
-                  event.qty;
-              }
-            }
-
-            /* ===========================================
-               CURRENT BALANCE SNAPSHOT
-
-               ใช้เฉพาะ movement
-               ก่อน currentEndExclusive
-            =========================================== */
-
-            if (
-              eventDate.getTime() <
-              currentEndExclusive.getTime()
-            ) {
-              currentBalance =
-                runningBalance;
-            }
-          }
-
-          /* =============================================
-             ไม่มี movement ตั้งแต่เริ่ม FY
-
-             runningBalance ตอนจบ
-             คือยอดยก
-          ============================================= */
-
-          if (
-            !openingCaptured
-          ) {
-            openingBalance =
-              runningBalance;
-
-            openingCaptured =
-              true;
-          }
-
-          /* =============================================
-             OPENING แบบเดียวกับ Stock Card
-
-             คำนวณซ้ำโดยตรงเพื่อความชัดเจน
+             OPENING RECEIVE
 
              รับก่อน 1 ต.ค.
-             -
-             จ่าย APPROVED ก่อน 1 ต.ค.
           ============================================= */
 
           const historicalReceiveTotal =
@@ -961,6 +662,12 @@ export default async function StockCardInspectionPage({
                   ),
                 0
               );
+
+          /* =============================================
+             OPENING ISSUE
+
+             จ่าย APPROVED ก่อน 1 ต.ค.
+          ============================================= */
 
           const historicalIssueTotal =
             material.issueItems
@@ -990,38 +697,45 @@ export default async function StockCardInspectionPage({
                 0
               );
 
-          openingBalance =
+          /* =============================================
+             OPENING BALANCE
+
+             นี่คือยอดที่ Stock Card
+             แสดงเป็น
+
+             "ยอดยกเข้าระบบ"
+
+             ตัวอย่าง = 150
+          ============================================= */
+
+          const openingBalance =
             historicalReceiveTotal -
             historicalIssueTotal;
 
           /* =============================================
-             CURRENT RECEIVE
+             RECEIVE IN FY
 
-             ต้องคำนวณถึงปัจจุบันเท่านั้น
+             นับเฉพาะรับจริง
+             ตั้งแต่ 1 ต.ค. เป็นต้นไป
 
-             ไม่ใช้ receiveQty ตรง ๆ
-             เผื่อเปิดดู FY ที่ยังไม่จบ
+             ไม่เอา opening มารวม
+             และไม่ต้องลบ opening ทีหลัง
+
+             ตัวอย่าง = 435
           ============================================= */
 
-          const currentReceiveQty =
+          const receiveQty =
             material.receiveItems
               .filter(
                 (
                   item
-                ) => {
-                  const time =
-                    new Date(
-                      item.receive
-                        .receiveDate
-                    ).getTime();
-
-                  return (
-                    time >=
-                      fiscalRange.startDate.getTime() &&
-                    time <
-                      currentEndExclusive.getTime()
-                  );
-                }
+                ) =>
+                  isDateInRange(
+                    item.receive
+                      .receiveDate,
+                    fiscalRange.startDate,
+                    currentEndExclusive
+                  )
               )
               .reduce(
                 (
@@ -1036,28 +750,28 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             CURRENT ISSUE
+             ISSUE IN FY
+
+             นับเฉพาะ APPROVED
+
+             ใช้ issuedQty จริง
+             ถ้ามีค่า
+
+             ตัวอย่าง = 310
           ============================================= */
 
-          const currentIssueQty =
+          const issueQty =
             material.issueItems
               .filter(
                 (
                   item
-                ) => {
-                  const time =
-                    new Date(
-                      item.issue
-                        .issueDate
-                    ).getTime();
-
-                  return (
-                    time >=
-                      fiscalRange.startDate.getTime() &&
-                    time <
-                      currentEndExclusive.getTime()
-                  );
-                }
+                ) =>
+                  isDateInRange(
+                    item.issue
+                      .issueDate,
+                    fiscalRange.startDate,
+                    currentEndExclusive
+                  )
               )
               .reduce(
                 (
@@ -1076,81 +790,29 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             IMPORTANT:
-             แยกยอดยกออกจากรับ
-
-             หน้า Stock Card สร้าง
-             "ยอดยกเข้าระบบ"
-             จาก openingBalance
-
-             ดังนั้นหากข้อมูลรับใน FY
-             มี opening ถูกนำเข้ามารวมด้วย
-             ต้องตัด opening ออกจากช่องรับ
-
-             ตัวอย่าง:
-             receive raw = 585
-             opening = 150
-
-             receive จริง = 435
-          ============================================= */
-
-          const rawFiscalReceive =
-            receiveQty;
-
-          const rawCurrentReceive =
-            currentReceiveQty;
-
-          /*
-           * ในระบบนี้ยอดยกเข้าระบบ
-           * ถูกนำมาจากฝั่งรับเข้า
-           *
-           * ถ้ามี openingBalance
-           * และ raw receive มีจำนวน
-           * ครอบคลุม opening
-           * ให้แยก opening ออก
-           *
-           * 585 - 150 = 435
-           */
-          const adjustedFiscalReceive =
-            openingBalance !== 0 &&
-            rawFiscalReceive >=
-              openingBalance
-              ? rawFiscalReceive -
-                openingBalance
-              : rawFiscalReceive;
-
-          const adjustedCurrentReceive =
-            openingBalance !== 0 &&
-            rawCurrentReceive >=
-              openingBalance
-              ? rawCurrentReceive -
-                openingBalance
-              : rawCurrentReceive;
-
-          /* =============================================
-             CLOSING BALANCE
+             CURRENT BALANCE
 
              opening
-             + รับจริง
-             - จ่ายจริง
+             +
+             รับจริง
+             -
+             จ่ายจริง
 
-             ตัวอย่าง:
-             150 + 435 - 310 = 275
+             ตัวอย่าง
+
+             150
+             +
+             435
+             -
+             310
+             =
+             275
           ============================================= */
 
           const closingBalance =
             openingBalance +
-            adjustedCurrentReceive -
-            currentIssueQty;
-
-          /*
-           * currentBalance ที่สร้างจาก events
-           * ไม่ใช้เป็น final เพราะ event receive
-           * อาจรวม opening จากการนำเข้าระบบ
-           *
-           * final จึงต้องใช้สูตรด้านบน
-           */
-          void currentBalance;
+            receiveQty -
+            issueQty;
 
           return {
             materialId:
@@ -1172,8 +834,7 @@ export default async function StockCardInspectionPage({
 
             openingBalance,
 
-            receiveQty:
-              adjustedFiscalReceive,
+            receiveQty,
 
             issueQty,
 
