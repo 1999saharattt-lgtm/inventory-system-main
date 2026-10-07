@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Fragment,
   useEffect,
   useMemo,
   useRef,
@@ -11,16 +10,16 @@ import {
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
+import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
-
-import ExportInspectionPdf from "./ExportInspectionPdf";
 
 /* =========================================================
    TYPES
 ========================================================= */
 
-type MaterialRow = {
+type Material = {
   materialId: number;
+
   code: string;
   name: string;
   unit: string;
@@ -37,12 +36,17 @@ type Officer = {
 
   firstName: string;
   lastName: string;
+  position: string;
 
-  position: string | null;
   type: string;
 
-  departmentId: number | null;
-  sectionId: number | null;
+  departmentId:
+    | number
+    | null;
+
+  sectionId:
+    | number
+    | null;
 
   department: {
     id: number;
@@ -58,10 +62,7 @@ type Officer = {
 type InspectionRow = {
   materialId: number;
 
-  accuracy:
-    | ""
-    | "CORRECT"
-    | "INCORRECT";
+  accuracy: string;
 
   shortageQty: string;
   excessQty: string;
@@ -82,39 +83,9 @@ type Props = {
   startShortYear: string;
   endShortYear: string;
 
-  materials: MaterialRow[];
+  materials: Material[];
+
   officers: Officer[];
-
-  initialInspectionDate?: string;
-};
-
-/* =========================================================
-   FIELD TYPES
-========================================================= */
-
-type SearchableOption = {
-  value: string;
-  label: string;
-};
-
-type SearchableDropdownProps = {
-  id: string;
-
-  value: string;
-
-  options: SearchableOption[];
-
-  placeholder: string;
-
-  searchPlaceholder?: string;
-  emptyText?: string;
-
-  disabled?: boolean;
-  required?: boolean;
-
-  onChange: (
-    value: string
-  ) => void;
 };
 
 type IOSDatePickerProps = {
@@ -122,26 +93,10 @@ type IOSDatePickerProps = {
 
   value: string;
 
-  placeholder?: string;
-
-  required?: boolean;
-  disabled?: boolean;
-
   onChange: (
     value: string
   ) => void;
 };
-
-type EditableInspectionField =
-  | "accuracy"
-  | "shortageQty"
-  | "excessQty"
-  | "baht"
-  | "satang"
-  | "damagedQty"
-  | "deterioratedQty"
-  | "unnecessaryQty"
-  | "remark";
 
 /* =========================================================
    CATEGORY
@@ -156,11 +111,10 @@ const CATEGORY_ORDER = [
   "PRINTING",
 ];
 
-const CATEGORY_NAMES:
-  Record<
-    string,
-    string
-  > = {
+const CATEGORY_NAME: Record<
+  string,
+  string
+> = {
   OFFICE:
     "วัสดุสำนักงาน",
 
@@ -181,10 +135,10 @@ const CATEGORY_NAMES:
 };
 
 /* =========================================================
-   DATE
+   THAI DATE
 ========================================================= */
 
-const thaiMonths = [
+const THAI_MONTHS = [
   "มกราคม",
   "กุมภาพันธ์",
   "มีนาคม",
@@ -199,7 +153,7 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-const weekDays = [
+const THAI_WEEK_DAYS = [
   "อา",
   "จ",
   "อ",
@@ -210,7 +164,7 @@ const weekDays = [
 ];
 
 /* =========================================================
-   CURRENT DATE
+   CURRENT DATE - ASIA/BANGKOK
 ========================================================= */
 
 function getCurrentDate() {
@@ -238,39 +192,88 @@ function getCurrentDate() {
 }
 
 /* =========================================================
-   DATE HELPERS
+   PARSE DATE ONLY
 ========================================================= */
 
 function parseDateOnly(
   value: string
 ) {
-  if (!value) {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})$/.exec(
+      value
+    );
+
+  if (!match) {
     return null;
   }
 
-  const [
-    year,
-    month,
-    day,
-  ] =
-    value
-      .split("-")
-      .map(Number);
+  const year =
+    Number(
+      match[1]
+    );
+
+  const month =
+    Number(
+      match[2]
+    );
+
+  const day =
+    Number(
+      match[3]
+    );
+
+  const date =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
 
   if (
-    !year ||
-    !month ||
-    !day
+    date.getFullYear() !==
+      year ||
+    date.getMonth() !==
+      month - 1 ||
+    date.getDate() !==
+      day
   ) {
     return null;
   }
 
-  return new Date(
-    year,
-    month - 1,
-    day
-  );
+  return date;
 }
+
+/* =========================================================
+   TO DATE VALUE
+========================================================= */
+
+function toDateValue(
+  year: number,
+  month: number,
+  day: number
+) {
+  return [
+    year,
+
+    String(
+      month + 1
+    ).padStart(
+      2,
+      "0"
+    ),
+
+    String(
+      day
+    ).padStart(
+      2,
+      "0"
+    ),
+  ].join("-");
+}
+
+/* =========================================================
+   THAI DATE DISPLAY
+========================================================= */
 
 function formatThaiDate(
   value: string
@@ -284,87 +287,14 @@ function formatThaiDate(
     return "";
   }
 
-  const day =
-    date.getDate();
-
-  const month =
-    thaiMonths[
+  return `${date.getDate()} ${
+    THAI_MONTHS[
       date.getMonth()
-    ];
-
-  const year =
+    ]
+  } ${
     date.getFullYear() +
-    543;
-
-  return `${day} ${month} ${year}`;
-}
-
-function dateToInputValue(
-  date: Date
-) {
-  return [
-    date.getFullYear(),
-
-    String(
-      date.getMonth() +
-        1
-    ).padStart(
-      2,
-      "0"
-    ),
-
-    String(
-      date.getDate()
-    ).padStart(
-      2,
-      "0"
-    ),
-  ].join("-");
-}
-
-function inputValueToDate(
-  value: string
-) {
-  if (!value) {
-    return null;
-  }
-
-  const [
-    year,
-    month,
-    day,
-  ] =
-    value
-      .split("-")
-      .map(Number);
-
-  if (
-    !year ||
-    !month ||
-    !day
-  ) {
-    return null;
-  }
-
-  return new Date(
-    year,
-    month - 1,
-    day
-  );
-}
-
-function isSameDate(
-  first: Date,
-  second: Date
-) {
-  return (
-    first.getFullYear() ===
-      second.getFullYear() &&
-    first.getMonth() ===
-      second.getMonth() &&
-    first.getDate() ===
-      second.getDate()
-  );
+    543
+  }`;
 }
 
 /* =========================================================
@@ -374,12 +304,6 @@ function isSameDate(
 function IOSDatePicker({
   id,
   value,
-  placeholder =
-    "เลือกวันที่",
-  required =
-    false,
-  disabled =
-    false,
   onChange,
 }: IOSDatePickerProps) {
   const containerRef =
@@ -388,9 +312,19 @@ function IOSDatePicker({
     );
 
   const selectedDate =
-    inputValueToDate(
+    parseDateOnly(
       value
     );
+
+  const fallbackDate =
+    parseDateOnly(
+      getCurrentDate()
+    ) ??
+    new Date();
+
+  const initialDate =
+    selectedDate ??
+    fallbackDate;
 
   const [
     open,
@@ -401,38 +335,52 @@ function IOSDatePicker({
     );
 
   const [
-    viewDate,
-    setViewDate,
+    displayYear,
+    setDisplayYear,
   ] =
-    useState<Date>(
-      selectedDate ??
-        new Date()
+    useState(
+      initialDate.getFullYear()
     );
+
+  const [
+    displayMonth,
+    setDisplayMonth,
+  ] =
+    useState(
+      initialDate.getMonth()
+    );
+
+  /* =======================================================
+     SYNC SELECTED DATE
+  ======================================================= */
 
   useEffect(
     () => {
       if (
-        selectedDate
+        !selectedDate
       ) {
-        setViewDate(
-          new Date(
-            selectedDate.getFullYear(),
-            selectedDate.getMonth(),
-            1
-          )
-        );
+        return;
       }
+
+      setDisplayYear(
+        selectedDate.getFullYear()
+      );
+
+      setDisplayMonth(
+        selectedDate.getMonth()
+      );
     },
-    [
-      value,
-    ]
+    [value]
   );
+
+  /* =======================================================
+     OUTSIDE CLICK
+  ======================================================= */
 
   useEffect(
     () => {
       function handleMouseDown(
-        event:
-          MouseEvent
+        event: MouseEvent
       ) {
         if (
           containerRef.current &&
@@ -461,124 +409,139 @@ function IOSDatePicker({
     []
   );
 
-  const calendarDays =
-    useMemo(
-      () => {
-        const year =
-          viewDate.getFullYear();
+  /* =======================================================
+     CALENDAR
+  ======================================================= */
 
-        const month =
-          viewDate.getMonth();
+  const firstDay =
+    new Date(
+      displayYear,
+      displayMonth,
+      1
+    ).getDay();
 
-        const firstDay =
-          new Date(
-            year,
-            month,
-            1
-          );
+  const daysInMonth =
+    new Date(
+      displayYear,
+      displayMonth +
+        1,
+      0
+    ).getDate();
 
-        const lastDay =
-          new Date(
-            year,
-            month +
-              1,
-            0
-          );
+  const calendarCells: Array<
+    number | null
+  > = [];
 
-        const days:
-          Array<
-            Date |
-            null
-          > = [];
-
-        for (
-          let i =
-            0;
-          i <
-          firstDay.getDay();
-          i++
-        ) {
-          days.push(
-            null
-          );
-        }
-
-        for (
-          let day =
-            1;
-          day <=
-          lastDay.getDate();
-          day++
-        ) {
-          days.push(
-            new Date(
-              year,
-              month,
-              day
-            )
-          );
-        }
-
-        while (
-          days.length %
-            7 !==
-          0
-        ) {
-          days.push(
-            null
-          );
-        }
-
-        return days;
-      },
-      [
-        viewDate,
-      ]
+  for (
+    let index = 0;
+    index <
+    firstDay;
+    index++
+  ) {
+    calendarCells.push(
+      null
     );
+  }
+
+  for (
+    let day = 1;
+    day <=
+    daysInMonth;
+    day++
+  ) {
+    calendarCells.push(
+      day
+    );
+  }
+
+  while (
+    calendarCells.length %
+      7 !==
+    0
+  ) {
+    calendarCells.push(
+      null
+    );
+  }
+
+  /* =======================================================
+     PREVIOUS MONTH
+  ======================================================= */
 
   function previousMonth() {
-    setViewDate(
+    if (
+      displayMonth ===
+      0
+    ) {
+      setDisplayMonth(
+        11
+      );
+
+      setDisplayYear(
+        (
+          current
+        ) =>
+          current -
+          1
+      );
+
+      return;
+    }
+
+    setDisplayMonth(
       (
         current
       ) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() -
-            1,
-          1
-        )
+        current -
+        1
     );
   }
+
+  /* =======================================================
+     NEXT MONTH
+  ======================================================= */
 
   function nextMonth() {
-    setViewDate(
+    if (
+      displayMonth ===
+      11
+    ) {
+      setDisplayMonth(
+        0
+      );
+
+      setDisplayYear(
+        (
+          current
+        ) =>
+          current +
+          1
+      );
+
+      return;
+    }
+
+    setDisplayMonth(
       (
         current
       ) =>
-        new Date(
-          current.getFullYear(),
-          current.getMonth() +
-            1,
-          1
-        )
+        current +
+        1
     );
   }
 
-  function selectToday() {
-    const today =
-      new Date();
+  /* =======================================================
+     SELECT DAY
+  ======================================================= */
 
+  function selectDay(
+    day: number
+  ) {
     onChange(
-      dateToInputValue(
-        today
-      )
-    );
-
-    setViewDate(
-      new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1
+      toDateValue(
+        displayYear,
+        displayMonth,
+        day
       )
     );
 
@@ -587,91 +550,81 @@ function IOSDatePicker({
     );
   }
 
+  /* =======================================================
+     TODAY
+  ======================================================= */
+
+  function selectToday() {
+    const today =
+      parseDateOnly(
+        getCurrentDate()
+      );
+
+    if (!today) {
+      return;
+    }
+
+    onChange(
+      toDateValue(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      )
+    );
+
+    setDisplayYear(
+      today.getFullYear()
+    );
+
+    setDisplayMonth(
+      today.getMonth()
+    );
+
+    setOpen(
+      false
+    );
+  }
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
   return (
     <div
       ref={
         containerRef
       }
-      className={`
+      className="
         relative
         w-full
         min-w-0
-
-        ${
-          open
-            ? "z-[500]"
-            : "z-10"
-        }
-      `}
+      "
     >
-      {required && (
-        <input
-          tabIndex={
-            -1
-          }
-          aria-hidden="true"
-          value={
-            value
-          }
-          onChange={() => {}}
-          required
-          className="
-            pointer-events-none
-            absolute
-            h-px
-            w-px
-            opacity-0
-          "
-        />
-      )}
+      {/* =====================================================
+          SELECTED DATE
+      ===================================================== */}
 
       <button
-        id={
-          id
-        }
+        id={id}
         type="button"
-        disabled={
-          disabled
-        }
         aria-haspopup="dialog"
         aria-expanded={
           open
         }
-        onClick={() => {
-          if (
-            disabled
-          ) {
-            return;
-          }
-
-          if (
-            !open
-          ) {
-            const base =
-              selectedDate ??
-              new Date();
-
-            setViewDate(
-              new Date(
-                base.getFullYear(),
-                base.getMonth(),
-                1
-              )
-            );
-          }
-
+        onClick={() =>
           setOpen(
             (
               current
             ) =>
               !current
-          );
-        }}
+          )
+        }
         className="
           flex
           h-[52px]
           w-full
           min-w-0
+
           items-center
           justify-between
           gap-3
@@ -686,942 +639,386 @@ function IOSDatePicker({
           px-4
 
           text-left
-          text-base
+          text-sm
           font-bold
 
           !text-slate-900
 
           shadow-sm
+
           outline-none
 
           transition-all
           duration-200
 
           hover:border-slate-400
-          hover:bg-slate-50
 
-          focus:border-blue-400
-          focus:bg-white
+          focus:border-blue-500
           focus:ring-4
-          focus:ring-blue-500/10
-
-          disabled:cursor-default
-          disabled:border-slate-200
-          disabled:bg-slate-100
-          disabled:opacity-70
+          focus:ring-blue-100
         "
       >
         <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            ${
-              value
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
+          className={
+            value
+              ? "!text-slate-900"
+              : "!text-slate-400"
+          }
         >
           {value
             ? formatThaiDate(
                 value
               )
-            : placeholder}
+            : "เลือกวันที่"}
         </span>
 
         <span
           aria-hidden="true"
-          className={`
-            flex
-            h-9
-            w-9
+          className="
             shrink-0
-            items-center
-            justify-center
-
-            rounded-[11px]
-
-            bg-slate-100
-
             text-lg
-
-            shadow-inner
-
-            transition-all
-
-            ${
-              open
-                ? "bg-slate-900 !text-white"
-                : ""
-            }
-          `}
+          "
         >
           📅
         </span>
       </button>
 
-      {open &&
-        !disabled && (
+      {/* =====================================================
+          CALENDAR
+      ===================================================== */}
+
+      {open && (
+        <div
+          role="dialog"
+          className="
+            absolute
+            left-0
+            top-[58px]
+            z-[1000]
+
+            w-[330px]
+            max-w-[calc(100vw-32px)]
+
+            rounded-[22px]
+
+            border
+            border-slate-200
+
+            bg-white/95
+
+            p-3
+
+            shadow-2xl
+            backdrop-blur-xl
+          "
+        >
+          {/* ===============================================
+              MONTH
+          =============================================== */}
+
           <div
-            role="dialog"
-            aria-label="เลือกวันที่"
             className="
-              absolute
-              left-0
-              top-[calc(100%+10px)]
+              flex
+              items-center
+              justify-between
 
-              z-[9999]
-
-              w-[360px]
-              max-w-[calc(100vw-32px)]
-
-              overflow-hidden
-
-              rounded-[24px]
-
-              border
-              border-slate-200/90
-
-              bg-white/95
-
-              p-3
-
-              shadow-[0_28px_80px_-24px_rgba(15,23,42,0.55)]
-
-              ring-1
-              ring-black/5
-
-              backdrop-blur-2xl
+              px-1
+              pb-3
             "
           >
-            <div
+            <button
+              type="button"
+              onClick={
+                previousMonth
+              }
               className="
                 flex
-                items-center
-                justify-between
-                gap-2
+                h-9
+                w-9
 
-                px-1
-                pb-3
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-lg
+                font-black
+
+                !text-slate-700
+
+                transition
+
+                hover:bg-slate-200
               "
             >
-              <button
-                type="button"
-                onClick={
-                  previousMonth
-                }
+              ‹
+            </button>
+
+            <div
+              className="
+                text-center
+              "
+            >
+              <div
                 className="
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
-
-                  rounded-[12px]
-
-                  bg-slate-100
-
-                  text-xl
+                  text-base
                   font-black
 
-                  !text-slate-800
-
-                  hover:bg-slate-200
-
-                  active:scale-90
+                  !text-slate-900
                 "
               >
-                ‹
-              </button>
+                {
+                  THAI_MONTHS[
+                    displayMonth
+                  ]
+                }
+              </div>
 
               <div
                 className="
-                  min-w-0
-                  text-center
+                  text-sm
+                  font-bold
+
+                  !text-slate-500
                 "
               >
-                <div
-                  className="
-                    text-base
-                    font-black
+                พ.ศ.{" "}
+                {displayYear +
+                  543}
+              </div>
+            </div>
 
-                    !text-slate-900
-                  "
-                >
-                  {
-                    thaiMonths[
-                      viewDate.getMonth()
-                    ]
+            <button
+              type="button"
+              onClick={
+                nextMonth
+              }
+              className="
+                flex
+                h-9
+                w-9
+
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-lg
+                font-black
+
+                !text-slate-700
+
+                transition
+
+                hover:bg-slate-200
+              "
+            >
+              ›
+            </button>
+          </div>
+
+          {/* ===============================================
+              WEEK
+          =============================================== */}
+
+          <div
+            className="
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {THAI_WEEK_DAYS.map(
+              (
+                day
+              ) => (
+                <div
+                  key={
+                    day
                   }
-                </div>
-
-                <div
                   className="
+                    py-1.5
+
+                    text-center
                     text-xs
-                    font-bold
+                    font-black
 
                     !text-slate-500
                   "
                 >
-                  พ.ศ.{" "}
-                  {viewDate.getFullYear() +
-                    543}
+                  {
+                    day
+                  }
                 </div>
-              </div>
+              )
+            )}
+          </div>
 
-              <button
-                type="button"
-                onClick={
-                  nextMonth
+          {/* ===============================================
+              DAYS
+          =============================================== */}
+
+          <div
+            className="
+              mt-1
+
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {calendarCells.map(
+              (
+                day,
+                index
+              ) => {
+                if (
+                  day ===
+                  null
+                ) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-9"
+                    />
+                  );
                 }
-                className="
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
 
-                  rounded-[12px]
+                const selected =
+                  selectedDate !==
+                    null &&
+                  selectedDate.getFullYear() ===
+                    displayYear &&
+                  selectedDate.getMonth() ===
+                    displayMonth &&
+                  selectedDate.getDate() ===
+                    day;
 
-                  bg-slate-100
-
-                  text-xl
-                  font-black
-
-                  !text-slate-800
-
-                  hover:bg-slate-200
-
-                  active:scale-90
-                "
-              >
-                ›
-              </button>
-            </div>
-
-            <div
-              className="
-                grid
-                grid-cols-7
-                gap-1
-              "
-            >
-              {weekDays.map(
-                (
-                  day
-                ) => (
-                  <div
+                return (
+                  <button
                     key={
                       day
                     }
-                    className="
+                    type="button"
+                    onClick={() =>
+                      selectDay(
+                        day
+                      )
+                    }
+                    className={`
                       flex
-                      h-8
+                      h-9
                       items-center
                       justify-center
 
-                      text-xs
+                      rounded-full
+
+                      text-sm
                       font-extrabold
 
-                      !text-slate-400
-                    "
+                      transition-all
+                      duration-150
+
+                      ${
+                        selected
+                          ? "bg-blue-600 !text-white shadow-md"
+                          : "bg-transparent !text-slate-700 hover:bg-blue-50"
+                      }
+                    `}
                   >
                     {
                       day
                     }
-                  </div>
-                )
-              )}
-
-              {calendarDays.map(
-                (
-                  date,
-                  index
-                ) => {
-                  if (
-                    !date
-                  ) {
-                    return (
-                      <div
-                        key={`empty-${index}`}
-                        className="h-10"
-                      />
-                    );
-                  }
-
-                  const selected =
-                    selectedDate
-                      ? isSameDate(
-                          date,
-                          selectedDate
-                        )
-                      : false;
-
-                  const today =
-                    isSameDate(
-                      date,
-                      new Date()
-                    );
-
-                  return (
-                    <button
-                      key={
-                        dateToInputValue(
-                          date
-                        )
-                      }
-                      type="button"
-                      onClick={() => {
-                        onChange(
-                          dateToInputValue(
-                            date
-                          )
-                        );
-
-                        setOpen(
-                          false
-                        );
-                      }}
-                      className={`
-                        flex
-                        h-10
-                        items-center
-                        justify-center
-
-                        rounded-[12px]
-
-                        text-sm
-                        font-extrabold
-
-                        transition-all
-
-                        active:scale-90
-
-                        ${
-                          selected
-                            ? `
-                              bg-slate-900
-                              !text-white
-                              shadow-md
-                            `
-                            : today
-                            ? `
-                              bg-blue-50
-                              !text-blue-700
-                              ring-1
-                              ring-blue-200
-                            `
-                            : `
-                              bg-transparent
-                              !text-slate-800
-                              hover:bg-slate-100
-                            `
-                        }
-                      `}
-                    >
-                      {
-                        date.getDate()
-                      }
-                    </button>
-                  );
-                }
-              )}
-            </div>
-
-            <div
-              className="
-                mt-3
-
-                flex
-                items-center
-                justify-between
-                gap-2
-
-                border-t
-                border-slate-200
-
-                pt-3
-              "
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(
-                    ""
-                  );
-
-                  setOpen(
-                    false
-                  );
-                }}
-                className="
-                  rounded-full
-
-                  px-4
-                  py-2
-
-                  text-sm
-                  font-extrabold
-
-                  !text-slate-500
-
-                  hover:bg-slate-100
-                "
-              >
-                ล้างวันที่
-              </button>
-
-              <button
-                type="button"
-                onClick={
-                  selectToday
-                }
-                className="
-                  rounded-[12px]
-
-                  bg-slate-900
-
-                  px-4
-                  py-2
-
-                  text-sm
-                  font-extrabold
-
-                  !text-white
-
-                  shadow-sm
-
-                  hover:bg-slate-800
-
-                  active:scale-95
-                "
-              >
-                วันนี้
-              </button>
-            </div>
+                  </button>
+                );
+              }
+            )}
           </div>
-        )}
-    </div>
-  );
-}
 
-/* =========================================================
-   SEARCHABLE DROPDOWN
-========================================================= */
+          {/* ===============================================
+              FOOTER
+          =============================================== */}
 
-function SearchableDropdown({
-  id,
-  value,
-  options,
-  placeholder,
-  searchPlaceholder =
-    "พิมพ์เพื่อค้นหา...",
-  emptyText =
-    "ไม่พบข้อมูล",
-  disabled =
-    false,
-  required =
-    false,
-  onChange,
-}: SearchableDropdownProps) {
-  const containerRef =
-    useRef<HTMLDivElement>(
-      null
-    );
-
-  const inputRef =
-    useRef<HTMLInputElement>(
-      null
-    );
-
-  const [
-    open,
-    setOpen,
-  ] =
-    useState(
-      false
-    );
-
-  const [
-    search,
-    setSearch,
-  ] =
-    useState(
-      ""
-    );
-
-  const selectedOption =
-    options.find(
-      (
-        option
-      ) =>
-        option.value ===
-        value
-    );
-
-  const filteredOptions =
-    useMemo(
-      () => {
-        const keyword =
-          search
-            .trim()
-            .toLocaleLowerCase(
-              "th"
-            );
-
-        if (
-          !keyword
-        ) {
-          return options;
-        }
-
-        return options.filter(
-          (
-            option
-          ) =>
-            option.label
-              .toLocaleLowerCase(
-                "th"
-              )
-              .includes(
-                keyword
-              ) ||
-            option.value
-              .toLocaleLowerCase(
-                "th"
-              )
-              .includes(
-                keyword
-              )
-        );
-      },
-      [
-        options,
-        search,
-      ]
-    );
-
-  useEffect(
-    () => {
-      function handleMouseDown(
-        event:
-          MouseEvent
-      ) {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(
-            event.target as Node
-          )
-        ) {
-          setOpen(
-            false
-          );
-
-          setSearch(
-            ""
-          );
-        }
-      }
-
-      document.addEventListener(
-        "mousedown",
-        handleMouseDown
-      );
-
-      return () => {
-        document.removeEventListener(
-          "mousedown",
-          handleMouseDown
-        );
-      };
-    },
-    []
-  );
-
-  useEffect(
-    () => {
-      if (
-        !open
-      ) {
-        return;
-      }
-
-      const timer =
-        window.setTimeout(
-          () => {
-            inputRef.current?.focus();
-          },
-          0
-        );
-
-      return () => {
-        window.clearTimeout(
-          timer
-        );
-      };
-    },
-    [
-      open,
-    ]
-  );
-
-  return (
-    <div
-      ref={
-        containerRef
-      }
-      className={`
-        relative
-        w-full
-        min-w-0
-
-        ${
-          open
-            ? "z-[400]"
-            : "z-10"
-        }
-      `}
-    >
-      {required && (
-        <input
-          tabIndex={
-            -1
-          }
-          aria-hidden="true"
-          value={
-            value
-          }
-          onChange={() => {}}
-          required
-          className="
-            pointer-events-none
-            absolute
-            h-px
-            w-px
-            opacity-0
-          "
-        />
-      )}
-
-      <button
-        id={
-          id
-        }
-        type="button"
-        disabled={
-          disabled
-        }
-        aria-haspopup="listbox"
-        aria-expanded={
-          open
-        }
-        onClick={() => {
-          if (
-            disabled
-          ) {
-            return;
-          }
-
-          setOpen(
-            (
-              current
-            ) =>
-              !current
-          );
-        }}
-        className="
-          flex
-          min-h-[50px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-3
-
-          rounded-[14px]
-
-          border
-          border-slate-300
-
-          bg-white
-
-          px-4
-          py-3
-
-          text-left
-          text-base
-          font-bold
-
-          !text-slate-900
-
-          shadow-sm
-          outline-none
-
-          hover:border-slate-400
-          hover:bg-slate-50
-
-          focus:border-blue-400
-          focus:ring-4
-          focus:ring-blue-500/10
-        "
-      >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-
-            ${
-              selectedOption
-                ? "!text-slate-900"
-                : "!text-slate-400"
-            }
-          `}
-        >
-          {selectedOption
-            ?.label ??
-            placeholder}
-        </span>
-
-        <span
-          aria-hidden="true"
-          className={`
-            text-xs
-            !text-slate-500
-
-            ${
-              open
-                ? "rotate-180"
-                : ""
-            }
-          `}
-        >
-          ▼
-        </span>
-      </button>
-
-      {open &&
-        !disabled && (
           <div
             className="
-              absolute
-              left-0
-              right-0
-              top-[calc(100%+8px)]
+              mt-3
 
-              z-[9999]
+              flex
+              items-center
+              justify-between
 
-              overflow-hidden
-
-              rounded-[16px]
-
-              border
+              border-t
               border-slate-200
 
-              bg-white
-
-              shadow-[0_24px_60px_-18px_rgba(15,23,42,0.35)]
+              pt-3
             "
           >
-            <div
+            <button
+              type="button"
+              onClick={() => {
+                onChange(
+                  ""
+                );
+
+                setOpen(
+                  false
+                );
+              }}
               className="
-                border-b
-                border-slate-200
+                rounded-[10px]
 
-                bg-slate-50
+                px-3
+                py-2
 
-                p-3
+                text-xs
+                font-extrabold
+
+                !text-red-600
+
+                hover:bg-red-50
               "
             >
-              <input
-                ref={
-                  inputRef
-                }
-                type="text"
-                value={
-                  search
-                }
-                placeholder={
-                  searchPlaceholder
-                }
-                autoComplete="off"
-                onChange={(
-                  event
-                ) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                className="
-                  min-h-[46px]
-                  w-full
+              ล้างวันที่
+            </button>
 
-                  rounded-[12px]
-
-                  border
-                  border-slate-300
-
-                  bg-white
-
-                  px-4
-
-                  font-bold
-
-                  !text-slate-900
-
-                  outline-none
-
-                  focus:border-blue-400
-                  focus:ring-4
-                  focus:ring-blue-500/10
-                "
-              />
-            </div>
-
-            <div
-              role="listbox"
+            <button
+              type="button"
+              onClick={
+                selectToday
+              }
               className="
-                max-h-[280px]
+                rounded-[10px]
 
-                overflow-y-auto
+                px-3
+                py-2
 
-                p-2
+                text-xs
+                font-extrabold
+
+                !text-blue-600
+
+                hover:bg-blue-50
               "
             >
-              {filteredOptions.length >
-              0 ? (
-                filteredOptions.map(
-                  (
-                    option
-                  ) => {
-                    const selected =
-                      option.value ===
-                      value;
-
-                    return (
-                      <button
-                        key={
-                          option.value
-                        }
-                        type="button"
-                        role="option"
-                        aria-selected={
-                          selected
-                        }
-                        onClick={() => {
-                          onChange(
-                            option.value
-                          );
-
-                          setOpen(
-                            false
-                          );
-
-                          setSearch(
-                            ""
-                          );
-                        }}
-                        className={`
-                          flex
-                          w-full
-                          items-center
-                          justify-between
-                          gap-3
-
-                          rounded-[10px]
-
-                          px-3
-                          py-2.5
-
-                          text-left
-                          font-bold
-
-                          ${
-                            selected
-                              ? "bg-slate-900 !text-white"
-                              : "bg-white !text-slate-900 hover:bg-slate-100"
-                          }
-                        `}
-                      >
-                        <span>
-                          {
-                            option.label
-                          }
-                        </span>
-
-                        {selected && (
-                          <span>
-                            ✓
-                          </span>
-                        )}
-                      </button>
-                    );
-                  }
-                )
-              ) : (
-                <div
-                  className="
-                    px-4
-                    py-8
-
-                    text-center
-                    font-bold
-
-                    !text-slate-500
-                  "
-                >
-                  {
-                    emptyText
-                  }
-                </div>
-              )}
-            </div>
+              วันนี้
+            </button>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }
 
 /* =========================================================
-   DISPLAY NUMBER
-========================================================= */
-
-function displayQuantity(
-  value:
-    number |
-    null |
-    undefined
-) {
-  const numberValue =
-    Number(
-      value ??
-        0
-    );
-
-  if (
-    !Number.isFinite(
-      numberValue
-    ) ||
-    numberValue ===
-      0
-  ) {
-    return "-";
-  }
-
-  return numberValue.toLocaleString(
-    "th-TH"
-  );
-}
-
-/* =========================================================
-   INITIAL ROW
+   INITIAL ROWS
 ========================================================= */
 
 function createInitialRows(
-  materials:
-    MaterialRow[]
+  materials: Material[]
 ): InspectionRow[] {
   return materials.map(
     (
@@ -1661,27 +1058,56 @@ function createInitialRows(
 }
 
 /* =========================================================
-   SAVE ICON
+   STOCK DISPLAY
+
+   0 / ไม่มีค่า
+   =
+   -
 ========================================================= */
 
-function SaveIcon() {
+function displayStockValue(
+  value: number
+) {
+  if (
+    value ===
+      0 ||
+    !Number.isFinite(
+      value
+    )
+  ) {
+    return "-";
+  }
+
+  return value.toLocaleString(
+    "th-TH"
+  );
+}
+
+/* =========================================================
+   OPTIONAL INTEGER
+========================================================= */
+
+function isValidOptionalInteger(
+  value: string
+) {
+  if (
+    value.trim() ===
+    ""
+  ) {
+    return true;
+  }
+
+  const number =
+    Number(
+      value
+    );
+
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-4 w-4"
-      aria-hidden="true"
-    >
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
-
-      <path d="M17 21v-8H7v8" />
-
-      <path d="M7 3v5h8" />
-    </svg>
+    Number.isInteger(
+      number
+    ) &&
+    number >=
+      0
   );
 }
 
@@ -1695,8 +1121,19 @@ export default function InspectionForm({
   endShortYear,
   materials,
   officers,
-  initialInspectionDate,
 }: Props) {
+  /* =======================================================
+     STATE
+  ======================================================= */
+
+  const [
+    inspectionDate,
+    setInspectionDate,
+  ] =
+    useState(
+      getCurrentDate()
+    );
+
   const [
     rows,
     setRows,
@@ -1723,15 +1160,6 @@ export default function InspectionForm({
     ]);
 
   const [
-    inspectionDate,
-    setInspectionDate,
-  ] =
-    useState(
-      initialInspectionDate ||
-        getCurrentDate()
-    );
-
-  const [
     searchTerm,
     setSearchTerm,
   ] =
@@ -1748,7 +1176,29 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     SEARCH
+     MATERIAL MAP
+  ======================================================= */
+
+  const materialMap =
+    useMemo(
+      () =>
+        new Map(
+          materials.map(
+            (
+              material
+            ) => [
+              material.materialId,
+              material,
+            ]
+          )
+        ),
+      [
+        materials,
+      ]
+    );
+
+  /* =======================================================
+     FILTER MATERIAL
   ======================================================= */
 
   const filteredMaterials =
@@ -1770,29 +1220,35 @@ export default function InspectionForm({
         return materials.filter(
           (
             material
-          ) =>
-            [
-              material.code,
-              material.name,
-              material.unit,
-              material.category,
+          ) => {
+            const searchable =
+              [
+                material.code,
 
-              CATEGORY_NAMES[
-                material.category
-              ],
-            ]
-              .filter(
-                Boolean
-              )
-              .join(
-                " "
-              )
-              .toLocaleLowerCase(
-                "th"
-              )
-              .includes(
-                keyword
-              )
+                material.name,
+
+                material.unit,
+
+                material.category,
+
+                CATEGORY_NAME[
+                  material.category
+                ],
+              ]
+                .filter(
+                  Boolean
+                )
+                .join(
+                  " "
+                )
+                .toLocaleLowerCase(
+                  "th"
+                );
+
+            return searchable.includes(
+              keyword
+            );
+          }
         );
       },
       [
@@ -1802,7 +1258,7 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     GROUP
+     GROUPED MATERIAL
   ======================================================= */
 
   const groupedMaterials =
@@ -1815,8 +1271,8 @@ export default function InspectionForm({
             ) => ({
               category,
 
-              label:
-                CATEGORY_NAMES[
+              name:
+                CATEGORY_NAME[
                   category
                 ] ??
                 category,
@@ -1835,7 +1291,8 @@ export default function InspectionForm({
             (
               group
             ) =>
-              group.materials.length >
+              group.materials
+                .length >
               0
           ),
       [
@@ -1844,24 +1301,43 @@ export default function InspectionForm({
     );
 
   /* =======================================================
+     GET ROW
+  ======================================================= */
+
+  function getRow(
+    materialId: number
+  ) {
+    return rows.find(
+      (
+        row
+      ) =>
+        row.materialId ===
+        materialId
+    );
+  }
+
+  /* =======================================================
      UPDATE ROW
   ======================================================= */
 
   function updateRow(
-    materialId:
-      number,
-
+    materialId: number,
     field:
-      EditableInspectionField,
-
-    value:
-      string
+      | "shortageQty"
+      | "excessQty"
+      | "baht"
+      | "satang"
+      | "damagedQty"
+      | "deterioratedQty"
+      | "unnecessaryQty"
+      | "remark",
+    value: string
   ) {
     setRows(
       (
-        currentRows
+        current
       ) =>
-        currentRows.map(
+        current.map(
           (
             row
           ) =>
@@ -1879,15 +1355,43 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     QUICK ACCURACY
+     UPDATE ACCURACY
   ======================================================= */
 
-  function updateAllAccuracy(
-    value:
-      | "CORRECT"
-      | "INCORRECT"
+  function updateAccuracy(
+    materialId: number,
+    accuracy: string
   ) {
-    const visibleMaterialIds =
+    setRows(
+      (
+        current
+      ) =>
+        current.map(
+          (
+            row
+          ) =>
+            row.materialId ===
+            materialId
+              ? {
+                  ...row,
+                  accuracy,
+                }
+              : row
+        )
+    );
+  }
+
+  /* =======================================================
+     QUICK ACTION
+
+     ทำเฉพาะรายการที่กำลังแสดง
+     ตาม Search ปัจจุบัน
+  ======================================================= */
+
+  function updateVisibleAccuracy(
+    accuracy: string
+  ) {
+    const visibleIds =
       new Set(
         filteredMaterials.map(
           (
@@ -1899,23 +1403,65 @@ export default function InspectionForm({
 
     setRows(
       (
-        currentRows
+        current
       ) =>
-        currentRows.map(
+        current.map(
           (
             row
           ) =>
-            visibleMaterialIds.has(
+            visibleIds.has(
               row.materialId
             )
               ? {
                   ...row,
-
-                  accuracy:
-                    value,
+                  accuracy,
                 }
               : row
         )
+    );
+  }
+
+  /* =======================================================
+     NUMBER CHANGE
+  ======================================================= */
+
+  function updateNumberField(
+    materialId: number,
+    field:
+      | "shortageQty"
+      | "excessQty"
+      | "baht"
+      | "satang"
+      | "damagedQty"
+      | "deterioratedQty"
+      | "unnecessaryQty",
+    value: string
+  ) {
+    if (
+      value ===
+      ""
+    ) {
+      updateRow(
+        materialId,
+        field,
+        ""
+      );
+
+      return;
+    }
+
+    if (
+      !/^\d+$/.test(
+        value
+      )
+    ) {
+      return;
+    }
+
+    updateRow(
+      materialId,
+      field,
+      value
     );
   }
 
@@ -1924,11 +1470,8 @@ export default function InspectionForm({
   ======================================================= */
 
   function updateInspector(
-    index:
-      number,
-
-    value:
-      string
+    index: number,
+    officerId: string
   ) {
     setInspectorIds(
       (
@@ -1939,10 +1482,8 @@ export default function InspectionForm({
             ...current,
           ];
 
-        next[
-          index
-        ] =
-          value;
+        next[index] =
+          officerId;
 
         return next;
       }
@@ -1950,11 +1491,8 @@ export default function InspectionForm({
   }
 
   function isOfficerSelected(
-    officerId:
-      string,
-
-    currentIndex:
-      number
+    officerId: string,
+    currentIndex: number
   ) {
     return inspectorIds.some(
       (
@@ -1968,22 +1506,64 @@ export default function InspectionForm({
     );
   }
 
+  function getOfficer(
+    officerId: string
+  ) {
+    return officers.find(
+      (
+        officer
+      ) =>
+        String(
+          officer.id
+        ) ===
+        officerId
+    );
+  }
+
   /* =======================================================
      SAVE
   ======================================================= */
 
   async function handleSave() {
     if (
+      isSaving
+    ) {
+      return;
+    }
+
+    /* ===============================================
+       DATE
+    =============================================== */
+
+    if (
       !inspectionDate
     ) {
       alert(
-        "กรุณาเลือกวันที่ตรวจสอบ"
+        "กรุณาระบุวันที่ตรวจสอบ"
       );
 
       return;
     }
 
     if (
+      !parseDateOnly(
+        inspectionDate
+      )
+    ) {
+      alert(
+        "รูปแบบวันที่ตรวจสอบไม่ถูกต้อง"
+      );
+
+      return;
+    }
+
+    /* ===============================================
+       INSPECTORS
+    =============================================== */
+
+    if (
+      inspectorIds.length !==
+        3 ||
       inspectorIds.some(
         (
           id
@@ -1992,7 +1572,7 @@ export default function InspectionForm({
       )
     ) {
       alert(
-        "กรุณาเลือกรายชื่อผู้ตรวจสอบให้ครบทั้ง 3 คน"
+        "กรุณาเลือกคณะกรรมการตรวจสอบให้ครบ 3 คน"
       );
 
       return;
@@ -2005,11 +1585,84 @@ export default function InspectionForm({
       3
     ) {
       alert(
-        "ไม่สามารถเลือกผู้ตรวจสอบซ้ำกันได้"
+        "ไม่สามารถเลือกคณะกรรมการตรวจสอบซ้ำกันได้"
       );
 
       return;
     }
+
+    /* ===============================================
+       ROWS
+    =============================================== */
+
+    if (
+      rows.length ===
+      0
+    ) {
+      alert(
+        "ไม่พบรายการพัสดุสำหรับตรวจสอบ"
+      );
+
+      return;
+    }
+
+    for (
+      const row of
+      rows
+    ) {
+      const material =
+        materialMap.get(
+          row.materialId
+        );
+
+      if (
+        !row.accuracy
+      ) {
+        alert(
+          `กรุณาระบุผลการตรวจสอบของรายการ "${
+            material?.name ??
+            row.materialId
+          }"`
+        );
+
+        return;
+      }
+
+      const numericFields =
+        [
+          row.shortageQty,
+          row.excessQty,
+          row.baht,
+          row.satang,
+          row.damagedQty,
+          row.deterioratedQty,
+          row.unnecessaryQty,
+        ];
+
+      if (
+        numericFields.some(
+          (
+            value
+          ) =>
+            !isValidOptionalInteger(
+              value
+            )
+        )
+      ) {
+        alert(
+          `จำนวนของรายการ "${
+            material?.name ??
+            row.materialId
+          }" ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป`
+        );
+
+        return;
+      }
+    }
+
+    /* ===============================================
+       POST
+    =============================================== */
 
     try {
       setIsSaving(
@@ -2040,40 +1693,99 @@ export default function InspectionForm({
                       Number
                     ),
 
-                  rows,
+                  rows:
+                    rows.map(
+                      (
+                        row
+                      ) => ({
+                        materialId:
+                          row.materialId,
+
+                        accuracy:
+                          row.accuracy,
+
+                        shortageQty:
+                          row.shortageQty,
+
+                        excessQty:
+                          row.excessQty,
+
+                        baht:
+                          row.baht,
+
+                        satang:
+                          row.satang,
+
+                        damagedQty:
+                          row.damagedQty,
+
+                        deterioratedQty:
+                          row.deterioratedQty,
+
+                        unnecessaryQty:
+                          row.unnecessaryQty,
+
+                        remark:
+                          row.remark,
+                      })
+                    ),
                 }
               ),
           }
         );
 
-      const data =
-        await response
-          .json()
-          .catch(
-            () =>
-              null
-          );
+      let data:
+        | {
+            ok?: boolean;
+            message?: string;
+            error?: string;
+          }
+        | null =
+        null;
+
+      try {
+        data =
+          await response.json();
+      } catch {
+        data =
+          null;
+      }
 
       if (
         !response.ok
       ) {
         throw new Error(
-          data?.error ||
-            "ไม่สามารถบันทึกข้อมูลได้"
+          data?.message ||
+            data?.error ||
+            "ไม่สามารถบันทึกข้อมูลการตรวจสอบได้"
         );
       }
 
       alert(
-        "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
+        data?.message ||
+          "บันทึกผลการตรวจสอบบัญชีพัสดุประจำปีเรียบร้อยแล้ว"
       );
+
+      /* ===============================================
+         หลังบันทึก
+         ไปหน้าประวัติของปีที่บันทึกทันที
+      =============================================== */
+
+      window.location.href =
+        `/stock-card/inspection-history?fiscalYear=${fiscalYear}`;
     } catch (
       error
     ) {
+      console.error(
+        "Save stock card inspection error:",
+        error
+      );
+
       alert(
         error instanceof
           Error
           ? error.message
-          : "เกิดข้อผิดพลาดในการบันทึกข้อมูล"
+          : "เกิดข้อผิดพลาดในการบันทึกข้อมูลการตรวจสอบ"
       );
     } finally {
       setIsSaving(
@@ -2082,12 +1794,18 @@ export default function InspectionForm({
     }
   }
 
+  /* =======================================================
+     INPUT STYLE
+
+     ช่องกรอกในตาราง
+     ไม่ใช้กรอบดำ
+  ======================================================= */
+
   const numberInputClass =
     `
-      mx-auto
-
-      h-9
-      w-20
+      h-10
+      w-full
+      min-w-[62px]
 
       rounded-[10px]
 
@@ -2099,17 +1817,22 @@ export default function InspectionForm({
       px-2
 
       text-center
-      font-semibold
+      text-sm
+      font-bold
+      tabular-nums
 
       !text-slate-900
 
       outline-none
 
+      transition-all
+      duration-150
+
       placeholder:!text-slate-400
 
       focus:border-blue-500
       focus:ring-2
-      focus:ring-blue-500/10
+      focus:ring-blue-100
     `;
 
   /* =========================================================
@@ -2122,89 +1845,55 @@ export default function InspectionForm({
         w-full
         min-w-0
 
-        space-y-6
+        space-y-5
+
+        sm:space-y-6
       "
     >
       {/* =====================================================
-          INFORMATION
+          1. INSPECTION INFORMATION
       ===================================================== */}
 
       <AppCard
         className="
           relative
-          z-20
+          z-30
+
+          w-full
+          min-w-0
 
           !overflow-visible
+
+          p-4
+
+          sm:p-5
         "
       >
-        <div
-          className="
-            flex
-            flex-col
-            gap-4
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
 
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
-          <div>
-            <h2
-              className="
-                text-xl
-                font-black
+              !text-slate-900
+            "
+          >
+            ข้อมูลการตรวจสอบ
+          </h2>
 
-                !text-slate-900
+          <p
+            className="
+              mt-1
 
-                sm:text-2xl
-              "
-            >
-              ข้อมูลการตรวจสอบ
-            </h2>
+              text-sm
+              font-semibold
 
-            <p
-              className="
-                mt-1
-
-                text-sm
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              ตรวจสอบบัญชีพัสดุประจำปีงบประมาณ พ.ศ.{" "}
-              {
-                fiscalYear
-              }
-            </p>
-          </div>
-
-          <ExportInspectionPdf
-            fiscalYear={
-              fiscalYear
-            }
-            startShortYear={
-              startShortYear
-            }
-            endShortYear={
-              endShortYear
-            }
-            inspectionDate={
-              inspectionDate
-            }
-            materials={
-              materials
-            }
-            rows={
-              rows
-            }
-            inspectorIds={
-              inspectorIds
-            }
-            officers={
-              officers
-            }
-          />
+              !text-slate-500
+            "
+          >
+            ระบุวันที่ดำเนินการตรวจสอบบัญชีพัสดุประจำปี
+          </p>
         </div>
 
         <div
@@ -2213,11 +1902,16 @@ export default function InspectionForm({
 
             grid
             grid-cols-1
+
             gap-4
 
-            md:grid-cols-4
+            md:grid-cols-2
           "
         >
+          {/* ===============================================
+              FISCAL YEAR
+          =============================================== */}
+
           <div
             className="
               rounded-[18px]
@@ -2225,7 +1919,7 @@ export default function InspectionForm({
               border
               border-slate-200
 
-              bg-slate-50/60
+              bg-slate-50/70
 
               p-4
             "
@@ -2243,9 +1937,9 @@ export default function InspectionForm({
 
             <p
               className="
-                mt-1
+                mt-2
 
-                text-lg
+                text-xl
                 font-black
 
                 !text-slate-900
@@ -2258,19 +1952,21 @@ export default function InspectionForm({
             </p>
           </div>
 
+          {/* ===============================================
+              INSPECTION DATE
+          =============================================== */}
+
           <div
             className="
               relative
               z-40
-
-              min-w-0
 
               rounded-[18px]
 
               border
               border-slate-200
 
-              bg-slate-50/60
+              bg-slate-50/70
 
               p-4
             "
@@ -2284,10 +1980,10 @@ export default function InspectionForm({
                 text-sm
                 font-extrabold
 
-                !text-slate-500
+                !text-slate-700
               "
             >
-              ตรวจสอบเมื่อวันที่
+              วันที่ตรวจสอบ
             </label>
 
             <IOSDatePicker
@@ -2295,150 +1991,79 @@ export default function InspectionForm({
               value={
                 inspectionDate
               }
-              placeholder="เลือกวันที่"
-              required
               onChange={
                 setInspectionDate
               }
             />
           </div>
-
-          <div
-            className="
-              rounded-[18px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/60
-
-              p-4
-            "
-          >
-            <p
-              className="
-                text-sm
-                font-extrabold
-
-                !text-slate-500
-              "
-            >
-              ยอดยกมา
-            </p>
-
-            <p
-              className="
-                mt-1
-
-                text-lg
-                font-black
-
-                !text-slate-900
-              "
-            >
-              30 ก.ย.{" "}
-              {
-                startShortYear
-              }
-            </p>
-          </div>
-
-          <div
-            className="
-              rounded-[18px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/60
-
-              p-4
-            "
-          >
-            <p
-              className="
-                text-sm
-                font-extrabold
-
-                !text-slate-500
-              "
-            >
-              ช่วงรายการรับ–จ่าย
-            </p>
-
-            <p
-              className="
-                mt-1
-
-                text-lg
-                font-black
-
-                !text-slate-900
-              "
-            >
-              01 ต.ค.{" "}
-              {
-                startShortYear
-              }{" "}
-              - 30 ก.ย.{" "}
-              {
-                endShortYear
-              }
-            </p>
-          </div>
         </div>
       </AppCard>
 
       {/* =====================================================
-          SEARCH
+          2. SEARCH
       ===================================================== */}
 
-      <AppSearchInput
-        value={
-          searchTerm
-        }
-        onChange={(
-          event
-        ) =>
-          setSearchTerm(
-            event.target.value
-          )
-        }
-        onSubmit={() =>
-          setSearchTerm(
-            searchTerm.trim()
-          )
-        }
-        onClear={() =>
-          setSearchTerm(
-            ""
-          )
-        }
-        placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ / หมวดวัสดุ"
-        resultCount={
-          filteredMaterials.length
-        }
-        resultLabel="รายการ"
-        showSearchButton
-        showClearButton
-        searchButtonText="ค้นหา"
-        clearButtonText="ล้าง"
-      />
+      <div
+        className="
+          relative
+          z-20
+        "
+      >
+        <AppSearchInput
+          value={
+            searchTerm
+          }
+          onChange={(
+            event
+          ) =>
+            setSearchTerm(
+              event.target.value
+            )
+          }
+          onSubmit={() =>
+            setSearchTerm(
+              searchTerm.trim()
+            )
+          }
+          onClear={() =>
+            setSearchTerm(
+              ""
+            )
+          }
+          placeholder="ค้นหารหัส / รายการพัสดุ / หน่วยนับ / หมวดหมู่"
+          resultCount={
+            filteredMaterials.length
+          }
+          resultLabel="รายการ"
+          showSearchButton
+          showClearButton
+          searchButtonText="ค้นหา"
+          clearButtonText="ล้าง"
+        />
+      </div>
 
       {/* =====================================================
-          TABLE
+          3. TABLE
       ===================================================== */}
 
       <AppTableCard
         title="รายการตรวจสอบบัญชีพัสดุ"
-        subtitle={`ประจำปีงบประมาณ ${fiscalYear}`}
+        subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
         badge={`${filteredMaterials.length.toLocaleString(
           "th-TH"
         )} รายการ`}
+        className="
+          relative
+          z-10
+
+          w-full
+          min-w-0
+          max-w-full
+        "
       >
-        {/* =================================================
+        {/* ===================================================
             QUICK ACTION
-        ================================================= */}
+        =================================================== */}
 
         <div
           className="
@@ -2452,6 +2077,19 @@ export default function InspectionForm({
             sm:p-4
           "
         >
+          <p
+            className="
+              mb-3
+
+              text-sm
+              font-extrabold
+
+              !text-slate-700
+            "
+          >
+            กำหนดผลการตรวจสอบให้กับรายการที่กำลังแสดง
+          </p>
+
           <div
             className="
               flex
@@ -2464,7 +2102,7 @@ export default function InspectionForm({
               variant="success"
               size="sm"
               onClick={() =>
-                updateAllAccuracy(
+                updateVisibleAccuracy(
                   "CORRECT"
                 )
               }
@@ -2477,7 +2115,7 @@ export default function InspectionForm({
               variant="danger"
               size="sm"
               onClick={() =>
-                updateAllAccuracy(
+                updateVisibleAccuracy(
                   "INCORRECT"
                 )
               }
@@ -2487,29 +2125,60 @@ export default function InspectionForm({
           </div>
         </div>
 
+        {/* ===================================================
+            TABLE
+        =================================================== */}
+
         <div
           className="
             w-full
+            min-w-0
+
             overflow-x-auto
+            overscroll-x-contain
           "
         >
           <table
             className="
               w-full
-              min-w-[2500px]
+              min-w-[2100px]
 
               border-collapse
 
               bg-white
+
+              text-sm
             "
           >
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
             <thead>
               <tr>
                 <th
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
+                  className="
+                    w-[70px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   ลำดับ
                 </th>
@@ -2518,7 +2187,25 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="min-w-[320px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-4 text-center align-middle font-extrabold !text-white"
+                  className="
+                    min-w-[320px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-3
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   รายการพัสดุ
                 </th>
@@ -2527,7 +2214,25 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
+                  className="
+                    min-w-[100px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   หน่วยนับ
                 </th>
@@ -2536,88 +2241,316 @@ export default function InspectionForm({
                   rowSpan={
                     2
                   }
-                  className="min-w-[180px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
+                  className="
+                    min-w-[150px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
-                  คงเหลือยอดยกมา
-                  <br />
-                  เมื่อ 30 ก.ย.{" "}
-                  {
-                    startShortYear
-                  }
+                  <div>
+                    คงเหลือยอดยกมาเมื่อ
+                  </div>
+
+                  <div
+                    className="
+                      mt-1
+                      whitespace-nowrap
+                    "
+                  >
+                    30 ก.ย.{" "}
+                    {
+                      startShortYear
+                    }
+                  </div>
                 </th>
+
+                {/* =========================================
+                    MOVEMENT
+                ========================================= */}
 
                 <th
                   colSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
-                >
-                  01 ต.ค.{" "}
-                  {
-                    startShortYear
-                  }{" "}
-                  - 30 ก.ย.{" "}
-                  {
-                    endShortYear
-                  }
-                </th>
+                  className="
+                    min-w-[180px]
 
-                <th className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white">
-                  คงเหลือ
-                </th>
+                    border
+                    border-black
 
-                <th
-                  colSpan={
-                    2
-                  }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
-                >
-                  ผลการตรวจสอบ
-                </th>
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
 
-                <th
-                  colSpan={
-                    4
-                  }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
-                >
-                  ถ้าไม่ถูกต้องจำนวนที่ขาด
-                  จำนวนที่เกินคิดเป็นร้อยละ
-                </th>
+                    px-2
+                    py-3
 
-                <th
-                  colSpan={
-                    3
-                  }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center font-extrabold !text-white"
+                    text-center
+                    align-middle
+                    font-extrabold
+                    whitespace-nowrap
+
+                    !text-white
+                  "
                 >
-                  จำนวนที่
+                  {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
                 </th>
 
                 <th
                   rowSpan={
                     2
                   }
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-4 text-center align-middle font-extrabold !text-white"
+                  className="
+                    min-w-[90px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ยกไป
+                </th>
+
+                {/* =========================================
+                    CORRECT
+                ========================================= */}
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[90px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ถูกต้อง
+                </th>
+
+                {/* =========================================
+                    INCORRECT RADIO
+                ========================================= */}
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[105px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ไม่ถูกต้อง
+                </th>
+
+                {/* =========================================
+                    INCORRECT DETAIL
+
+                    ยังคงเป็นกลุ่มเดียว colSpan = 4
+                ========================================= */}
+
+                <th
+                  colSpan={
+                    4
+                  }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  รายละเอียดกรณีไม่ถูกต้อง
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[100px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ชำรุด
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[115px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  เสื่อมสภาพ
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[150px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
+                >
+                  ไม่จำเป็นต้องใช้
+                </th>
+
+                <th
+                  rowSpan={
+                    2
+                  }
+                  className="
+                    min-w-[240px]
+
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-3
+
+                    text-center
+                    align-middle
+                    font-extrabold
+
+                    !text-white
+                  "
                 >
                   หมายเหตุ
                 </th>
               </tr>
 
+              {/* =============================================
+                  SECOND HEADER
+              ============================================= */}
+
               <tr>
                 {[
                   "รับ",
                   "จ่าย",
-                  "ยกไป",
-                  "ถูกต้อง",
-                  "ไม่ถูกต้อง",
                   "ขาด",
                   "เกิน",
                   "บาท",
                   "สต.",
-                  "ชำรุด",
-                  "เสื่อมสภาพ",
-                  "ไม่จำเป็นต้องใช้",
                 ].map(
                   (
                     title
@@ -2626,7 +2559,26 @@ export default function InspectionForm({
                       key={
                         title
                       }
-                      className="min-w-[100px] border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center font-extrabold !text-white"
+                      className="
+                        min-w-[85px]
+
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-2
+                        py-2.5
+
+                        text-center
+                        font-extrabold
+
+                        !text-white
+                      "
                     >
                       {
                         title
@@ -2636,6 +2588,10 @@ export default function InspectionForm({
                 )}
               </tr>
             </thead>
+
+            {/* =================================================
+                BODY
+            ================================================= */}
 
             <tbody>
               {groupedMaterials.length ===
@@ -2649,10 +2605,13 @@ export default function InspectionForm({
                       border
                       border-black
 
+                      bg-white
+
                       px-6
-                      py-16
+                      py-14
 
                       text-center
+                      text-base
                       font-bold
 
                       !text-slate-500
@@ -2666,306 +2625,39 @@ export default function InspectionForm({
                   (
                     group
                   ) => (
-                    <Fragment
+                    <MaterialCategoryRows
                       key={
                         group.category
                       }
-                    >
-                      <tr>
-                        <td
-                          colSpan={
-                            17
-                          }
-                          className="
-                            border
-                            border-black
-
-                            bg-slate-200
-
-                            px-4
-                            py-3
-
-                            text-left
-                            text-base
-                            font-black
-
-                            !text-slate-900
-                          "
-                        >
-                          {
-                            group.label
-                          }
-                        </td>
-                      </tr>
-
-                      {group.materials.map(
-                        (
-                          material,
-                          index
-                        ) => {
-                          const row =
-                            rows.find(
-                              (
-                                item
-                              ) =>
-                                item.materialId ===
-                                material.materialId
-                            );
-
-                          if (
-                            !row
-                          ) {
-                            return null;
-                          }
-
-                          return (
-                            <tr
-                              key={
-                                material.materialId
-                              }
-                              className={`
-                                text-sm
-                                font-medium
-
-                                !text-slate-900
-
-                                ${
-                                  index %
-                                    2 ===
-                                  0
-                                    ? "bg-white"
-                                    : "bg-slate-50/60"
-                                }
-
-                                hover:bg-emerald-50/60
-                              `}
-                            >
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {
-                                  index +
-                                  1
-                                }
-                              </td>
-
-                              <td className="border border-black px-3 py-2.5 font-semibold">
-                                {
-                                  material.name
-                                }
-                              </td>
-
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {material.unit ||
-                                  "-"}
-                              </td>
-
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {displayQuantity(
-                                  material.openingBalance
-                                )}
-                              </td>
-
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {displayQuantity(
-                                  material.receiveQty
-                                )}
-                              </td>
-
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {displayQuantity(
-                                  material.issueQty
-                                )}
-                              </td>
-
-                              <td className="border border-black px-2 py-2.5 text-center">
-                                {displayQuantity(
-                                  material.closingBalance
-                                )}
-                              </td>
-
-                              {[
-                                "CORRECT",
-                                "INCORRECT",
-                              ].map(
-                                (
-                                  accuracy
-                                ) => (
-                                  <td
-                                    key={
-                                      accuracy
-                                    }
-                                    className="border border-black px-2 py-2 text-center"
-                                  >
-                                    <input
-                                      type="radio"
-                                      name={`accuracy-${material.materialId}`}
-                                      value={
-                                        accuracy
-                                      }
-                                      checked={
-                                        row.accuracy ===
-                                        accuracy
-                                      }
-                                      onChange={(
-                                        event
-                                      ) =>
-                                        updateRow(
-                                          material.materialId,
-                                          "accuracy",
-                                          event.target.value
-                                        )
-                                      }
-                                      className="
-                                        h-4
-                                        w-4
-
-                                        cursor-pointer
-
-                                        accent-blue-600
-                                      "
-                                    />
-                                  </td>
-                                )
-                              )}
-
-                              {[
-                                {
-                                  field:
-                                    "shortageQty" as const,
-
-                                  value:
-                                    row.shortageQty,
-                                },
-
-                                {
-                                  field:
-                                    "excessQty" as const,
-
-                                  value:
-                                    row.excessQty,
-                                },
-
-                                {
-                                  field:
-                                    "baht" as const,
-
-                                  value:
-                                    row.baht,
-                                },
-
-                                {
-                                  field:
-                                    "satang" as const,
-
-                                  value:
-                                    row.satang,
-                                },
-
-                                {
-                                  field:
-                                    "damagedQty" as const,
-
-                                  value:
-                                    row.damagedQty,
-                                },
-
-                                {
-                                  field:
-                                    "deterioratedQty" as const,
-
-                                  value:
-                                    row.deterioratedQty,
-                                },
-
-                                {
-                                  field:
-                                    "unnecessaryQty" as const,
-
-                                  value:
-                                    row.unnecessaryQty,
-                                },
-                              ].map(
-                                (
-                                  input
-                                ) => (
-                                  <td
-                                    key={
-                                      input.field
-                                    }
-                                    className="border border-black px-2 py-2 text-center"
-                                  >
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="1"
-                                      value={
-                                        input.value
-                                      }
-                                      placeholder="-"
-                                      onChange={(
-                                        event
-                                      ) =>
-                                        updateRow(
-                                          material.materialId,
-                                          input.field,
-                                          event.target.value
-                                        )
-                                      }
-                                      className={
-                                        numberInputClass
-                                      }
-                                    />
-                                  </td>
-                                )
-                              )}
-
-                              <td className="border border-black px-2 py-2">
-                                <input
-                                  type="text"
-                                  value={
-                                    row.remark
-                                  }
-                                  placeholder="-"
-                                  onChange={(
-                                    event
-                                  ) =>
-                                    updateRow(
-                                      material.materialId,
-                                      "remark",
-                                      event.target.value
-                                    )
-                                  }
-                                  className="
-                                    h-9
-                                    w-[160px]
-
-                                    rounded-[10px]
-
-                                    border
-                                    border-slate-300
-
-                                    bg-white
-
-                                    px-3
-
-                                    font-semibold
-
-                                    !text-slate-900
-
-                                    outline-none
-
-                                    placeholder:!text-slate-400
-
-                                    focus:border-blue-500
-                                    focus:ring-2
-                                    focus:ring-blue-500/10
-                                  "
-                                />
-                              </td>
-                            </tr>
-                          );
-                        }
-                      )}
-                    </Fragment>
+                      categoryName={
+                        group.name
+                      }
+                      materials={
+                        group.materials
+                      }
+                      getRow={
+                        getRow
+                      }
+                      numberInputClass={
+                        numberInputClass
+                      }
+                      updateAccuracy={
+                        updateAccuracy
+                      }
+                      updateNumberField={
+                        updateNumberField
+                      }
+                      updateRemark={(
+                        materialId,
+                        value
+                      ) =>
+                        updateRow(
+                          materialId,
+                          "remark",
+                          value
+                        )
+                      }
+                    />
                   )
                 )
               )}
@@ -2975,43 +2667,52 @@ export default function InspectionForm({
       </AppTableCard>
 
       {/* =====================================================
-          COMMITTEE
+          4. COMMITTEE
       ===================================================== */}
 
       <AppCard
         className="
           relative
-          z-10
+          z-20
+
+          w-full
+          min-w-0
 
           !overflow-visible
+
+          p-4
+
+          sm:p-5
         "
       >
-        <h2
-          className="
-            text-xl
-            font-black
+        <div>
+          <h2
+            className="
+              text-xl
+              font-black
+              tracking-tight
 
-            !text-slate-900
+              !text-slate-900
 
-            sm:text-2xl
-          "
-        >
-          คณะกรรมการตรวจสอบครุภัณฑ์
-        </h2>
+              sm:text-2xl
+            "
+          >
+            คณะกรรมการตรวจสอบครุภัณฑ์
+          </h2>
 
-        <p
-          className="
-            mt-1
+          <p
+            className="
+              mt-1
 
-            text-sm
-            font-semibold
+              text-sm
+              font-semibold
 
-            !text-slate-500
-          "
-        >
-          เลือกผู้ตรวจสอบจำนวน 3 คน
-          โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
-        </p>
+              !text-slate-500
+            "
+          >
+            เลือกผู้ตรวจสอบจำนวน 3 คน โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
+          </p>
+        </div>
 
         <div
           className="
@@ -3019,6 +2720,7 @@ export default function InspectionForm({
 
             grid
             grid-cols-1
+
             gap-4
 
             lg:grid-cols-3
@@ -3029,22 +2731,26 @@ export default function InspectionForm({
               inspectorId,
               index
             ) => {
-              const options =
+              const officerOptions =
                 officers
                   .filter(
                     (
                       officer
-                    ) =>
-                      String(
-                        officer.id
-                      ) ===
-                        inspectorId ||
-                      !isOfficerSelected(
+                    ) => {
+                      const value =
                         String(
                           officer.id
-                        ),
-                        index
-                      )
+                        );
+
+                      return (
+                        value ===
+                          inspectorId ||
+                        !isOfficerSelected(
+                          value,
+                          index
+                        )
+                      );
+                    }
                   )
                   .map(
                     (
@@ -3057,6 +2763,23 @@ export default function InspectionForm({
 
                       label:
                         `${officer.firstName} ${officer.lastName}`.trim(),
+
+                      description:
+                        [
+                          officer.position,
+
+                          officer.department
+                            ?.name,
+
+                          officer.section
+                            ?.name,
+                        ]
+                          .filter(
+                            Boolean
+                          )
+                          .join(
+                            " / "
+                          ),
                     })
                   );
 
@@ -3067,8 +2790,16 @@ export default function InspectionForm({
                   }
                   className="
                     relative
-                    z-10
                     min-w-0
+
+                    rounded-[18px]
+
+                    border
+                    border-slate-200/80
+
+                    bg-slate-50/60
+
+                    p-4
                   "
                 >
                   <label
@@ -3088,27 +2819,46 @@ export default function InspectionForm({
                       : `กรรมการคนที่ ${index}`}
                   </label>
 
-                  <SearchableDropdown
-                    id={`inspector-${index}`}
+                  <AppSearchableSelect
                     value={
                       inspectorId
                     }
                     options={
-                      options
+                      officerOptions
                     }
-                    placeholder="-- เลือกผู้ตรวจสอบ --"
-                    searchPlaceholder="พิมพ์ค้นหาผู้ตรวจสอบ..."
+                    placeholder="เลือกผู้ตรวจสอบ"
+                    searchPlaceholder="พิมพ์ชื่อ / นามสกุล / ตำแหน่ง / กลุ่มงาน..."
                     emptyText="ไม่พบรายชื่อผู้ตรวจสอบ"
                     required
                     onChange={(
-                      value
+                      officerId
                     ) =>
                       updateInspector(
                         index,
-                        value
+                        officerId
                       )
                     }
                   />
+
+                  {inspectorId && (
+                    <p
+                      className="
+                        mt-2
+
+                        text-xs
+                        font-semibold
+
+                        !text-slate-500
+                      "
+                    >
+                      ตำแหน่ง:{" "}
+                      {getOfficer(
+                        inspectorId
+                      )
+                        ?.position ||
+                        "-"}
+                    </p>
+                  )}
                 </div>
               );
             }
@@ -3117,8 +2867,12 @@ export default function InspectionForm({
       </AppCard>
 
       {/* =====================================================
-          ACTION
-          ใช้ปุ่มตัวกลางแบบเดียวกับหน้าอื่น
+          5. ACTIONS
+
+          ทั้งสองปุ่มใช้ AppButton ตัวกลาง
+
+          ยกเลิก = สีฟ้า
+          บันทึก = สีเขียว + 💾
       ===================================================== */}
 
       <div
@@ -3134,6 +2888,12 @@ export default function InspectionForm({
           sm:justify-end
         "
       >
+        {/* ===============================================
+            CANCEL
+
+            กลับหน้า Stock Card ปีเดิม
+        =============================================== */}
+
         <AppButton
           href={`/stock-card?fiscalYear=${fiscalYear}`}
           variant="primary"
@@ -3146,12 +2906,22 @@ export default function InspectionForm({
           ยกเลิก
         </AppButton>
 
+        {/* ===============================================
+            SAVE
+
+            ใช้ไอคอนบันทึกแบบหน้าอื่นของระบบ
+        =============================================== */}
+
         <AppButton
           type="button"
           variant="success"
           size="md"
           icon={
-            <SaveIcon />
+            <span
+              aria-hidden="true"
+            >
+              💾
+            </span>
           }
           onClick={
             handleSave
@@ -3170,5 +2940,669 @@ export default function InspectionForm({
         </AppButton>
       </div>
     </div>
+  );
+}
+
+/* =========================================================
+   CATEGORY ROW COMPONENT
+========================================================= */
+
+function MaterialCategoryRows({
+  categoryName,
+  materials,
+  getRow,
+  numberInputClass,
+  updateAccuracy,
+  updateNumberField,
+  updateRemark,
+}: {
+  categoryName: string;
+
+  materials: Material[];
+
+  getRow: (
+    materialId: number
+  ) =>
+    | InspectionRow
+    | undefined;
+
+  numberInputClass: string;
+
+  updateAccuracy: (
+    materialId: number,
+    accuracy: string
+  ) => void;
+
+  updateNumberField: (
+    materialId: number,
+    field:
+      | "shortageQty"
+      | "excessQty"
+      | "baht"
+      | "satang"
+      | "damagedQty"
+      | "deterioratedQty"
+      | "unnecessaryQty",
+    value: string
+  ) => void;
+
+  updateRemark: (
+    materialId: number,
+    value: string
+  ) => void;
+}) {
+  return (
+    <>
+      {/* =====================================================
+          CATEGORY
+      ===================================================== */}
+
+      <tr>
+        <td
+          colSpan={
+            17
+          }
+          className="
+            border
+            border-black
+
+            bg-slate-200
+
+            px-4
+            py-3
+
+            text-left
+            text-base
+            font-black
+
+            !text-slate-900
+          "
+        >
+          {
+            categoryName
+          }
+        </td>
+      </tr>
+
+      {/* =====================================================
+          MATERIALS
+
+          เลขลำดับเริ่มใหม่ที่ 1 ทุกหมวด
+      ===================================================== */}
+
+      {materials.map(
+        (
+          material,
+          index
+        ) => {
+          const row =
+            getRow(
+              material.materialId
+            );
+
+          if (!row) {
+            return null;
+          }
+
+          return (
+            <tr
+              key={
+                material.materialId
+              }
+              className={`
+                transition-colors
+                duration-150
+
+                hover:bg-blue-50/70
+
+                ${
+                  index %
+                    2 ===
+                  0
+                    ? "bg-white"
+                    : "bg-slate-50/70"
+                }
+              `}
+            >
+              {/* ===========================================
+                  1. ORDER
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-extrabold
+
+                  !text-slate-800
+                "
+              >
+                {(
+                  index +
+                  1
+                ).toLocaleString(
+                  "th-TH"
+                )}
+              </td>
+
+              {/* ===========================================
+                  2. MATERIAL
+              =========================================== */}
+
+              <td
+                className="
+                  min-w-[320px]
+
+                  border
+                  border-black
+
+                  px-3
+                  py-3
+
+                  text-left
+                "
+              >
+                <div
+                  className="
+                    font-extrabold
+
+                    !text-slate-900
+                  "
+                >
+                  {
+                    material.name
+                  }
+                </div>
+
+                <div
+                  className="
+                    mt-1
+
+                    text-xs
+                    font-semibold
+
+                    !text-slate-500
+                  "
+                >
+                  รหัส{" "}
+                  {
+                    material.code
+                  }
+                </div>
+              </td>
+
+              {/* ===========================================
+                  3. UNIT
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-bold
+
+                  !text-slate-700
+                "
+              >
+                {material.unit ||
+                  "-"}
+              </td>
+
+              {/* ===========================================
+                  4. OPENING
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-extrabold
+                  tabular-nums
+
+                  !text-slate-800
+                "
+              >
+                {displayStockValue(
+                  material.openingBalance
+                )}
+              </td>
+
+              {/* ===========================================
+                  5. RECEIVE
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-extrabold
+                  tabular-nums
+
+                  !text-slate-800
+                "
+              >
+                {displayStockValue(
+                  material.receiveQty
+                )}
+              </td>
+
+              {/* ===========================================
+                  6. ISSUE
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-extrabold
+                  tabular-nums
+
+                  !text-slate-800
+                "
+              >
+                {displayStockValue(
+                  material.issueQty
+                )}
+              </td>
+
+              {/* ===========================================
+                  7. CLOSING
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                  font-black
+                  tabular-nums
+
+                  !text-slate-900
+                "
+              >
+                {displayStockValue(
+                  material.closingBalance
+                )}
+              </td>
+
+              {/* ===========================================
+                  8. CORRECT
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                "
+              >
+                <input
+                  type="radio"
+                  name={`accuracy-${material.materialId}`}
+                  checked={
+                    row.accuracy ===
+                    "CORRECT"
+                  }
+                  onChange={() =>
+                    updateAccuracy(
+                      material.materialId,
+                      "CORRECT"
+                    )
+                  }
+                  className="
+                    h-5
+                    w-5
+
+                    cursor-pointer
+
+                    accent-emerald-600
+                  "
+                  aria-label={`${material.name} ถูกต้อง`}
+                />
+              </td>
+
+              {/* ===========================================
+                  9. INCORRECT
+              =========================================== */}
+
+              <td
+                className="
+                  border
+                  border-black
+
+                  px-2
+                  py-3
+
+                  text-center
+                "
+              >
+                <input
+                  type="radio"
+                  name={`accuracy-${material.materialId}`}
+                  checked={
+                    row.accuracy ===
+                    "INCORRECT"
+                  }
+                  onChange={() =>
+                    updateAccuracy(
+                      material.materialId,
+                      "INCORRECT"
+                    )
+                  }
+                  className="
+                    h-5
+                    w-5
+
+                    cursor-pointer
+
+                    accent-red-600
+                  "
+                  aria-label={`${material.name} ไม่ถูกต้อง`}
+                />
+              </td>
+
+              {/* ===========================================
+                  10. SHORTAGE
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.shortageQty
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "shortageQty",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  11. EXCESS
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.excessQty
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "excessQty",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  12. BAHT
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.baht
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "baht",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  13. SATANG
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.satang
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "satang",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  14. DAMAGED
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.damagedQty
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "damagedQty",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  15. DETERIORATED
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.deterioratedQty
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "deterioratedQty",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  16. UNNECESSARY
+              =========================================== */}
+
+              <NumberCell
+                value={
+                  row.unnecessaryQty
+                }
+                inputClass={
+                  numberInputClass
+                }
+                onChange={(
+                  value
+                ) =>
+                  updateNumberField(
+                    material.materialId,
+                    "unnecessaryQty",
+                    value
+                  )
+                }
+              />
+
+              {/* ===========================================
+                  17. REMARK
+              =========================================== */}
+
+              <td
+                className="
+                  min-w-[240px]
+
+                  border
+                  border-black
+
+                  px-2
+                  py-2
+                "
+              >
+                <input
+                  type="text"
+                  value={
+                    row.remark
+                  }
+                  placeholder="-"
+                  onChange={(
+                    event
+                  ) =>
+                    updateRemark(
+                      material.materialId,
+                      event.target.value
+                    )
+                  }
+                  className="
+                    h-10
+                    w-full
+
+                    rounded-[10px]
+
+                    border
+                    border-slate-300
+
+                    bg-white
+
+                    px-3
+
+                    text-sm
+                    font-semibold
+
+                    !text-slate-900
+
+                    outline-none
+
+                    transition-all
+                    duration-150
+
+                    placeholder:!text-slate-400
+
+                    focus:border-blue-500
+                    focus:ring-2
+                    focus:ring-blue-100
+                  "
+                />
+              </td>
+            </tr>
+          );
+        }
+      )}
+    </>
+  );
+}
+
+/* =========================================================
+   NUMBER CELL
+========================================================= */
+
+function NumberCell({
+  value,
+  inputClass,
+  onChange,
+}: {
+  value: string;
+
+  inputClass: string;
+
+  onChange: (
+    value: string
+  ) => void;
+}) {
+  return (
+    <td
+      className="
+        min-w-[85px]
+
+        border
+        border-black
+
+        px-2
+        py-2
+      "
+    >
+      <input
+        type="text"
+        inputMode="numeric"
+        value={
+          value
+        }
+        placeholder="-"
+        onChange={(
+          event
+        ) =>
+          onChange(
+            event.target.value
+          )
+        }
+        className={
+          inputClass
+        }
+      />
+    </td>
   );
 }

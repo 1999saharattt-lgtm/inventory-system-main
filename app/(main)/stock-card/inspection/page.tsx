@@ -109,9 +109,7 @@ function getThailandDateParts(
   const year =
     Number(
       parts.find(
-        (
-          part
-        ) =>
+        (part) =>
           part.type ===
           "year"
       )?.value
@@ -120,9 +118,7 @@ function getThailandDateParts(
   const month =
     Number(
       parts.find(
-        (
-          part
-        ) =>
+        (part) =>
           part.type ===
           "month"
       )?.value
@@ -131,9 +127,7 @@ function getThailandDateParts(
   const day =
     Number(
       parts.find(
-        (
-          part
-        ) =>
+        (part) =>
           part.type ===
           "day"
       )?.value
@@ -148,12 +142,6 @@ function getThailandDateParts(
 
 /* =========================================================
    CURRENT FISCAL YEAR
-
-   ต.ค. - ธ.ค.
-   = ปี ค.ศ. + 1 + 543
-
-   ม.ค. - ก.ย.
-   = ปี ค.ศ. + 543
 ========================================================= */
 
 function getCurrentFiscalYearThai(
@@ -168,8 +156,7 @@ function getCurrentFiscalYearThai(
   const fiscalYearGregorian =
     parts.month >=
     10
-      ? parts.year +
-        1
+      ? parts.year + 1
       : parts.year;
 
   return (
@@ -180,12 +167,6 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    FISCAL YEAR RANGE
-
-   FY 2569
-   =
-   1 ต.ค. 2568
-   ถึงก่อน
-   1 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
@@ -230,9 +211,6 @@ function getFiscalYearRange(
 
 /* =========================================================
    SHORT BUDDHIST YEAR
-
-   2568 -> 68
-   2569 -> 69
 ========================================================= */
 
 function getShortYear(
@@ -417,12 +395,8 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      EXISTING INSPECTION
 
-     1 ปีงบประมาณ
-     =
-     1 รอบการตรวจ
-
-     ถ้ามีข้อมูลแล้ว
-     ไปหน้าประวัติของปีนั้น
+     ถ้ามีข้อมูลปีนี้แล้ว
+     ไปหน้ารายละเอียดประวัติ
   ======================================================= */
 
   const existingInspection =
@@ -448,9 +422,6 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      DATA
-
-     READ ONLY
-     ไม่สร้าง / แก้ Transaction
   ======================================================= */
 
   const [
@@ -492,7 +463,7 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         RECEIVE ก่อนเริ่มปีงบประมาณ
+         RECEIVE BEFORE FY
       ================================================= */
 
       prisma.receiveItem.findMany(
@@ -517,7 +488,7 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         RECEIVE ในปีงบประมาณ
+         RECEIVE IN FY
       ================================================= */
 
       prisma.receiveItem.findMany(
@@ -545,9 +516,7 @@ export default async function StockCardInspectionPage({
       ),
 
       /* =================================================
-         ISSUE APPROVED
-
-         ดึงตั้งแต่อดีตจนถึงก่อนสิ้น FY
+         APPROVED ISSUE
       ================================================= */
 
       prisma.issueItem.findMany(
@@ -587,12 +556,7 @@ export default async function StockCardInspectionPage({
       /* =================================================
          OFFICERS
 
-         ต้องส่งให้ตรงกับ Officer[] ของ InspectionForm
-
-         FIX:
-         - type
-         - departmentId
-         - sectionId
+         ส่งข้อมูลให้ครบตาม Officer ของ InspectionForm
       ================================================= */
 
       prisma.officer.findMany(
@@ -649,7 +613,7 @@ export default async function StockCardInspectionPage({
     ]);
 
   /* =======================================================
-     MAPS
+     MAP
   ======================================================= */
 
   const openingMap =
@@ -688,7 +652,7 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     FISCAL RECEIVE
+     RECEIVE IN FY
   ======================================================= */
 
   for (
@@ -705,11 +669,11 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     APPROVED ISSUE
+     ISSUE
 
+     FY2569 เดิม:
      ใช้ issuedQty จริง
-     ไม่ fallback เป็น qty
-     เพื่อไม่เปลี่ยนข้อมูลย้อนหลัง FY2569
+     ไม่ fallback qty
   ======================================================= */
 
   for (
@@ -727,12 +691,6 @@ export default async function StockCardInspectionPage({
         item.issuedQty
       );
 
-    /* ===============================================
-       ISSUE ก่อนปีงบประมาณ
-
-       หักออกจากยอดยกมา
-    =============================================== */
-
     if (
       issueDate.getTime() <
       startDate.getTime()
@@ -745,10 +703,6 @@ export default async function StockCardInspectionPage({
 
       continue;
     }
-
-    /* ===============================================
-       ISSUE ในปีงบประมาณ
-    =============================================== */
 
     if (
       issueDate.getTime() >=
@@ -765,7 +719,7 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     BUILD MATERIAL ROWS
+     MATERIAL ROWS
   ======================================================= */
 
   const rows =
@@ -828,14 +782,14 @@ export default async function StockCardInspectionPage({
     );
 
   /* =======================================================
-     URL
+     BACK
+
+     กลับหน้าบัญชีคุมพัสดุ
+     ของปีงบประมาณเดิม
   ======================================================= */
 
   const backHref =
     `/stock-card?fiscalYear=${fiscalYear}`;
-
-  const historyHref =
-    `/stock-card/inspection-history?fiscalYear=${fiscalYear}`;
 
   /* =========================================================
      UI
@@ -845,6 +799,11 @@ export default async function StockCardInspectionPage({
     <AppPage>
       {/* =====================================================
           HEADER
+
+          ลบปุ่ม:
+          ประวัติการตรวจสอบ
+
+          เหลือปุ่มกลับตัวกลางอย่างเดียว
       ===================================================== */}
 
       <AppPageHeader
@@ -852,27 +811,15 @@ export default async function StockCardInspectionPage({
         title="ตรวจสอบบัญชีพัสดุประจำปี"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
         actions={
-          <>
-            <AppButton
-              href={
-                historyHref
-              }
-              variant="secondary"
-              size="md"
-            >
-              ประวัติการตรวจสอบ
-            </AppButton>
-
-            <AppButton
-              href={
-                backHref
-              }
-              variant="back"
-              size="md"
-            >
-              ← กลับ
-            </AppButton>
-          </>
+          <AppButton
+            href={
+              backHref
+            }
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
         }
       />
 
