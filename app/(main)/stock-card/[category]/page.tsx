@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
 
 import SearchStockCard from "./SearchStockCard";
 
@@ -49,42 +48,22 @@ type ThailandDateParts = {
 };
 
 type FiscalYearRange = {
-  fiscalYearThai:
-    number;
+  fiscalYearThai: number;
 
-  fiscalYearGregorian:
-    number;
+  fiscalYearGregorian: number;
 
-  startDate:
-    Date;
-
-  endDate:
-    Date;
+  startDate: Date;
+  endDate: Date;
 };
 
 /* =========================================================
-   VALID CATEGORIES
+   CATEGORY
 ========================================================= */
 
-const validCategories:
-  Category[] = [
-  "OFFICE",
-  "COMPUTER",
-  "ELECTRIC",
-  "HOUSEHOLD",
-  "VEHICLE",
-  "PRINTING",
-];
-
-/* =========================================================
-   CATEGORY INFORMATION
-========================================================= */
-
-const categoryNames:
-  Record<
-    Category,
-    string
-  > = {
+const categoryNames: Record<
+  string,
+  string
+> = {
   OFFICE:
     "วัสดุสำนักงาน",
 
@@ -104,11 +83,10 @@ const categoryNames:
     "วัสดุสื่อสิ่งพิมพ์",
 };
 
-const categoryIcons:
-  Record<
-    Category,
-    string
-  > = {
+const categoryIcons: Record<
+  string,
+  string
+> = {
   OFFICE:
     "📄",
 
@@ -146,18 +124,6 @@ const thaiShortMonths = [
   "พ.ย.",
   "ธ.ค.",
 ];
-
-/* =========================================================
-   CATEGORY VALIDATION
-========================================================= */
-
-function isValidCategory(
-  value: string
-): value is Category {
-  return validCategories.includes(
-    value as Category
-  );
-}
 
 /* =========================================================
    THAILAND DATE PARTS
@@ -231,8 +197,6 @@ function getThailandDateParts(
 
 /* =========================================================
    CURRENT FISCAL YEAR
-
-   1 ต.ค. - 30 ก.ย.
 ========================================================= */
 
 function getCurrentFiscalYearThai(
@@ -260,15 +224,17 @@ function getCurrentFiscalYearThai(
 /* =========================================================
    FISCAL YEAR RANGE
 
-   FY 2570
+   ตัวอย่าง FY 2570
+
+   start
    1 ต.ค. 2569
-   ถึงก่อน
+
+   end exclusive
    1 ต.ค. 2570
 ========================================================= */
 
 function getFiscalYearRange(
-  fiscalYearThai:
-    number
+  fiscalYearThai: number
 ): FiscalYearRange {
   const fiscalYearGregorian =
     fiscalYearThai -
@@ -303,8 +269,11 @@ function getFiscalYearRange(
 
   return {
     fiscalYearThai,
+
     fiscalYearGregorian,
+
     startDate,
+
     endDate,
   };
 }
@@ -314,8 +283,7 @@ function getFiscalYearRange(
 ========================================================= */
 
 function getFiscalDisplayEndDate(
-  range:
-    FiscalYearRange
+  range: FiscalYearRange
 ) {
   return new Date(
     range.endDate.getTime() -
@@ -328,6 +296,8 @@ function getFiscalDisplayEndDate(
 
 /* =========================================================
    FORMAT THAI DATE
+
+   1 ต.ค. 2569
 ========================================================= */
 
 function formatThaiFullDate(
@@ -352,6 +322,35 @@ function formatThaiFullDate(
 }
 
 /* =========================================================
+   BALANCE DISPLAY
+========================================================= */
+
+function formatBalance(
+  value:
+    | number
+    | null
+    | undefined
+) {
+  const balance =
+    Number(
+      value ??
+        0
+    );
+
+  if (
+    !Number.isFinite(
+      balance
+    )
+  ) {
+    return "0";
+  }
+
+  return balance.toLocaleString(
+    "th-TH"
+  );
+}
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -364,21 +363,9 @@ export default async function CategoryPage({
   ======================================================= */
 
   const {
-    category:
-      rawCategory,
+    category,
   } =
     await params;
-
-  if (
-    !isValidCategory(
-      rawCategory
-    )
-  ) {
-    notFound();
-  }
-
-  const category =
-    rawCategory;
 
   const searchParamsValue =
     await searchParams;
@@ -407,7 +394,7 @@ export default async function CategoryPage({
       requestedFiscalYear
     ) &&
     requestedFiscalYear >=
-      2569 &&
+      2400 &&
     requestedFiscalYear <=
       3000
       ? requestedFiscalYear
@@ -424,27 +411,25 @@ export default async function CategoryPage({
     );
 
   /* =======================================================
-     MATERIALS
+     DATA
 
-     PERFORMANCE:
+     1. ผู้จำหน่ายล่าสุด
+        = Receive ล่าสุดก่อนสิ้น FY ที่เลือก
 
-     Query เพียงข้อมูลที่หน้า Category ใช้จริง
+     2. คงเหลือ
+        = balance ของ Transaction ล่าสุด
+          ก่อนสิ้น FY ที่เลือก
 
-     ไม่โหลด:
-     - balance
-     - transactions
-     - issueItems
-     - ReceiveItem history ทั้งหมด
-     - Material vendor relation ทั้งก้อน
-
-     โหลด ReceiveItem เพียง 1 รายการต่อ Material:
-     = การซื้อครั้งล่าสุดก่อนสิ้น FY ที่เลือก
+     ทำให้เปิด FY2569
+     แล้วไม่เอายอดจาก FY2570
+     มาแสดงย้อนหลัง
   ======================================================= */
 
   const materials =
     await prisma.material.findMany({
       where: {
-        category,
+        category:
+          category as Category,
 
         ...(keyword
           ? {
@@ -467,18 +452,10 @@ export default async function CategoryPage({
           : {}),
       },
 
-      select: {
-        id:
-          true,
-
-        code:
-          true,
-
-        name:
-          true,
-
-        unit:
-          true,
+      include: {
+        /* =================================================
+           LATEST RECEIVE BEFORE FY END
+        ================================================= */
 
         receiveItems: {
           where: {
@@ -507,20 +484,55 @@ export default async function CategoryPage({
           take:
             1,
 
+          include: {
+            receive: {
+              include: {
+                vendor:
+                  true,
+              },
+            },
+          },
+        },
+
+        /* =================================================
+           LATEST STOCK CARD BALANCE BEFORE FY END
+
+           ใช้ยอดที่บันทึกใน Stock Card จริง
+           ไม่คำนวณแก้ข้อมูลย้อนหลัง
+        ================================================= */
+
+        transactions: {
+          where: {
+            date: {
+              lt:
+                fiscalRange.endDate,
+            },
+          },
+
+          orderBy: [
+            {
+              date:
+                "desc",
+            },
+
+            {
+              id:
+                "desc",
+            },
+          ],
+
+          take:
+            1,
+
           select: {
             id:
               true,
 
-            receive: {
-              select: {
-                vendor: {
-                  select: {
-                    name:
-                      true,
-                  },
-                },
-              },
-            },
+            balance:
+              true,
+
+            date:
+              true,
           },
         },
       },
@@ -538,12 +550,14 @@ export default async function CategoryPage({
   const title =
     categoryNames[
       category
-    ];
+    ] ??
+    "รายการบัญชีพัสดุ";
 
   const icon =
     categoryIcons[
       category
-    ];
+    ] ??
+    "📚";
 
   /* =======================================================
      URL
@@ -582,13 +596,6 @@ export default async function CategoryPage({
             }
             variant="back"
             size="md"
-            icon={
-              <span
-                aria-hidden="true"
-              >
-                ←
-              </span>
-            }
           >
             กลับ
           </AppButton>
@@ -603,7 +610,9 @@ export default async function CategoryPage({
         className="
           w-full
           min-w-0
+
           p-4
+
           sm:p-5
         "
       >
@@ -612,6 +621,7 @@ export default async function CategoryPage({
             flex
             min-w-0
             flex-col
+
             gap-2
 
             sm:flex-row
@@ -628,6 +638,7 @@ export default async function CategoryPage({
               className="
                 text-base
                 font-extrabold
+
                 !text-slate-900
               "
             >
@@ -640,8 +651,10 @@ export default async function CategoryPage({
             <p
               className="
                 mt-1
+
                 text-sm
                 font-semibold
+
                 !text-slate-500
               "
             >
@@ -659,11 +672,15 @@ export default async function CategoryPage({
           <div
             className="
               rounded-full
+
               bg-slate-100
+
               px-4
               py-2
+
               text-sm
               font-extrabold
+
               !text-slate-700
             "
           >
@@ -714,13 +731,21 @@ export default async function CategoryPage({
         "
       >
         {/* ===================================================
-            TABLE SCROLL
+            TABLE
+
+            Desktop:
+            จัดสัดส่วนทั้ง 7 คอลัมน์
+            ให้พอดีกับความกว้างการ์ด
+
+            Mobile:
+            เลื่อนได้เฉพาะตาราง
         =================================================== */}
 
         <div
           className="
             w-full
             min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
@@ -728,13 +753,55 @@ export default async function CategoryPage({
           <table
             className="
               w-full
-              min-w-[1000px]
+              min-w-[900px]
+
+              table-fixed
               border-collapse
+
               bg-white
+
+              text-sm
             "
           >
             {/* =================================================
+                COLUMN WIDTH
+            ================================================= */}
+
+            <colgroup>
+              <col
+                className="w-[6%]"
+              />
+
+              <col
+                className="w-[13%]"
+              />
+
+              <col
+                className="w-[27%]"
+              />
+
+              <col
+                className="w-[10%]"
+              />
+
+              <col
+                className="w-[9%]"
+              />
+
+              <col
+                className="w-[23%]"
+              />
+
+              <col
+                className="w-[12%]"
+              />
+            </colgroup>
+
+            {/* =================================================
                 TABLE HEADER
+
+                เพิ่ม "คงเหลือ"
+                ไว้หน้า "หน่วย"
             ================================================= */}
 
             <thead>
@@ -743,6 +810,7 @@ export default async function CategoryPage({
                   "ลำดับ",
                   "รหัสพัสดุ",
                   "รายการพัสดุ",
+                  "คงเหลือ",
                   "หน่วย",
                   "ผู้จำหน่ายล่าสุด",
                   "บัญชีพัสดุ",
@@ -755,19 +823,23 @@ export default async function CategoryPage({
                         tableTitle
                       }
                       className="
-                        whitespace-nowrap
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-                        px-4
-                        py-4
+
+                        px-2
+                        py-3.5
+
                         text-center
-                        text-base
+                        text-sm
                         font-extrabold
+
                         !text-white
-                        sm:text-lg
+
+                        lg:text-base
                       "
                     >
                       {
@@ -793,8 +865,6 @@ export default async function CategoryPage({
                   ) => {
                     /* =========================================
                        LATEST PURCHASE
-
-                       Query คืนมาแค่ 1 รายการแล้ว
                     ========================================= */
 
                     const latestReceive =
@@ -809,6 +879,24 @@ export default async function CategoryPage({
                         ?.vendor
                         ?.name ??
                       "-";
+
+                    /* =========================================
+                       BALANCE
+
+                       Transaction ล่าสุด
+                       ก่อนสิ้นปีงบประมาณที่เลือก
+                    ========================================= */
+
+                    const latestTransaction =
+                      material
+                        .transactions[
+                        0
+                      ];
+
+                    const balance =
+                      latestTransaction
+                        ?.balance ??
+                      0;
 
                     return (
                       <tr
@@ -836,13 +924,15 @@ export default async function CategoryPage({
 
                         <td
                           className="
-                            whitespace-nowrap
                             border
                             border-black
-                            px-4
-                            py-3.5
+
+                            px-2
+                            py-3
+
                             text-center
                             font-extrabold
+
                             !text-slate-900
                           "
                         >
@@ -860,13 +950,18 @@ export default async function CategoryPage({
 
                         <td
                           className="
-                            whitespace-nowrap
+                            break-words
+
                             border
                             border-black
-                            px-4
-                            py-3.5
+
+                            px-2
+                            py-3
+
                             text-center
+                            text-sm
                             font-extrabold
+
                             !text-slate-900
                           "
                         >
@@ -880,12 +975,17 @@ export default async function CategoryPage({
 
                         <td
                           className="
-                            min-w-[280px]
+                            break-words
+
                             border
                             border-black
-                            px-4
-                            py-3.5
+
+                            px-3
+                            py-3
+
                             font-extrabold
+                            leading-relaxed
+
                             !text-slate-900
                           "
                         >
@@ -894,19 +994,49 @@ export default async function CategoryPage({
                         </td>
 
                         {/* =====================================
+                            BALANCE
+                        ===================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-2
+                            py-3
+
+                            text-center
+                            text-base
+                            font-black
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {formatBalance(
+                            balance
+                          )}
+                        </td>
+
+                        {/* =====================================
                             UNIT
                         ===================================== */}
 
                         <td
                           className="
-                            min-w-[120px]
-                            whitespace-nowrap
+                            break-words
+
                             border
                             border-black
-                            px-4
-                            py-3.5
+
+                            px-2
+                            py-3
+
                             text-center
                             font-bold
+
                             !text-slate-700
                           "
                         >
@@ -920,12 +1050,17 @@ export default async function CategoryPage({
 
                         <td
                           className="
-                            min-w-[240px]
+                            break-words
+
                             border
                             border-black
-                            px-4
-                            py-3.5
+
+                            px-3
+                            py-3
+
                             font-bold
+                            leading-relaxed
+
                             !text-slate-700
                           "
                         >
@@ -940,12 +1075,12 @@ export default async function CategoryPage({
 
                         <td
                           className="
-                            min-w-[140px]
-                            whitespace-nowrap
                             border
                             border-black
-                            px-4
+
+                            px-2
                             py-3
+
                             text-center
                           "
                         >
@@ -977,23 +1112,28 @@ export default async function CategoryPage({
                 <tr>
                   <td
                     colSpan={
-                      6
+                      7
                     }
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                       "
                     >
@@ -1002,11 +1142,16 @@ export default async function CategoryPage({
                           flex
                           h-16
                           w-16
+
                           items-center
                           justify-center
+
                           rounded-[20px]
+
                           bg-slate-100
+
                           text-3xl
+
                           shadow-inner
                         "
                         aria-hidden="true"
@@ -1017,8 +1162,10 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
+
                           !text-slate-900
                         "
                       >
@@ -1030,8 +1177,10 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
+
                           !text-slate-500
                         "
                       >
