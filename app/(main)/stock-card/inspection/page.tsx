@@ -44,35 +44,48 @@ type MaterialRow = {
   category: string;
 
   /*
-   * ยอดยกเข้าระบบ วันที่ 01 ต.ค.
+   * ยอดยกมา ณ 30 ก.ย. ของปีก่อน
    *
-   * FY2569
-   * = ยอดยกเข้าระบบ 01 ต.ค.2568
+   * ใช้ logic เดียวกับ Stock Card:
    *
-   * นำไปแสดงในช่อง
-   * "คงเหลือยอดยกมาเมื่อ 30 ก.ย.68"
+   * รับทั้งหมดก่อน 1 ต.ค.
+   * -
+   * จ่าย APPROVED ทั้งหมดก่อน 1 ต.ค.
    *
-   * ถ้าไม่มีรายการ OPENING_BALANCE
-   * วันที่ 01 ต.ค.
-   * ให้เป็น 0 เพื่อให้ PDF แสดง "-"
+   * ตัวอย่าง FY2569:
+   * ยอด ณ สิ้นวันที่ 30 ก.ย.2568
+   *
+   * Stock Card นำยอดนี้ไปสร้าง
+   * virtual row วันที่ 01 ต.ค.2568
+   * ชื่อ "ยอดยกเข้าระบบ"
+   *
+   * ไม่มีการอ่าน Transaction OPENING_BALANCE
    */
   openingBalance: number;
 
   /*
-   * รับจริงเฉพาะ FY ที่เลือก
+   * รับจริงใน FY ที่เลือก
    *
-   * ไม่รวมยอดยกเข้าระบบ
+   * เช่น FY2569:
+   * 01 ต.ค.2568 - 30 ก.ย.2569
+   *
+   * ไม่รวม opening ซ้ำ
    */
   receiveQty: number;
 
   /*
-   * จ่ายจริงเฉพาะ APPROVED
-   * ใน FY ที่เลือก
+   * จ่ายจริงใน FY ที่เลือก
+   *
+   * เฉพาะ Issue ที่ APPROVED
    */
   issueQty: number;
 
   /*
-   * ยอดคงเหลือปัจจุบัน
+   * คงเหลือปัจจุบัน
+   *
+   * opening
+   * + รับตั้งแต่ต้น FY ถึงปัจจุบัน
+   * - จ่าย APPROVED ตั้งแต่ต้น FY ถึงปัจจุบัน
    */
   closingBalance: number;
 };
@@ -271,15 +284,15 @@ function safeNumber(
 /* =========================================================
    ACTUAL ISSUE QTY
 
-   กติกาเดียวกับ Stock Card
+   ใช้กติกาเดียวกับ Stock Card
 
-   ถ้ามี issuedQty
+   ถ้า issuedQty !== null / undefined
    ให้ใช้ issuedQty
 
-   แม้ issuedQty = 0
-   ก็ต้องใช้ 0 จริง
+   issuedQty = 0
+   ถือว่าเป็น 0 จริง
 
-   fallback qty
+   fallback ไป qty
    เฉพาะ null / undefined
 ========================================================= */
 
@@ -419,23 +432,22 @@ export default async function StockCardInspectionPage({
       fiscalYear
     );
 
-  const currentEndExclusive =
+  /*
+   * ปัจจุบันแบบ end-exclusive
+   *
+   * ใช้สำหรับคำนวณ
+   * "คงเหลือปัจจุบัน"
+   *
+   * แต่ต้องไม่เลยสิ้น FY ที่เลือก
+   */
+  const todayEndExclusive =
     getCurrentThailandEndExclusive();
 
-  /*
-   * วันถัดจาก 01 ต.ค.
-   *
-   * ใช้ค้นหา OPENING_BALANCE
-   * เฉพาะวันที่ 01 ต.ค.
-   */
-  const openingDayEnd =
-    new Date(
-      fiscalRange.startDate.getTime() +
-        24 *
-          60 *
-          60 *
-          1000
-    );
+  const currentEndExclusive =
+    todayEndExclusive.getTime() <
+    fiscalRange.endDate.getTime()
+      ? todayEndExclusive
+      : fiscalRange.endDate;
 
   /* =======================================================
      LABEL
@@ -478,12 +490,38 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      LOAD DATA
+
+     สำคัญ:
+     ใช้ข้อมูลต้นทางเดียวกับ Stock Card
+
+     1. Materials
+
+     2. Receive ก่อนเริ่ม FY
+        ใช้หา opening
+
+     3. Approved Issue ก่อนเริ่ม FY
+        ใช้หา opening
+
+     4. Receive ใน FY
+        ใช้ช่อง "รับ"
+
+     5. Approved Issue ใน FY
+        ใช้ช่อง "จ่าย"
+
+     6. Receive ตั้งแต่เริ่ม FY ถึงปัจจุบัน
+        ใช้หา closing
+
+     7. Approved Issue ตั้งแต่เริ่ม FY ถึงปัจจุบัน
+        ใช้หา closing
+
+     8. Officers
   ======================================================= */
 
   const [
     materials,
 
-    openingTransactions,
+    historicalReceiveItems,
+    historicalIssueItems,
 
     fiscalReceiveItems,
     fiscalIssueItems,
@@ -513,70 +551,67 @@ export default async function StockCardInspectionPage({
       }),
 
       /* =================================================
-         1. OPENING BALANCE
+         1. RECEIVE BEFORE FY
 
-         สำคัญ:
-         ใช้เฉพาะ Transaction ที่เป็น
+         Logic เดียวกับ Stock Card
 
-         type = OPENING_BALANCE
-         documentNo = "ยอดยกเข้าระบบ"
-
-         และเกิดในวันที่ 01 ต.ค.
-         ของปีงบประมาณที่เลือก
-
-         เช่น FY2569
-         = 01 ต.ค.2568
-
-         ถ้าวัสดุใดไม่มีรายการนี้
-         openingBalance จะเป็น 0
-         และ PDF จะแสดง "-"
+         ตัวอย่าง FY2569:
+         รับทั้งหมดก่อน 01 ต.ค.2568
       ================================================= */
 
-      prisma.transaction.findMany({
+      prisma.receiveItem.findMany({
         where: {
-          type:
-            "OPENING_BALANCE",
-
-          documentNo:
-            "ยอดยกเข้าระบบ",
-
-          date: {
-            gte:
-              fiscalRange.startDate,
-
-            lt:
-              openingDayEnd,
+          receive: {
+            receiveDate: {
+              lt:
+                fiscalRange.startDate,
+            },
           },
         },
 
         select: {
-          id: true,
           materialId: true,
-          receiveQty: true,
-          balance: true,
+          qty: true,
         },
-
-        orderBy: [
-          {
-            materialId:
-              "asc",
-          },
-          {
-            id:
-              "desc",
-          },
-        ],
       }),
 
       /* =================================================
-         2. RECEIVE IN SELECTED FY
+         2. APPROVED ISSUE BEFORE FY
 
-         รวมรายการรับจริงทั้งหมด
-         ตั้งแต่ 01 ต.ค. ถึง 30 ก.ย.
+         ตัวอย่าง FY2569:
+         จ่าย APPROVED ทั้งหมดก่อน 01 ต.ค.2568
+      ================================================= */
 
-         สำคัญ:
-         ไม่รวม "ยอดยกเข้าระบบ"
-         เพื่อไม่ให้ยอดถูกบวกซ้ำ
+      prisma.issueItem.findMany({
+        where: {
+          issue: {
+            status:
+              "APPROVED",
+
+            issueDate: {
+              lt:
+                fiscalRange.startDate,
+            },
+          },
+        },
+
+        select: {
+          materialId: true,
+          qty: true,
+          issuedQty: true,
+        },
+      }),
+
+      /* =================================================
+         3. RECEIVE IN SELECTED FY
+
+         รับจริงในปีงบประมาณ
+
+         ไม่ต้องตัด "ยอดยกเข้าระบบ"
+         ด้วย documentNo อีกแล้ว
+
+         เพราะ Stock Card opening เป็น virtual row
+         ไม่ใช่ ReceiveItem จริง
       ================================================= */
 
       prisma.receiveItem.findMany({
@@ -589,11 +624,6 @@ export default async function StockCardInspectionPage({
               lt:
                 fiscalRange.endDate,
             },
-
-            documentNo: {
-              not:
-                "ยอดยกเข้าระบบ",
-            },
           },
         },
 
@@ -604,10 +634,7 @@ export default async function StockCardInspectionPage({
       }),
 
       /* =================================================
-         3. ISSUE IN SELECTED FY
-
-         รวมเฉพาะรายการจ่าย
-         ที่ APPROVED
+         4. APPROVED ISSUE IN SELECTED FY
       ================================================= */
 
       prisma.issueItem.findMany({
@@ -634,11 +661,9 @@ export default async function StockCardInspectionPage({
       }),
 
       /* =================================================
-         4. RECEIVE FROM FY START -> CURRENT
+         5. RECEIVE FROM FY START -> CURRENT
 
-         ใช้คำนวณยอดคงเหลือปัจจุบัน
-
-         ไม่รวมยอดยกเข้าระบบ
+         ใช้คำนวณคงเหลือปัจจุบัน
       ================================================= */
 
       prisma.receiveItem.findMany({
@@ -651,11 +676,6 @@ export default async function StockCardInspectionPage({
               lt:
                 currentEndExclusive,
             },
-
-            documentNo: {
-              not:
-                "ยอดยกเข้าระบบ",
-            },
           },
         },
 
@@ -666,11 +686,9 @@ export default async function StockCardInspectionPage({
       }),
 
       /* =================================================
-         5. ISSUE FROM FY START -> CURRENT
+         6. APPROVED ISSUE FROM FY START -> CURRENT
 
-         ใช้คำนวณยอดคงเหลือปัจจุบัน
-
-         เฉพาะ APPROVED
+         ใช้คำนวณคงเหลือปัจจุบัน
       ================================================= */
 
       prisma.issueItem.findMany({
@@ -735,74 +753,54 @@ export default async function StockCardInspectionPage({
     ]);
 
   /* =======================================================
-     EXACT OPENING MAP
+     OPENING RECEIVE MAP
 
-     ใช้เฉพาะยอดยกเข้าระบบ
-     วันที่ 01 ต.ค.
-
-     ไม่มี fallback
+     รับทั้งหมดก่อนวันเริ่ม FY
   ======================================================= */
 
-  const exactOpeningMap =
+  const historicalReceiveMap =
     new Map<number, number>();
 
   for (
-    const transaction of
-      openingTransactions
+    const item of
+      historicalReceiveItems
   ) {
-    /*
-     * transaction เรียง id desc
-     *
-     * หาก material เดียวกันมีมากกว่า 1 record
-     * ใช้ record ล่าสุดเพียงรายการเดียว
-     */
-    if (
-      exactOpeningMap.has(
-        transaction.materialId
+    addMapValue(
+      historicalReceiveMap,
+      item.materialId,
+      safeNumber(
+        item.qty
       )
-    ) {
-      continue;
-    }
+    );
+  }
 
-    /*
-     * หลักการ:
-     *
-     * ถ้า transaction.balance มีค่า
-     * ใช้ balance
-     *
-     * ถ้าไม่มี balance
-     * จึง fallback ไป receiveQty
-     *
-     * fallback นี้อยู่ภายใน
-     * OPENING_BALANCE record เดียวกันเท่านั้น
-     *
-     * ไม่ fallback ไป transaction เก่า
-     * และไม่คำนวณจากรับ-จ่ายย้อนหลัง
-     */
-    const openingValue =
-      transaction.balance !==
-        null &&
-      transaction.balance !==
-        undefined
-        ? safeNumber(
-            transaction.balance
-          )
-        : safeNumber(
-            transaction.receiveQty
-          );
+  /* =======================================================
+     OPENING ISSUE MAP
 
-    exactOpeningMap.set(
-      transaction.materialId,
-      openingValue
+     จ่าย APPROVED ทั้งหมดก่อนวันเริ่ม FY
+
+     ใช้ issuedQty ก่อน
+     fallback qty เฉพาะ null / undefined
+  ======================================================= */
+
+  const historicalIssueMap =
+    new Map<number, number>();
+
+  for (
+    const item of
+      historicalIssueItems
+  ) {
+    addMapValue(
+      historicalIssueMap,
+      item.materialId,
+      getActualIssuedQty(
+        item
+      )
     );
   }
 
   /* =======================================================
      FISCAL RECEIVE MAP
-
-     รับจริงใน FY เท่านั้น
-
-     ไม่มียอดยกเข้าระบบอยู่ในชุดข้อมูลนี้
   ======================================================= */
 
   const fiscalReceiveMap =
@@ -894,25 +892,39 @@ export default async function StockCardInspectionPage({
           /* =============================================
              OPENING BALANCE
 
-             ใช้เฉพาะยอดยกเข้าระบบ
-             วันที่ 01 ต.ค.
+             สูตรเดียวกับ Stock Card:
 
-             ไม่มีรายการ
-             = 0
-             = PDF แสดง "-"
+             RECEIVE ก่อน 1 ต.ค.
+             -
+             APPROVED ISSUE ก่อน 1 ต.ค.
+
+             เช่น FY2569:
+             ยอด ณ 30 ก.ย.2568
+
+             Stock Card นำค่านี้ไปแสดงเป็น
+             "ยอดยกเข้าระบบ"
+             วันที่ 01 ต.ค.2568
           ============================================= */
 
-          const openingBalance =
-            exactOpeningMap.get(
+          const historicalReceive =
+            historicalReceiveMap.get(
               material.id
             ) ?? 0;
+
+          const historicalIssue =
+            historicalIssueMap.get(
+              material.id
+            ) ?? 0;
+
+          const openingBalance =
+            historicalReceive -
+            historicalIssue;
 
           /* =============================================
              RECEIVE
 
-             รับจริงใน FY
-
-             ไม่รวม opening
+             รับจริงเฉพาะใน FY
+             ไม่รวม opening ซ้ำ
           ============================================= */
 
           const receiveQty =
@@ -923,8 +935,8 @@ export default async function StockCardInspectionPage({
           /* =============================================
              ISSUE
 
-             จ่ายจริงใน FY
-             เฉพาะ APPROVED
+             จ่ายจริงเฉพาะใน FY
+             และเฉพาะ APPROVED
           ============================================= */
 
           const issueQty =
@@ -934,6 +946,9 @@ export default async function StockCardInspectionPage({
 
           /* =============================================
              CURRENT MOVEMENT
+
+             ตั้งแต่ต้น FY
+             ถึงวันที่ปัจจุบัน
           ============================================= */
 
           const currentReceive =
@@ -949,12 +964,12 @@ export default async function StockCardInspectionPage({
           /* =============================================
              CURRENT BALANCE
 
-             ยอดยกเข้าระบบ
-             + รับจริง
-             - จ่ายจริง
+             opening
+             + receive จริง
+             - issue จริง
 
-             โดยยอดยกเข้าระบบ
-             ไม่ถูกนับซ้ำใน currentReceive
+             opening ไม่ถูกนับซ้ำ
+             เพราะ opening มาจากประวัติก่อน FY
           ============================================= */
 
           const closingBalance =
