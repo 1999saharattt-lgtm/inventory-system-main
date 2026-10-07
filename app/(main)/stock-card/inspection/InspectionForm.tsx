@@ -7,10 +7,6 @@ import {
   useState,
 } from "react";
 
-import {
-  createPortal,
-} from "react-dom";
-
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
@@ -34,30 +30,26 @@ type Material = {
   /*
    * ยอดยกเข้าระบบ ณ 1 ต.ค.
    *
-   * ตัวอย่าง FY2569:
+   * FY2569
    * =
-   * ยอดยกเข้าระบบ ณ 01 ต.ค.68
-   *
-   * บนแบบตรวจแสดงเป็น
-   * คงเหลือยอดยกมาเมื่อ 30 ก.ย.68
+   * ยอดคงเหลือ ณ 30 ก.ย.68
    */
   openingBalance: number;
 
   /*
-   * รับจริงภายในปีงบประมาณ
-   *
-   * ไม่รวมยอดยกเข้าระบบ
+   * รับอย่างเดียว
+   * ภายใน FY ที่ตรวจ
    */
   receiveQty: number;
 
   /*
    * จ่ายจริง APPROVED
-   * ภายในปีงบประมาณ
+   * ภายใน FY ที่ตรวจ
    */
   issueQty: number;
 
   /*
-   * คงเหลือจริงตาม Stock Card ปัจจุบัน
+   * คงเหลือ Stock Card ปัจจุบัน
    */
   closingBalance: number;
 };
@@ -127,12 +119,6 @@ type IOSDatePickerProps = {
   onChange: (
     value: string
   ) => void;
-};
-
-type PopupPosition = {
-  top: number;
-  left: number;
-  width: number;
 };
 
 /* =========================================================
@@ -336,9 +322,6 @@ function formatThaiDate(
 
 /* =========================================================
    IOS DATE PICKER
-
-   ใช้ Portal
-   เพื่อไม่ให้ Calendar ถูก Card/Table บัง
 ========================================================= */
 
 function IOSDatePicker({
@@ -346,12 +329,7 @@ function IOSDatePicker({
   value,
   onChange,
 }: IOSDatePickerProps) {
-  const buttonRef =
-    useRef<HTMLButtonElement>(
-      null
-    );
-
-  const popupRef =
+  const containerRef =
     useRef<HTMLDivElement>(
       null
     );
@@ -380,24 +358,6 @@ function IOSDatePicker({
     );
 
   const [
-    mounted,
-    setMounted,
-  ] =
-    useState(
-      false
-    );
-
-  const [
-    popupPosition,
-    setPopupPosition,
-  ] =
-    useState<PopupPosition>({
-      top: 0,
-      left: 0,
-      width: 330,
-    });
-
-  const [
     displayYear,
     setDisplayYear,
   ] =
@@ -412,23 +372,6 @@ function IOSDatePicker({
     useState(
       initialDate.getMonth()
     );
-
-  /* =======================================================
-     MOUNT
-  ======================================================= */
-
-  useEffect(
-    () => {
-      setMounted(
-        true
-      );
-    },
-    []
-  );
-
-  /* =======================================================
-     SYNC SELECTED DATE
-  ======================================================= */
 
   useEffect(
     () => {
@@ -449,119 +392,22 @@ function IOSDatePicker({
     [value]
   );
 
-  /* =======================================================
-     POSITION POPUP
-  ======================================================= */
-
-  function updatePopupPosition() {
-    const button =
-      buttonRef.current;
-
-    if (!button) {
-      return;
-    }
-
-    const rect =
-      button.getBoundingClientRect();
-
-    const popupWidth =
-      Math.min(
-        330,
-        window.innerWidth -
-          24
-      );
-
-    let left =
-      rect.left;
-
-    if (
-      left +
-        popupWidth >
-      window.innerWidth -
-        12
-    ) {
-      left =
-        window.innerWidth -
-        popupWidth -
-        12;
-    }
-
-    if (
-      left < 12
-    ) {
-      left =
-        12;
-    }
-
-    setPopupPosition({
-      top:
-        rect.bottom +
-        6,
-
-      left,
-
-      width:
-        popupWidth,
-    });
-  }
-
-  /* =======================================================
-     OPEN EVENTS
-  ======================================================= */
-
   useEffect(
     () => {
-      if (!open) {
-        return;
-      }
-
-      updatePopupPosition();
-
-      function handleResize() {
-        updatePopupPosition();
-      }
-
-      function handleScroll() {
-        updatePopupPosition();
-      }
-
       function handleMouseDown(
         event: MouseEvent
       ) {
-        const target =
-          event.target as Node;
-
         if (
-          buttonRef.current?.contains(
-            target
+          containerRef.current &&
+          !containerRef.current.contains(
+            event.target as Node
           )
         ) {
-          return;
+          setOpen(
+            false
+          );
         }
-
-        if (
-          popupRef.current?.contains(
-            target
-          )
-        ) {
-          return;
-        }
-
-        setOpen(
-          false
-        );
       }
-
-      window.addEventListener(
-        "resize",
-        handleResize
-      );
-
-      window.addEventListener(
-        "scroll",
-        handleScroll,
-        true
-      );
 
       document.addEventListener(
         "mousedown",
@@ -569,29 +415,14 @@ function IOSDatePicker({
       );
 
       return () => {
-        window.removeEventListener(
-          "resize",
-          handleResize
-        );
-
-        window.removeEventListener(
-          "scroll",
-          handleScroll,
-          true
-        );
-
         document.removeEventListener(
           "mousedown",
           handleMouseDown
         );
       };
     },
-    [open]
+    []
   );
-
-  /* =======================================================
-     CALENDAR
-  ======================================================= */
 
   const firstDay =
     new Date(
@@ -641,23 +472,16 @@ function IOSDatePicker({
     );
   }
 
-  /* =======================================================
-     MONTH
-  ======================================================= */
-
   function previousMonth() {
     if (
-      displayMonth ===
-      0
+      displayMonth === 0
     ) {
       setDisplayMonth(
         11
       );
 
       setDisplayYear(
-        (
-          current
-        ) =>
+        (current) =>
           current - 1
       );
 
@@ -665,26 +489,21 @@ function IOSDatePicker({
     }
 
     setDisplayMonth(
-      (
-        current
-      ) =>
+      (current) =>
         current - 1
     );
   }
 
   function nextMonth() {
     if (
-      displayMonth ===
-      11
+      displayMonth === 11
     ) {
       setDisplayMonth(
         0
       );
 
       setDisplayYear(
-        (
-          current
-        ) =>
+        (current) =>
           current + 1
       );
 
@@ -692,16 +511,10 @@ function IOSDatePicker({
     }
 
     setDisplayMonth(
-      (
-        current
-      ) =>
+      (current) =>
         current + 1
     );
   }
-
-  /* =======================================================
-     SELECT
-  ======================================================= */
 
   function selectDay(
     day: number
@@ -750,32 +563,30 @@ function IOSDatePicker({
     );
   }
 
-  /* =========================================================
-     UI
-  ========================================================= */
-
   return (
-    <>
+    <div
+      ref={
+        containerRef
+      }
+      className="
+        relative
+        w-full
+        min-w-0
+      "
+    >
       <button
-        ref={
-          buttonRef
-        }
         id={id}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={
           open
         }
-        onClick={() => {
-          updatePopupPosition();
-
+        onClick={() =>
           setOpen(
-            (
-              current
-            ) =>
+            (current) =>
               !current
-          );
-        }}
+          )
+        }
         className="
           flex
           h-[46px]
@@ -784,10 +595,9 @@ function IOSDatePicker({
 
           items-center
           justify-between
-
           gap-3
 
-          rounded-[12px]
+          rounded-[14px]
 
           border
           border-slate-300
@@ -834,348 +644,318 @@ function IOSDatePicker({
           aria-hidden="true"
           className="
             shrink-0
+            text-base
           "
         >
           📅
         </span>
       </button>
 
-      {mounted &&
-        open &&
-        createPortal(
+      {open && (
+        <div
+          role="dialog"
+          className="
+            absolute
+            left-0
+            top-[52px]
+            z-[1000]
+
+            w-[330px]
+            max-w-[calc(100vw-32px)]
+
+            rounded-[22px]
+
+            border
+            border-slate-200
+
+            bg-white/95
+
+            p-3
+
+            shadow-2xl
+
+            backdrop-blur-xl
+          "
+        >
           <div
-            ref={
-              popupRef
-            }
-            role="dialog"
-            style={{
-              position:
-                "fixed",
-
-              top:
-                popupPosition.top,
-
-              left:
-                popupPosition.left,
-
-              width:
-                popupPosition.width,
-            }}
             className="
-              z-[99999]
+              flex
+              items-center
+              justify-between
 
-              rounded-[22px]
-
-              border
-              border-slate-200
-
-              bg-white/95
-
-              p-3
-
-              shadow-2xl
-
-              backdrop-blur-xl
+              px-1
+              pb-3
             "
           >
-            {/* =============================================
-                MONTH HEADER
-            ============================================= */}
+            <button
+              type="button"
+              onClick={
+                previousMonth
+              }
+              className="
+                flex
+                h-9
+                w-9
+
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-lg
+                font-black
+
+                !text-slate-700
+
+                hover:bg-slate-200
+              "
+            >
+              ‹
+            </button>
 
             <div
               className="
-                flex
-                items-center
-                justify-between
-
-                px-1
-                pb-3
+                text-center
               "
             >
-              <button
-                type="button"
-                onClick={
-                  previousMonth
-                }
+              <div
                 className="
-                  flex
-                  h-9
-                  w-9
-
-                  items-center
-                  justify-center
-
-                  rounded-full
-
-                  bg-slate-100
-
-                  text-lg
+                  text-base
                   font-black
 
-                  !text-slate-700
-
-                  hover:bg-slate-200
+                  !text-slate-900
                 "
               >
-                ‹
-              </button>
+                {
+                  THAI_MONTHS[
+                    displayMonth
+                  ]
+                }
+              </div>
 
               <div
                 className="
-                  text-center
+                  text-sm
+                  font-bold
+
+                  !text-slate-500
                 "
               >
-                <div
-                  className="
-                    text-base
-                    font-black
+                พ.ศ.{" "}
+                {displayYear +
+                  543}
+              </div>
+            </div>
 
-                    !text-slate-900
-                  "
-                >
-                  {
-                    THAI_MONTHS[
-                      displayMonth
-                    ]
+            <button
+              type="button"
+              onClick={
+                nextMonth
+              }
+              className="
+                flex
+                h-9
+                w-9
+
+                items-center
+                justify-center
+
+                rounded-full
+
+                bg-slate-100
+
+                text-lg
+                font-black
+
+                !text-slate-700
+
+                hover:bg-slate-200
+              "
+            >
+              ›
+            </button>
+          </div>
+
+          <div
+            className="
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {THAI_WEEK_DAYS.map(
+              (
+                day
+              ) => (
+                <div
+                  key={
+                    day
                   }
-                </div>
-
-                <div
                   className="
-                    text-sm
-                    font-bold
+                    py-1.5
+
+                    text-center
+                    text-xs
+                    font-black
 
                     !text-slate-500
                   "
                 >
-                  พ.ศ.{" "}
-                  {displayYear +
-                    543}
+                  {day}
                 </div>
-              </div>
+              )
+            )}
+          </div>
 
-              <button
-                type="button"
-                onClick={
-                  nextMonth
+          <div
+            className="
+              mt-1
+
+              grid
+              grid-cols-7
+              gap-1
+            "
+          >
+            {calendarCells.map(
+              (
+                day,
+                index
+              ) => {
+                if (
+                  day ===
+                  null
+                ) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-9"
+                    />
+                  );
                 }
-                className="
-                  flex
-                  h-9
-                  w-9
 
-                  items-center
-                  justify-center
+                const selected =
+                  selectedDate !==
+                    null &&
+                  selectedDate.getFullYear() ===
+                    displayYear &&
+                  selectedDate.getMonth() ===
+                    displayMonth &&
+                  selectedDate.getDate() ===
+                    day;
 
-                  rounded-full
-
-                  bg-slate-100
-
-                  text-lg
-                  font-black
-
-                  !text-slate-700
-
-                  hover:bg-slate-200
-                "
-              >
-                ›
-              </button>
-            </div>
-
-            {/* =============================================
-                WEEK
-            ============================================= */}
-
-            <div
-              className="
-                grid
-                grid-cols-7
-
-                gap-1
-              "
-            >
-              {THAI_WEEK_DAYS.map(
-                (
-                  day
-                ) => (
-                  <div
+                return (
+                  <button
                     key={
                       day
                     }
-                    className="
-                      py-1.5
+                    type="button"
+                    onClick={() =>
+                      selectDay(
+                        day
+                      )
+                    }
+                    className={`
+                      flex
+                      h-9
 
-                      text-center
-                      text-xs
-                      font-black
+                      items-center
+                      justify-center
 
-                      !text-slate-500
-                    "
+                      rounded-full
+
+                      text-sm
+                      font-extrabold
+
+                      transition
+
+                      ${
+                        selected
+                          ? "bg-blue-600 !text-white shadow-md"
+                          : "bg-transparent !text-slate-700 hover:bg-blue-50"
+                      }
+                    `}
                   >
                     {day}
-                  </div>
-                )
-              )}
-            </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
 
-            {/* =============================================
-                DAYS
-            ============================================= */}
+          <div
+            className="
+              mt-3
 
-            <div
+              flex
+              items-center
+              justify-between
+
+              border-t
+              border-slate-200
+
+              pt-3
+            "
+          >
+            <button
+              type="button"
+              onClick={() => {
+                onChange(
+                  ""
+                );
+
+                setOpen(
+                  false
+                );
+              }}
               className="
-                mt-1
+                rounded-[10px]
 
-                grid
-                grid-cols-7
+                px-3
+                py-2
 
-                gap-1
+                text-xs
+                font-extrabold
+
+                !text-red-600
+
+                hover:bg-red-50
               "
             >
-              {calendarCells.map(
-                (
-                  day,
-                  index
-                ) => {
-                  if (
-                    day ===
-                    null
-                  ) {
-                    return (
-                      <div
-                        key={`empty-${index}`}
-                        className="h-9"
-                      />
-                    );
-                  }
+              ล้างวันที่
+            </button>
 
-                  const selected =
-                    selectedDate !==
-                      null &&
-                    selectedDate.getFullYear() ===
-                      displayYear &&
-                    selectedDate.getMonth() ===
-                      displayMonth &&
-                    selectedDate.getDate() ===
-                      day;
-
-                  return (
-                    <button
-                      key={
-                        day
-                      }
-                      type="button"
-                      onClick={() =>
-                        selectDay(
-                          day
-                        )
-                      }
-                      className={`
-                        flex
-                        h-9
-
-                        items-center
-                        justify-center
-
-                        rounded-full
-
-                        text-sm
-                        font-extrabold
-
-                        transition
-
-                        ${
-                          selected
-                            ? "bg-blue-600 !text-white shadow-md"
-                            : "bg-transparent !text-slate-700 hover:bg-blue-50"
-                        }
-                      `}
-                    >
-                      {day}
-                    </button>
-                  );
-                }
-              )}
-            </div>
-
-            {/* =============================================
-                FOOTER
-            ============================================= */}
-
-            <div
+            <button
+              type="button"
+              onClick={
+                selectToday
+              }
               className="
-                mt-3
+                rounded-[10px]
 
-                flex
-                items-center
-                justify-between
+                px-3
+                py-2
 
-                border-t
-                border-slate-200
+                text-xs
+                font-extrabold
 
-                pt-3
+                !text-blue-600
+
+                hover:bg-blue-50
               "
             >
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(
-                    ""
-                  );
-
-                  setOpen(
-                    false
-                  );
-                }}
-                className="
-                  rounded-[10px]
-
-                  px-3
-                  py-2
-
-                  text-xs
-                  font-extrabold
-
-                  !text-red-600
-
-                  hover:bg-red-50
-                "
-              >
-                ล้างวันที่
-              </button>
-
-              <button
-                type="button"
-                onClick={
-                  selectToday
-                }
-                className="
-                  rounded-[10px]
-
-                  px-3
-                  py-2
-
-                  text-xs
-                  font-extrabold
-
-                  !text-blue-600
-
-                  hover:bg-blue-50
-                "
-              >
-                วันนี้
-              </button>
-            </div>
-          </div>,
-          document.body
-        )}
-    </>
+              วันนี้
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 /* =========================================================
-   INITIAL ROW
+   INITIAL ROWS
 ========================================================= */
 
 function createInitialRows(
@@ -1219,10 +999,7 @@ function createInitialRows(
 }
 
 /* =========================================================
-   DISPLAY STOCK
-
-   เหมือน PDF
-   0 = -
+   STOCK DISPLAY
 ========================================================= */
 
 function displayStockValue(
@@ -1243,7 +1020,7 @@ function displayStockValue(
 }
 
 /* =========================================================
-   INTEGER VALIDATION
+   OPTIONAL INTEGER
 ========================================================= */
 
 function isValidOptionalInteger(
@@ -1270,7 +1047,7 @@ function isValidOptionalInteger(
 }
 
 /* =========================================================
-   FORM
+   COMPONENT
 ========================================================= */
 
 export default function InspectionForm({
@@ -1281,7 +1058,7 @@ export default function InspectionForm({
   officers,
 }: Props) {
   /* =======================================================
-     DATES
+     DATE
   ======================================================= */
 
   const [
@@ -1301,7 +1078,7 @@ export default function InspectionForm({
     );
 
   /* =======================================================
-     INSPECTION ROWS
+     ROWS
   ======================================================= */
 
   const [
@@ -1347,6 +1124,17 @@ export default function InspectionForm({
 
   /* =======================================================
      CATEGORY
+
+     ALL
+     =
+     ทุกหมวด
+
+     PDF:
+     ถ้าทุกหมวด
+     จะขึ้นหน้าใหม่ทุกหมวด
+
+     WEB:
+     แสดงเป็นชุดหมวดต่อกัน
   ======================================================= */
 
   const [
@@ -1544,7 +1332,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     UPDATE
+     UPDATE ROW
   ======================================================= */
 
   function updateRow(
@@ -1580,6 +1368,10 @@ export default function InspectionForm({
     );
   }
 
+  /* =======================================================
+     ACCURACY
+  ======================================================= */
+
   function updateAccuracy(
     materialId: number,
     accuracy: string
@@ -1606,7 +1398,8 @@ export default function InspectionForm({
   /* =======================================================
      QUICK ACTION
 
-     เฉพาะรายการที่กำลังแสดง
+     เปลี่ยนเฉพาะรายการ
+     ที่กำลังแสดง
   ======================================================= */
 
   function updateVisibleAccuracy(
@@ -1643,7 +1436,7 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     NUMBER FIELD
+     NUMBER
   ======================================================= */
 
   function updateNumberField(
@@ -1799,7 +1592,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       INSPECTORS
+       INSPECTOR
     =============================================== */
 
     if (
@@ -1833,7 +1626,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       ROWS
+       ROW VALIDATION
     =============================================== */
 
     if (
@@ -1868,7 +1661,7 @@ export default function InspectionForm({
         return;
       }
 
-      const numericValues = [
+      const values = [
         row.shortageQty,
         row.excessQty,
         row.baht,
@@ -1879,7 +1672,7 @@ export default function InspectionForm({
       ];
 
       if (
-        numericValues.some(
+        values.some(
           (
             value
           ) =>
@@ -1900,7 +1693,7 @@ export default function InspectionForm({
     }
 
     /* ===============================================
-       API
+       POST
     =============================================== */
 
     try {
@@ -1925,9 +1718,19 @@ export default function InspectionForm({
                 {
                   fiscalYear,
 
+                  /*
+                   * Schema ปัจจุบัน
+                   * เก็บ inspectionDate
+                   *
+                   * ใช้วันที่เริ่มตรวจสอบ
+                   */
                   inspectionDate:
                     inspectionStartDate,
 
+                  /*
+                   * ส่งไว้ด้วย
+                   * เพื่อรองรับการเพิ่ม field ภายหลัง
+                   */
                   inspectionEndDate,
 
                   inspectorIds:
@@ -2032,40 +1835,44 @@ export default function InspectionForm({
   }
 
   /* =======================================================
-     INPUT
+     TABLE INPUT STYLE
 
-     ตารางหน้าจอเลียนแบบ PDF
-     ฟอนต์ข้อมูล 12px
+     PDF ใช้ Font 15
+     Form ใช้ 15px
+
+     ความสูงแถวมาตรฐาน
+     23.25 px
   ======================================================= */
 
-  const tableInputClass = `
+  const compactInputClass = `
     h-[22px]
     w-full
     min-w-0
 
-    rounded-none
+    rounded-[4px]
 
-    border-0
+    border
+    border-slate-300
 
-    bg-transparent
+    bg-white
 
     px-1
 
     text-center
-    text-[12px]
+    text-[15px]
     font-normal
     leading-none
-
     tabular-nums
 
-    !text-black
+    !text-slate-900
 
     outline-none
 
-    placeholder:!text-slate-300
+    placeholder:!text-slate-400
 
-    focus:bg-blue-50
-    focus:ring-0
+    focus:border-blue-500
+    focus:ring-1
+    focus:ring-blue-100
   `;
 
   /* =========================================================
@@ -2075,8 +1882,6 @@ export default function InspectionForm({
   return (
     <div
       className="
-        relative
-
         w-full
         min-w-0
 
@@ -2085,156 +1890,152 @@ export default function InspectionForm({
     >
       {/* =====================================================
           1. INSPECTION INFO
-
-          เตี้ย / เรียบ
-          และ Calendar ไม่โดน Card บัง
       ===================================================== */}
 
-      <div
+      <AppCard
+        padding={
+          false
+        }
         className="
-          relative
-          z-[100]
+          !overflow-visible
+          !rounded-[22px]
         "
       >
-        <AppCard
-          padding={
-            false
-          }
+        <div
           className="
-            !overflow-visible
-            !rounded-[18px]
+            relative
+            z-20
+
+            p-3
+
+            sm:p-4
           "
         >
           <div
             className="
-              relative
+              flex
+              flex-col
 
-              p-3
+              gap-3
 
-              sm:p-4
+              lg:flex-row
+              lg:items-end
             "
           >
             <div
               className="
-                flex
-                flex-col
+                shrink-0
+
+                lg:w-[210px]
+              "
+            >
+              <h2
+                className="
+                  text-lg
+                  font-black
+                  tracking-tight
+
+                  !text-slate-900
+                "
+              >
+                ข้อมูลการตรวจสอบ
+              </h2>
+
+              <p
+                className="
+                  mt-0.5
+
+                  text-xs
+                  font-semibold
+
+                  !text-slate-500
+                "
+              >
+                ระบุช่วงวันที่ดำเนินการตรวจสอบ
+              </p>
+            </div>
+
+            <div
+              className="
+                grid
+                min-w-0
+                flex-1
+                grid-cols-1
 
                 gap-3
 
-                lg:flex-row
-                lg:items-end
+                md:grid-cols-2
               "
             >
-              {/* =============================================
-                  TITLE
-              ============================================= */}
-
               <div
                 className="
-                  shrink-0
-
-                  lg:w-[190px]
+                  relative
+                  z-30
+                  min-w-0
                 "
               >
-                <h2
+                <label
+                  htmlFor="inspectionStartDate"
                   className="
-                    text-lg
-                    font-black
+                    mb-1.5
+                    block
 
-                    !text-slate-900
+                    text-sm
+                    font-extrabold
+
+                    !text-slate-700
                   "
                 >
-                  ข้อมูลการตรวจสอบ
-                </h2>
+                  วันที่เริ่มตรวจสอบ
+                </label>
+
+                <IOSDatePicker
+                  id="inspectionStartDate"
+                  value={
+                    inspectionStartDate
+                  }
+                  onChange={
+                    setInspectionStartDate
+                  }
+                />
               </div>
 
-              {/* =============================================
-                  START DATE
-              ============================================= */}
-
               <div
                 className="
-                  grid
+                  relative
+                  z-20
                   min-w-0
-                  flex-1
-
-                  grid-cols-1
-
-                  gap-3
-
-                  md:grid-cols-2
                 "
               >
-                <div
+                <label
+                  htmlFor="inspectionEndDate"
                   className="
-                    min-w-0
+                    mb-1.5
+                    block
+
+                    text-sm
+                    font-extrabold
+
+                    !text-slate-700
                   "
                 >
-                  <label
-                    htmlFor="inspectionStartDate"
-                    className="
-                      mb-1.5
-                      block
+                  วันที่ตรวจสอบแล้วเสร็จ
+                </label>
 
-                      text-sm
-                      font-extrabold
-
-                      !text-slate-700
-                    "
-                  >
-                    วันที่เริ่มตรวจสอบ
-                  </label>
-
-                  <IOSDatePicker
-                    id="inspectionStartDate"
-                    value={
-                      inspectionStartDate
-                    }
-                    onChange={
-                      setInspectionStartDate
-                    }
-                  />
-                </div>
-
-                {/* ===========================================
-                    END DATE
-                =========================================== */}
-
-                <div
-                  className="
-                    min-w-0
-                  "
-                >
-                  <label
-                    htmlFor="inspectionEndDate"
-                    className="
-                      mb-1.5
-                      block
-
-                      text-sm
-                      font-extrabold
-
-                      !text-slate-700
-                    "
-                  >
-                    วันที่ตรวจสอบแล้วเสร็จ
-                  </label>
-
-                  <IOSDatePicker
-                    id="inspectionEndDate"
-                    value={
-                      inspectionEndDate
-                    }
-                    onChange={
-                      setInspectionEndDate
-                    }
-                  />
-                </div>
+                <IOSDatePicker
+                  id="inspectionEndDate"
+                  value={
+                    inspectionEndDate
+                  }
+                  onChange={
+                    setInspectionEndDate
+                  }
+                />
               </div>
             </div>
           </div>
-        </AppCard>
-      </div>
+        </div>
+      </AppCard>
 
       {/* =====================================================
           2. SEARCH
@@ -2280,7 +2081,7 @@ export default function InspectionForm({
       </div>
 
       {/* =====================================================
-          3. INSPECTION TABLE
+          3. TABLE
       ===================================================== */}
 
       <AppTableCard
@@ -2298,13 +2099,13 @@ export default function InspectionForm({
         "
       >
         {/* ===================================================
-            CONTROL
+            CATEGORY / PDF / QUICK ACTION
         =================================================== */}
 
         <div
           className="
             border-b
-            border-slate-300
+            border-slate-200
 
             bg-white
 
@@ -2330,7 +2131,7 @@ export default function InspectionForm({
             <div
               className="
                 relative
-                z-20
+                z-30
 
                 w-full
 
@@ -2368,7 +2169,7 @@ export default function InspectionForm({
             </div>
 
             {/* ===============================================
-                BUTTON
+                ACTIONS
             =============================================== */}
 
             <div
@@ -2406,6 +2207,13 @@ export default function InspectionForm({
                 ไม่ถูกต้องทั้งหมด
               </AppButton>
 
+              {/* =============================================
+                  PDF
+
+                  ใช้ข้อมูลชุดเดียวกับตาราง
+                  และหมวดที่เลือกอยู่
+              ============================================= */}
+
               <ExportInspectionPdf
                 fiscalYear={
                   fiscalYear
@@ -2440,17 +2248,13 @@ export default function InspectionForm({
         </div>
 
         {/* ===================================================
-            DOCUMENT TABLE
+            TABLE
 
-            ทำหน้าตาคล้าย PDF
+            สัดส่วนคอลัมน์เดียวกับ PDF
 
-            - หัวขาว
-            - ตัวหนังสือดำ
-            - เส้นดำ
-            - หัว 14px
-            - ข้อมูล 12px
-            - หมวดอยู่ในตาราง
-            - หมวดไม่มีพื้นหลัง
+            PDF = 285 mm
+            WEB = scale × 6
+            รวมประมาณ 1710 px
         =================================================== */}
 
         <div
@@ -2460,8 +2264,6 @@ export default function InspectionForm({
 
             overflow-x-auto
             overscroll-x-contain
-
-            bg-white
           "
         >
           <table
@@ -2474,13 +2276,13 @@ export default function InspectionForm({
 
               bg-white
 
-              text-[12px]
-
-              !text-black
+              text-[15px]
             "
           >
             {/* =================================================
-                SAME RATIO AS PDF
+                WIDTH
+
+                อัตราส่วนเดียวกับ PDF
             ================================================= */}
 
             <colgroup>
@@ -2610,124 +2412,391 @@ export default function InspectionForm({
 
             <thead>
               <tr>
-                <PdfStyleHeader
+                {/* 1 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ลำดับ
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 2 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-2
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ชื่อหรือชนิดวัสดุหรือครุภัณฑ์
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 3 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   หน่วยนับ
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 4 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
-                  <div
-                    className="
-                      leading-tight
-                    "
-                  >
-                    <div>
-                      คงเหลือยอดยกมาเมื่อ
-                    </div>
-
-                    <div>
-                      30 ก.ย.{" "}
-                      {
-                        startShortYear
-                      }
-                    </div>
+                  <div>
+                    คงเหลือยอดยกมาเมื่อ
                   </div>
-                </PdfStyleHeader>
 
-                <PdfStyleHeader
+                  <div>
+                    30 ก.ย.{" "}
+                    {
+                      startShortYear
+                    }
+                  </div>
+                </th>
+
+                {/* 5-6 */}
+
+                <th
                   colSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 7 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   คงเหลือปัจจุบัน
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 8 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ถูกต้อง
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 9 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ไม่ถูกต้อง
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 10-13 */}
+
+                <th
                   colSpan={
                     4
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   รายละเอียดกรณีไม่ถูกต้อง
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 14 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ชำรุด
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 15 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   เสื่อมสภาพ
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 16 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   ไม่จำเป็นต้องใช้
-                </PdfStyleHeader>
+                </th>
 
-                <PdfStyleHeader
+                {/* 17 */}
+
+                <th
                   rowSpan={
                     2
                   }
+                  className="
+                    border
+                    border-black
+
+                    bg-gradient-to-r
+                    from-slate-800
+                    to-slate-700
+
+                    px-1
+                    py-2
+
+                    text-center
+                    align-middle
+                    text-[15px]
+                    font-extrabold
+                    leading-tight
+
+                    !text-white
+                  "
                 >
                   หมายเหตุ
-                </PdfStyleHeader>
+                </th>
               </tr>
 
               <tr>
@@ -2742,13 +2811,33 @@ export default function InspectionForm({
                   (
                     title
                   ) => (
-                    <PdfStyleHeader
+                    <th
                       key={
                         title
                       }
+                      className="
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-1
+                        py-1
+
+                        text-center
+                        text-[15px]
+                        font-extrabold
+                        leading-tight
+
+                        !text-white
+                      "
                     >
-                      {title}
-                    </PdfStyleHeader>
+                      {
+                        title
+                      }
+                    </th>
                   )
                 )}
               </tr>
@@ -2775,7 +2864,7 @@ export default function InspectionForm({
                       bg-white
 
                       text-center
-                      text-sm
+                      text-[15px]
                       font-bold
 
                       !text-slate-500
@@ -2803,7 +2892,7 @@ export default function InspectionForm({
                         getRow
                       }
                       inputClass={
-                        tableInputClass
+                        compactInputClass
                       }
                       updateAccuracy={
                         updateAccuracy
@@ -2832,34 +2921,27 @@ export default function InspectionForm({
 
       {/* =====================================================
           4. COMMITTEE
-
-          ปรับเป็นขาวแบบเอกสาร
       ===================================================== */}
 
       <AppCard
         className="
           relative
-          z-10
+          z-20
 
           w-full
           min-w-0
 
           !overflow-visible
+
           !p-4
         "
       >
-        <div
-          className="
-            border-b
-            border-slate-200
-
-            pb-3
-          "
-        >
+        <div>
           <h2
             className="
               text-xl
               font-black
+              tracking-tight
 
               !text-slate-900
             "
@@ -2950,11 +3032,6 @@ export default function InspectionForm({
                     })
                   );
 
-              const selectedOfficer =
-                getOfficer(
-                  inspectorId
-                );
-
               return (
                 <div
                   key={
@@ -2964,12 +3041,12 @@ export default function InspectionForm({
                     relative
                     min-w-0
 
-                    rounded-[14px]
+                    rounded-[16px]
 
                     border
-                    border-slate-300
+                    border-slate-200/80
 
-                    bg-white
+                    bg-slate-50/60
 
                     p-3
                   "
@@ -2982,7 +3059,7 @@ export default function InspectionForm({
                       text-sm
                       font-extrabold
 
-                      !text-slate-800
+                      !text-slate-700
                     "
                   >
                     {index === 0
@@ -3011,45 +3088,24 @@ export default function InspectionForm({
                     }
                   />
 
-                  {selectedOfficer && (
-                    <div
+                  {inspectorId && (
+                    <p
                       className="
-                        mt-3
+                        mt-2
 
-                        border-t
-                        border-slate-200
+                        text-xs
+                        font-semibold
 
-                        pt-2
-
-                        text-center
+                        !text-slate-500
                       "
                     >
-                      <div
-                        className="
-                          text-sm
-                          font-bold
-
-                          !text-slate-900
-                        "
-                      >
-                        {selectedOfficer.firstName}{" "}
-                        {selectedOfficer.lastName}
-                      </div>
-
-                      <div
-                        className="
-                          mt-0.5
-
-                          text-xs
-                          font-semibold
-
-                          !text-slate-500
-                        "
-                      >
-                        {selectedOfficer.position ||
-                          "-"}
-                      </div>
-                    </div>
+                      ตำแหน่ง:{" "}
+                      {getOfficer(
+                        inspectorId
+                      )
+                        ?.position ||
+                        "-"}
+                    </p>
                   )}
                 </div>
               );
@@ -3130,69 +3186,13 @@ export default function InspectionForm({
 }
 
 /* =========================================================
-   PDF STYLE HEADER
+   CATEGORY ROWS
 
-   หน้าจอให้คล้าย PDF:
-   - พื้นขาว
-   - ขอบดำ
-   - ตัวหนา
-   - Font 14px
-========================================================= */
-
-function PdfStyleHeader({
-  children,
-  rowSpan,
-  colSpan,
-}: {
-  children:
-    React.ReactNode;
-
-  rowSpan?:
-    number;
-
-  colSpan?:
-    number;
-}) {
-  return (
-    <th
-      rowSpan={
-        rowSpan
-      }
-      colSpan={
-        colSpan
-      }
-      className="
-        border
-        border-black
-
-        bg-white
-
-        px-1
-        py-1.5
-
-        text-center
-        align-middle
-        text-[14px]
-        font-black
-        leading-tight
-
-        !text-black
-      "
-    >
-      {children}
-    </th>
-  );
-}
-
-/* =========================================================
-   CATEGORY + MATERIAL ROWS
-
-   ให้เหมือน PDF:
+   รูปแบบให้ตรงกับ PDF
 
    - หมวดอยู่ด้านในตาราง
-   - ก่อนลำดับ 1
-   - ไม่มีสีพื้น
-   - หมวดตัวหนา
+   - อยู่ก่อนเลข 1
+   - ไม่มีสีพื้นหลัง
    - เลขเริ่มใหม่ทุกหมวด
 ========================================================= */
 
@@ -3244,10 +3244,15 @@ function MaterialCategoryRows({
     <>
       {/* =====================================================
           CATEGORY
+
+          ไม่มี background
+          เหมือน PDF
       ===================================================== */}
 
       <tr
         className="
+          h-[23.25px]
+
           bg-white
         "
       >
@@ -3264,12 +3269,12 @@ function MaterialCategoryRows({
             bg-white
 
             px-2
-            py-1
+            py-0
 
             text-left
-            text-[14px]
-            font-black
-            leading-tight
+            text-[15px]
+            font-bold
+            leading-none
 
             !text-black
           "
@@ -3279,7 +3284,7 @@ function MaterialCategoryRows({
       </tr>
 
       {/* =====================================================
-          MATERIAL
+          ITEMS
       ===================================================== */}
 
       {materials.map(
@@ -3301,25 +3306,50 @@ function MaterialCategoryRows({
               key={
                 material.materialId
               }
-              className="
-                bg-white
+              className={`
+                min-h-[23.25px]
 
                 transition-colors
 
-                hover:bg-blue-50/40
-              "
+                hover:bg-blue-50/50
+
+                ${
+                  index %
+                    2 ===
+                  0
+                    ? "bg-white"
+                    : "bg-slate-50/35"
+                }
+              `}
             >
               {/* ===========================================
-                  1 ORDER
+                  1. ORDER
               =========================================== */}
 
-              <PdfDataCell>
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
+
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+
+                  !text-black
+                "
+              >
                 {index +
                   1}
-              </PdfDataCell>
+              </td>
 
               {/* ===========================================
-                  2 NAME
+                  2. NAME
               =========================================== */}
 
               <td
@@ -3329,13 +3359,11 @@ function MaterialCategoryRows({
                   border
                   border-black
 
-                  bg-white
-
                   px-2
-                  py-1
+                  py-[2px]
 
                   text-left
-                  text-[12px]
+                  text-[15px]
                   font-normal
                   leading-tight
 
@@ -3346,69 +3374,7 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  3 UNIT
-              =========================================== */}
-
-              <PdfDataCell>
-                {material.unit ||
-                  "-"}
-              </PdfDataCell>
-
-              {/* ===========================================
-                  4 OPENING BALANCE
-
-                  ยอดยกเข้าระบบ ณ 1 ต.ค.
-              =========================================== */}
-
-              <PdfDataCell
-                numeric
-              >
-                {displayStockValue(
-                  material.openingBalance
-                )}
-              </PdfDataCell>
-
-              {/* ===========================================
-                  5 RECEIVE
-
-                  รับจริงในปีเท่านั้น
-                  ไม่รวมยอดยก
-              =========================================== */}
-
-              <PdfDataCell
-                numeric
-              >
-                {displayStockValue(
-                  material.receiveQty
-                )}
-              </PdfDataCell>
-
-              {/* ===========================================
-                  6 ISSUE
-              =========================================== */}
-
-              <PdfDataCell
-                numeric
-              >
-                {displayStockValue(
-                  material.issueQty
-                )}
-              </PdfDataCell>
-
-              {/* ===========================================
-                  7 CURRENT BALANCE
-              =========================================== */}
-
-              <PdfDataCell
-                numeric
-              >
-                {displayStockValue(
-                  material.closingBalance
-                )}
-              </PdfDataCell>
-
-              {/* ===========================================
-                  8 CORRECT
+                  3. UNIT
               =========================================== */}
 
               <td
@@ -3418,12 +3384,159 @@ function MaterialCategoryRows({
                   border
                   border-black
 
-                  bg-white
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+
+                  !text-black
+                "
+              >
+                {material.unit ||
+                  "-"}
+              </td>
+
+              {/* ===========================================
+                  4. OPENING
+
+                  FY2569
+                  =
+                  ยอดยกเข้าระบบ
+                  ณ 01 ต.ค.68
+
+                  แสดงใต้หัว
+                  30 ก.ย.68
+              =========================================== */}
+
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
+
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+                  tabular-nums
+
+                  !text-black
+                "
+              >
+                {displayStockValue(
+                  material.openingBalance
+                )}
+              </td>
+
+              {/* ===========================================
+                  5. RECEIVE
+
+                  รับอย่างเดียวใน FY
+              =========================================== */}
+
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
+
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+                  tabular-nums
+
+                  !text-black
+                "
+              >
+                {displayStockValue(
+                  material.receiveQty
+                )}
+              </td>
+
+              {/* ===========================================
+                  6. ISSUE
+
+                  จ่ายจริง APPROVED ใน FY
+              =========================================== */}
+
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
+
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+                  tabular-nums
+
+                  !text-black
+                "
+              >
+                {displayStockValue(
+                  material.issueQty
+                )}
+              </td>
+
+              {/* ===========================================
+                  7. CURRENT BALANCE
+              =========================================== */}
+
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
+
+                  px-1
+                  py-0
+
+                  text-center
+                  text-[15px]
+                  font-normal
+                  leading-none
+                  tabular-nums
+
+                  !text-black
+                "
+              >
+                {displayStockValue(
+                  material.closingBalance
+                )}
+              </td>
+
+              {/* ===========================================
+                  8. CORRECT
+              =========================================== */}
+
+              <td
+                className="
+                  h-[23.25px]
+
+                  border
+                  border-black
 
                   p-0
 
                   text-center
-                  align-middle
                 "
               >
                 <input
@@ -3440,8 +3553,8 @@ function MaterialCategoryRows({
                     )
                   }
                   className="
-                    h-4
-                    w-4
+                    h-[15px]
+                    w-[15px]
 
                     cursor-pointer
 
@@ -3451,7 +3564,7 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  9 INCORRECT
+                  9. INCORRECT
               =========================================== */}
 
               <td
@@ -3461,12 +3574,9 @@ function MaterialCategoryRows({
                   border
                   border-black
 
-                  bg-white
-
                   p-0
 
                   text-center
-                  align-middle
                 "
               >
                 <input
@@ -3483,8 +3593,8 @@ function MaterialCategoryRows({
                     )
                   }
                   className="
-                    h-4
-                    w-4
+                    h-[15px]
+                    w-[15px]
 
                     cursor-pointer
 
@@ -3494,7 +3604,7 @@ function MaterialCategoryRows({
               </td>
 
               {/* ===========================================
-                  10 SHORTAGE
+                  10. SHORTAGE
               =========================================== */}
 
               <CompactNumberCell
@@ -3516,7 +3626,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  11 EXCESS
+                  11. EXCESS
               =========================================== */}
 
               <CompactNumberCell
@@ -3538,7 +3648,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  12 BAHT
+                  12. BAHT
               =========================================== */}
 
               <CompactNumberCell
@@ -3560,7 +3670,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  13 SATANG
+                  13. SATANG
               =========================================== */}
 
               <CompactNumberCell
@@ -3582,7 +3692,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  14 DAMAGED
+                  14. DAMAGED
               =========================================== */}
 
               <CompactNumberCell
@@ -3604,7 +3714,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  15 DETERIORATED
+                  15. DETERIORATED
               =========================================== */}
 
               <CompactNumberCell
@@ -3626,7 +3736,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  16 UNNECESSARY
+                  16. UNNECESSARY
               =========================================== */}
 
               <CompactNumberCell
@@ -3648,7 +3758,7 @@ function MaterialCategoryRows({
               />
 
               {/* ===========================================
-                  17 REMARK
+                  17. REMARK
               =========================================== */}
 
               <td
@@ -3657,8 +3767,6 @@ function MaterialCategoryRows({
 
                   border
                   border-black
-
-                  bg-white
 
                   p-0
                 "
@@ -3690,7 +3798,7 @@ function MaterialCategoryRows({
                     px-1
 
                     text-left
-                    text-[12px]
+                    text-[15px]
                     font-normal
                     leading-none
 
@@ -3712,54 +3820,10 @@ function MaterialCategoryRows({
 }
 
 /* =========================================================
-   PDF STYLE DATA CELL
-========================================================= */
+   COMPACT NUMBER CELL
 
-function PdfDataCell({
-  children,
-  numeric = false,
-}: {
-  children:
-    React.ReactNode;
-
-  numeric?:
-    boolean;
-}) {
-  return (
-    <td
-      className={`
-        h-[23.25px]
-
-        border
-        border-black
-
-        bg-white
-
-        px-1
-        py-0
-
-        text-center
-        align-middle
-        text-[12px]
-        font-normal
-        leading-none
-
-        !text-black
-
-        ${
-          numeric
-            ? "tabular-nums"
-            : ""
-        }
-      `}
-    >
-      {children}
-    </td>
-  );
-}
-
-/* =========================================================
-   NUMBER CELL
+   Height 23.25 px
+   เหมือน PDF / Excel Standard
 ========================================================= */
 
 function CompactNumberCell({
@@ -3782,8 +3846,6 @@ function CompactNumberCell({
 
         border
         border-black
-
-        bg-white
 
         p-0
       "
