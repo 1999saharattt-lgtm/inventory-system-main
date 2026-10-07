@@ -7,25 +7,63 @@ import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 
 /* =========================================================
+   FORCE FRESH DATA
+========================================================= */
+
+export const dynamic =
+  "force-dynamic";
+
+export const revalidate =
+  0;
+
+/* =========================================================
    CATEGORY
 ========================================================= */
 
-const categoryName: Record<string, string> = {
-  OFFICE: "วัสดุสำนักงาน",
-  COMPUTER: "วัสดุคอมพิวเตอร์",
-  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
-  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
-  VEHICLE: "วัสดุยานพาหนะ",
-  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
+const categoryName: Record<
+  string,
+  string
+> = {
+  OFFICE:
+    "วัสดุสำนักงาน",
+
+  COMPUTER:
+    "วัสดุคอมพิวเตอร์",
+
+  ELECTRIC:
+    "วัสดุไฟฟ้าและวิทยุ",
+
+  HOUSEHOLD:
+    "วัสดุงานบ้านและงานครัว",
+
+  VEHICLE:
+    "วัสดุยานพาหนะ",
+
+  PRINTING:
+    "วัสดุสื่อสิ่งพิมพ์",
 };
 
-const categoryIcon: Record<string, string> = {
-  OFFICE: "📄",
-  COMPUTER: "💻",
-  ELECTRIC: "⚡",
-  HOUSEHOLD: "🏠",
-  VEHICLE: "🚗",
-  PRINTING: "📰",
+const categoryIcon: Record<
+  string,
+  string
+> = {
+  OFFICE:
+    "📄",
+
+  COMPUTER:
+    "💻",
+
+  ELECTRIC:
+    "⚡",
+
+  HOUSEHOLD:
+    "🏠",
+
+  VEHICLE:
+    "🚗",
+
+  PRINTING:
+    "📰",
 };
 
 /* =========================================================
@@ -42,21 +80,23 @@ type Category =
 
 type Material = {
   id: number;
+
   code: string;
+
   name: string;
-  balance: number;
+
   unit: string;
 
-  latestPrice: {
-    toLocaleString(
-      locale?: string,
-      options?: Intl.NumberFormatOptions
-    ): string;
-  };
+  latestPrice: number;
 
   receiveItems: {
-    manufacture: Date | null;
-    expiry: Date | null;
+    manufacture:
+      | Date
+      | null;
+
+    expiry:
+      | Date
+      | null;
   }[];
 };
 
@@ -68,6 +108,17 @@ type Props = {
   searchParams: Promise<{
     search?: string;
   }>;
+};
+
+type ThailandDateParts = {
+  year: number;
+  month: number;
+  day: number;
+};
+
+type FiscalYearRange = {
+  startDate: Date;
+  endDate: Date;
 };
 
 /* =========================================================
@@ -91,32 +142,304 @@ const thaiShortMonths = [
 ];
 
 function formatThaiShortDate(
-  value: Date | string | null | undefined
+  value:
+    | Date
+    | string
+    | null
+    | undefined
 ) {
   if (!value) {
     return "-";
   }
 
-  const date = new Date(value);
+  const date =
+    new Date(
+      value
+    );
 
-  if (Number.isNaN(date.getTime())) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
     return "-";
   }
 
-  const day = String(
-    date.getDate()
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
 
   const month =
     thaiShortMonths[
       date.getMonth()
     ];
 
-  const buddhistYear = String(
-    date.getFullYear() + 543
-  ).slice(-2);
+  const buddhistYear =
+    String(
+      date.getFullYear() +
+        543
+    ).slice(
+      -2
+    );
 
   return `${day} ${month} ${buddhistYear}`;
+}
+
+/* =========================================================
+   THAILAND DATE PARTS
+========================================================= */
+
+function getThailandDateParts(
+  value: Date
+): ThailandDateParts {
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone:
+          "Asia/Bangkok",
+
+        year:
+          "numeric",
+
+        month:
+          "2-digit",
+
+        day:
+          "2-digit",
+      }
+    );
+
+  const parts =
+    formatter.formatToParts(
+      value
+    );
+
+  const year =
+    Number(
+      parts.find(
+        (
+          part
+        ) =>
+          part.type ===
+          "year"
+      )?.value
+    );
+
+  const month =
+    Number(
+      parts.find(
+        (
+          part
+        ) =>
+          part.type ===
+          "month"
+      )?.value
+    );
+
+  const day =
+    Number(
+      parts.find(
+        (
+          part
+        ) =>
+          part.type ===
+          "day"
+      )?.value
+    );
+
+  return {
+    year,
+    month,
+    day,
+  };
+}
+
+/* =========================================================
+   CURRENT FISCAL YEAR
+========================================================= */
+
+function getCurrentFiscalYearThai(
+  value: Date =
+    new Date()
+) {
+  const parts =
+    getThailandDateParts(
+      value
+    );
+
+  const fiscalYearGregorian =
+    parts.month >=
+    10
+      ? parts.year +
+        1
+      : parts.year;
+
+  return (
+    fiscalYearGregorian +
+    543
+  );
+}
+
+/* =========================================================
+   FISCAL YEAR RANGE
+========================================================= */
+
+function getFiscalYearRange(
+  fiscalYearThai: number
+): FiscalYearRange {
+  const fiscalYearGregorian =
+    fiscalYearThai -
+    543;
+
+  const startDate =
+    new Date(
+      Date.UTC(
+        fiscalYearGregorian -
+          1,
+        9,
+        1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+  const endDate =
+    new Date(
+      Date.UTC(
+        fiscalYearGregorian,
+        9,
+        1,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+  return {
+    startDate,
+    endDate,
+  };
+}
+
+/* =========================================================
+   ACTUAL ISSUE QTY
+
+   ใช้ Logic เดียวกับ Stock Card
+
+   ถ้ามี issuedQty
+   ใช้จำนวนที่จ่ายจริง
+
+   issuedQty = 0
+   ถือว่าเป็น 0 จริง
+
+   fallback ไป qty
+   เฉพาะกรณี null / undefined
+========================================================= */
+
+function getActualIssuedQty(
+  item: {
+    qty:
+      | number
+      | null
+      | undefined;
+
+    issuedQty:
+      | number
+      | null
+      | undefined;
+  }
+) {
+  if (
+    item.issuedQty !==
+      null &&
+    item.issuedQty !==
+      undefined
+  ) {
+    return Number(
+      item.issuedQty
+    );
+  }
+
+  return Number(
+    item.qty ??
+      0
+  );
+}
+
+/* =========================================================
+   SAFE NUMBER
+========================================================= */
+
+function safeNumber(
+  value: unknown
+) {
+  const number =
+    Number(
+      value ??
+        0
+    );
+
+  if (
+    !Number.isFinite(
+      number
+    )
+  ) {
+    return 0;
+  }
+
+  return number;
+}
+
+/* =========================================================
+   ADD MAP VALUE
+========================================================= */
+
+function addMapValue(
+  map: Map<
+    number,
+    number
+  >,
+  materialId: number,
+  value: number
+) {
+  map.set(
+    materialId,
+    (
+      map.get(
+        materialId
+      ) ??
+      0
+    ) +
+      value
+  );
+}
+
+/* =========================================================
+   FORMAT BALANCE
+========================================================= */
+
+function formatBalance(
+  value: number
+) {
+  if (
+    !Number.isFinite(
+      value
+    )
+  ) {
+    return "0";
+  }
+
+  return value.toLocaleString(
+    "th-TH"
+  );
 }
 
 /* =========================================================
@@ -131,17 +454,36 @@ export default async function CategoryPage({
      PARAMS
   ======================================================= */
 
-  const { category } =
+  const {
+    category,
+  } =
     await params;
 
-  const { search } =
+  const {
+    search,
+  } =
     await searchParams;
 
   const keyword =
-    search?.trim() ?? "";
+    search?.trim() ??
+    "";
 
   /* =======================================================
-     DATA
+     CURRENT FISCAL YEAR
+
+     ใช้ช่วงเดียวกับหน้า Stock Card ปัจจุบัน
+  ======================================================= */
+
+  const currentFiscalYear =
+    getCurrentFiscalYearThai();
+
+  const currentFiscalRange =
+    getFiscalYearRange(
+      currentFiscalYear
+    );
+
+  /* =======================================================
+     MATERIAL DATA
   ======================================================= */
 
   const materials =
@@ -159,6 +501,7 @@ export default async function CategoryPage({
                       keyword,
                   },
                 },
+
                 {
                   name: {
                     contains:
@@ -171,30 +514,265 @@ export default async function CategoryPage({
       },
 
       include: {
+        /* ===============================================
+           ใช้เฉพาะแสดงวันผลิต / วันหมดอายุล่าสุด
+           คง Logic เดิม
+        =============================================== */
+
         receiveItems: {
           orderBy: {
-            id: "desc",
+            id:
+              "desc",
           },
 
-          take: 1,
+          take:
+            1,
         },
       },
 
       orderBy: {
-        code: "asc",
+        code:
+          "asc",
       },
     });
+
+  /* =======================================================
+     MATERIAL IDS
+
+     ใช้คำนวณ Stock Card เฉพาะรายการ
+     ที่กำลังแสดงในหมวดนี้
+  ======================================================= */
+
+  const materialIds =
+    materials.map(
+      (
+        material
+      ) =>
+        material.id
+    );
+
+  /* =======================================================
+     STOCK CARD CURRENT MOVEMENTS
+
+     ดึงข้อมูลตาม Logic หน้า Stock Card:
+
+     RECEIVE
+     +
+     APPROVED ISSUE
+
+     ไม่ใช้:
+     - Material.balance
+     - Transaction.balance
+
+     เพื่อให้ตรงกับยอด Stock Card
+  ======================================================= */
+
+  const [
+    stockReceiveItems,
+    stockIssueItems,
+  ] =
+    materialIds.length >
+    0
+      ? await Promise.all([
+          /* =============================================
+             RECEIVE
+
+             รับเข้าทั้งหมด
+             ก่อนสิ้น FY ปัจจุบัน
+          ============================================= */
+
+          prisma.receiveItem.findMany(
+            {
+              where: {
+                materialId: {
+                  in:
+                    materialIds,
+                },
+
+                receive: {
+                  receiveDate: {
+                    lt:
+                      currentFiscalRange
+                        .endDate,
+                  },
+                },
+              },
+
+              select: {
+                materialId:
+                  true,
+
+                qty:
+                  true,
+              },
+            }
+          ),
+
+          /* =============================================
+             ISSUE
+
+             ใช้เฉพาะ APPROVED
+             ก่อนสิ้น FY ปัจจุบัน
+          ============================================= */
+
+          prisma.issueItem.findMany(
+            {
+              where: {
+                materialId: {
+                  in:
+                    materialIds,
+                },
+
+                issue: {
+                  status:
+                    "APPROVED",
+
+                  issueDate: {
+                    lt:
+                      currentFiscalRange
+                        .endDate,
+                  },
+                },
+              },
+
+              select: {
+                materialId:
+                  true,
+
+                qty:
+                  true,
+
+                issuedQty:
+                  true,
+              },
+            }
+          ),
+        ])
+      : [
+          [],
+          [],
+        ];
+
+  /* =======================================================
+     RECEIVE MAP
+
+     materialId -> รับเข้าทั้งหมด
+  ======================================================= */
+
+  const receiveMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const item of
+      stockReceiveItems
+  ) {
+    addMapValue(
+      receiveMap,
+      item.materialId,
+      safeNumber(
+        item.qty
+      )
+    );
+  }
+
+  /* =======================================================
+     ISSUE MAP
+
+     materialId -> จ่ายจริงทั้งหมด
+  ======================================================= */
+
+  const issueMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const item of
+      stockIssueItems
+  ) {
+    addMapValue(
+      issueMap,
+      item.materialId,
+      getActualIssuedQty(
+        {
+          qty:
+            item.qty,
+
+          issuedQty:
+            item.issuedQty,
+        }
+      )
+    );
+  }
+
+  /* =======================================================
+     CURRENT STOCK CARD BALANCE
+
+     สำคัญ:
+
+     ไม่ได้เอา "คงเหลือ" ของแต่ละแถวมาบวกกัน
+
+     แต่สร้างยอดปลายทางล่าสุดของแต่ละ Material:
+
+     รับเข้า
+     -
+     จ่ายจริงที่ APPROVED
+
+     ผลลัพธ์นี้คือ
+     "คงเหลือล่าสุด"
+     ของ Stock Card
+  ======================================================= */
+
+  const currentBalanceMap =
+    new Map<
+      number,
+      number
+    >();
+
+  for (
+    const material of
+      materials
+  ) {
+    const totalReceive =
+      receiveMap.get(
+        material.id
+      ) ??
+      0;
+
+    const totalIssue =
+      issueMap.get(
+        material.id
+      ) ??
+      0;
+
+    const currentBalance =
+      totalReceive -
+      totalIssue;
+
+    currentBalanceMap.set(
+      material.id,
+      currentBalance
+    );
+  }
 
   /* =======================================================
      DISPLAY
   ======================================================= */
 
   const title =
-    categoryName[category] ??
+    categoryName[
+      category
+    ] ??
     "รายการพัสดุ";
 
   const icon =
-    categoryIcon[category] ??
+    categoryIcon[
+      category
+    ] ??
     "📦";
 
   /* =======================================================
@@ -208,8 +786,12 @@ export default async function CategoryPage({
       ===================================================== */}
 
       <AppPageHeader
-        icon={icon}
-        title={title}
+        icon={
+          icon
+        }
+        title={
+          title
+        }
         subtitle={`รายการพัสดุในหมวดนี้ทั้งหมด ${materials.length.toLocaleString(
           "th-TH"
         )} รายการ`}
@@ -220,7 +802,9 @@ export default async function CategoryPage({
               variant="primary"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   ＋
                 </span>
               }
@@ -233,7 +817,9 @@ export default async function CategoryPage({
               variant="back"
               size="md"
               icon={
-                <span aria-hidden="true">
+                <span
+                  aria-hidden="true"
+                >
                   ←
                 </span>
               }
@@ -246,7 +832,7 @@ export default async function CategoryPage({
 
       {/* =====================================================
           SEARCH
-          รูปแบบเดียวกับ AppSearchInput กลาง
+          รูปแบบเดิม
       ===================================================== */}
 
       <form
@@ -262,12 +848,18 @@ export default async function CategoryPage({
             w-full
             min-w-0
             overflow-hidden
+
             rounded-[22px]
+
             border
             border-white/80
+
             bg-white/80
+
             p-3
+
             shadow-[0_16px_40px_-28px_rgba(15,23,42,0.35)]
+
             backdrop-blur-2xl
           "
         >
@@ -279,13 +871,18 @@ export default async function CategoryPage({
             aria-hidden="true"
             className="
               pointer-events-none
+
               absolute
               -left-20
               -top-24
+
               h-44
               w-44
+
               rounded-full
+
               bg-blue-400/[0.08]
+
               blur-3xl
             "
           />
@@ -294,13 +891,18 @@ export default async function CategoryPage({
             aria-hidden="true"
             className="
               pointer-events-none
+
               absolute
               -bottom-24
               right-0
+
               h-44
               w-44
+
               rounded-full
+
               bg-cyan-400/[0.08]
+
               blur-3xl
             "
           />
@@ -312,10 +914,13 @@ export default async function CategoryPage({
           <div
             className="
               relative
+
               flex
               w-full
               min-w-0
+
               flex-col
+
               gap-2.5
 
               md:flex-row
@@ -324,7 +929,6 @@ export default async function CategoryPage({
           >
             {/* =============================================
                 SEARCH INPUT
-                ไม่มีไอคอนแว่นขยายในช่อง
             ============================================= */}
 
             <div
@@ -336,7 +940,9 @@ export default async function CategoryPage({
               <input
                 type="search"
                 name="search"
-                defaultValue={keyword}
+                defaultValue={
+                  keyword
+                }
                 placeholder="ค้นหารหัสพัสดุ / รายการพัสดุ"
                 autoComplete="off"
                 aria-label="ค้นหารหัสพัสดุหรือรายการพัสดุ"
@@ -344,16 +950,25 @@ export default async function CategoryPage({
                   h-11
                   w-full
                   min-w-0
+
                   rounded-[14px]
+
                   border
                   border-slate-300
+
                   bg-white
+
                   px-4
+
                   text-sm
                   font-bold
+
                   !text-slate-900
+
                   shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)]
+
                   outline-none
+
                   transition-all
                   duration-200
 
@@ -383,6 +998,7 @@ export default async function CategoryPage({
                 min-w-0
                 flex-wrap
                 items-center
+
                 gap-2
 
                 md:flex-nowrap
@@ -390,7 +1006,7 @@ export default async function CategoryPage({
               "
             >
               {/* ===========================================
-                  SEARCH BUTTON
+                  SEARCH
               =========================================== */}
 
               <AppButton
@@ -398,12 +1014,15 @@ export default async function CategoryPage({
                 variant="primary"
                 size="md"
                 icon={
-                  <span aria-hidden="true">
+                  <span
+                    aria-hidden="true"
+                  >
                     🔎
                   </span>
                 }
                 className="
                   flex-1
+
                   sm:flex-none
                 "
               >
@@ -419,17 +1038,26 @@ export default async function CategoryPage({
                   inline-flex
                   h-11
                   shrink-0
+
                   items-center
                   justify-center
+
                   gap-2
+
                   rounded-[14px]
+
                   border
                   border-slate-300
+
                   bg-slate-50
+
                   px-3
+
                   text-xs
                   font-extrabold
+
                   !text-slate-600
+
                   shadow-sm
 
                   sm:h-12
@@ -440,19 +1068,28 @@ export default async function CategoryPage({
                 <span
                   className="
                     inline-flex
+
                     h-7
                     min-w-7
+
                     items-center
                     justify-center
+
                     rounded-full
+
                     border
                     border-slate-300
+
                     bg-white
+
                     px-2
+
                     text-[11px]
                     font-black
                     tabular-nums
+
                     !text-slate-800
+
                     shadow-sm
                   "
                 >
@@ -461,13 +1098,17 @@ export default async function CategoryPage({
                   )}
                 </span>
 
-                <span className="whitespace-nowrap">
+                <span
+                  className="
+                    whitespace-nowrap
+                  "
+                >
                   รายการ
                 </span>
               </div>
 
               {/* ===========================================
-                  CLEAR SEARCH
+                  CLEAR
               =========================================== */}
 
               {keyword && (
@@ -476,12 +1117,15 @@ export default async function CategoryPage({
                   variant="outline"
                   size="md"
                   icon={
-                    <span aria-hidden="true">
+                    <span
+                      aria-hidden="true"
+                    >
                       ✕
                     </span>
                   }
                   className="
                     flex-1
+
                     sm:flex-none
                   "
                 >
@@ -516,6 +1160,7 @@ export default async function CategoryPage({
           className="
             w-full
             min-w-0
+
             overflow-x-auto
             overscroll-x-contain
           "
@@ -524,13 +1169,20 @@ export default async function CategoryPage({
             className="
               w-full
               min-w-[1100px]
+
               border-collapse
+
               bg-white
+
               text-sm
             "
           >
             {/* =============================================
                 TABLE HEADER
+
+                จำนวน
+                ->
+                คงเหลือ
             ============================================= */}
 
             <thead>
@@ -538,34 +1190,45 @@ export default async function CategoryPage({
                 {[
                   "รหัสพัสดุ",
                   "รายการพัสดุ",
-                  "จำนวน",
+                  "คงเหลือ",
                   "หน่วย",
                   "ราคาล่าสุด",
                   "วันผลิต",
                   "วันหมดอายุ",
                   "จัดการ",
                 ].map(
-                  (tableTitle) => (
+                  (
+                    tableTitle
+                  ) => (
                     <th
-                      key={tableTitle}
+                      key={
+                        tableTitle
+                      }
                       className="
                         whitespace-nowrap
+
                         border
                         border-black
+
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
+
                         px-4
                         py-4
+
                         text-center
                         text-base
                         font-extrabold
+
                         !text-white
 
                         sm:text-lg
                       "
                     >
-                      {tableTitle}
+                      {
+                        tableTitle
+                      }
                     </th>
                   )
                 )}
@@ -577,22 +1240,43 @@ export default async function CategoryPage({
             ============================================= */}
 
             <tbody>
-              {materials.length > 0 ? (
+              {materials.length >
+              0 ? (
                 materials.map(
                   (
-                    material: Material,
+                    material:
+                      Material,
                     index
                   ) => {
                     const latestReceive =
                       material
-                        .receiveItems[0];
+                        .receiveItems[
+                        0
+                      ];
+
+                    /* =====================================
+                       CURRENT BALANCE
+
+                       เอายอดคงเหลือล่าสุดของ
+                       Stock Card รายการนี้เพียงค่าเดียว
+                    ===================================== */
+
+                    const currentBalance =
+                      currentBalanceMap.get(
+                        material.id
+                      ) ??
+                      0;
 
                     return (
                       <tr
-                        key={material.id}
+                        key={
+                          material.id
+                        }
                         className={`
                           ${
-                            index % 2 === 0
+                            index %
+                              2 ===
+                            0
                               ? "bg-white"
                               : "bg-slate-50/60"
                           }
@@ -610,12 +1294,16 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-extrabold
+
                             !text-slate-900
                           "
                         >
@@ -630,11 +1318,15 @@ export default async function CategoryPage({
                         <td
                           className="
                             min-w-[240px]
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             font-extrabold
+
                             !text-slate-900
                           "
                         >
@@ -643,26 +1335,29 @@ export default async function CategoryPage({
                         </td>
 
                         {/* ===================================
-                            BALANCE
+                            CURRENT STOCK CARD BALANCE
                         =================================== */}
 
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
-                            font-extrabold
+                            text-base
+                            font-black
                             tabular-nums
+
                             !text-slate-900
                           "
                         >
-                          {Number(
-                            material.balance
-                          ).toLocaleString(
-                            "th-TH"
+                          {formatBalance(
+                            currentBalance
                           )}
                         </td>
 
@@ -673,12 +1368,16 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
+
                             !text-slate-700
                           "
                         >
@@ -693,21 +1392,30 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-right
                             font-extrabold
                             tabular-nums
+
                             !text-slate-900
                           "
                         >
-                          {material.latestPrice.toLocaleString(
+                          {Number(
+                            material.latestPrice
+                          ).toLocaleString(
                             "th-TH",
                             {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
+                              minimumFractionDigits:
+                                2,
+
+                              maximumFractionDigits:
+                                2,
                             }
                           )}
                         </td>
@@ -719,17 +1427,22 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
+
                             !text-slate-700
                           "
                         >
                           {formatThaiShortDate(
-                            latestReceive?.manufacture
+                            latestReceive
+                              ?.manufacture
                           )}
                         </td>
 
@@ -740,17 +1453,22 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3.5
+
                             text-center
                             font-bold
+
                             !text-slate-700
                           "
                         >
                           {formatThaiShortDate(
-                            latestReceive?.expiry
+                            latestReceive
+                              ?.expiry
                           )}
                         </td>
 
@@ -761,8 +1479,10 @@ export default async function CategoryPage({
                         <td
                           className="
                             whitespace-nowrap
+
                             border
                             border-black
+
                             px-4
                             py-3
                           "
@@ -772,6 +1492,7 @@ export default async function CategoryPage({
                               flex
                               items-center
                               justify-center
+
                               gap-2
                             "
                           >
@@ -780,7 +1501,9 @@ export default async function CategoryPage({
                               variant="primary"
                               size="sm"
                               icon={
-                                <span aria-hidden="true">
+                                <span
+                                  aria-hidden="true"
+                                >
                                   ✏️
                                 </span>
                               }
@@ -806,34 +1529,47 @@ export default async function CategoryPage({
 
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={
+                      8
+                    }
                     className="
                       border
                       border-black
+
                       bg-white
+
                       px-6
                       py-16
+
                       text-center
                     "
                   >
                     <div
                       className="
                         mx-auto
+
                         flex
                         max-w-md
                         flex-col
+
                         items-center
                       "
                     >
-                      <div className="text-4xl">
+                      <div
+                        className="
+                          text-4xl
+                        "
+                      >
                         📦
                       </div>
 
                       <p
                         className="
                           mt-4
+
                           text-lg
                           font-extrabold
+
                           !text-slate-900
                         "
                       >
@@ -845,8 +1581,10 @@ export default async function CategoryPage({
                       <p
                         className="
                           mt-1
+
                           text-sm
                           font-semibold
+
                           !text-slate-500
                         "
                       >
@@ -856,7 +1594,11 @@ export default async function CategoryPage({
                       </p>
 
                       {keyword && (
-                        <div className="mt-5">
+                        <div
+                          className="
+                            mt-5
+                          "
+                        >
                           <AppButton
                             href={`/materials/category/${category}`}
                             variant="primary"
