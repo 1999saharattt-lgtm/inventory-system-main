@@ -2047,16 +2047,13 @@ export default function EditInspectionForm({
                   {`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}
                 </th>
                 <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือปัจจุบัน</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ถูกต้อง</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ไม่ถูกต้อง</th>
-                <th colSpan={4} className={inspectionHeaderClass}>รายละเอียดกรณีไม่ถูกต้อง</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ชำรุด</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>เสื่อมสภาพ</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ไม่จำเป็นต้องใช้</th>
+                <th colSpan={2} className={inspectionHeaderClass}>ผลการตรวจสอบ</th>
+                <th colSpan={4} className={inspectionHeaderClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<div>จำนวนที่เกินคิดเป็นเงินร้อยละ</div></th>
+                <th colSpan={3} className={inspectionHeaderClass}>จำนวนที่</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หมายเหตุ</th>
               </tr>
               <tr>
-                {["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต."].map((title) => (
+                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].map((title) => (
                   <th key={title} className={`${inspectionHeaderClass} !py-1`}>{title}</th>
                 ))}
               </tr>
