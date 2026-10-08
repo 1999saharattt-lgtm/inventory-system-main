@@ -300,7 +300,7 @@ async function parsePayload(
 
   request: Request
 
-): Promise\<ParsePayloadResult> {
+): Promise<ParsePayloadResult> {
 
   let body: InspectionPayload | null = null;
 
@@ -596,7 +596,7 @@ async function parsePayload(
 
         response: jsonError(
 
-          \`ข้อมูลรายการที่ ${index + 1} ไม่ถูกต้อง\`,
+          `ข้อมูลรายการที่ ${index + 1} ไม่ถูกต้อง`,
 
           400
 
@@ -624,7 +624,7 @@ async function parsePayload(
 
         response: jsonError(
 
-          \`รหัสพัสดุรายการที่ ${index + 1} ไม่ถูกต้อง\`,
+          `รหัสพัสดุรายการที่ ${index + 1} ไม่ถูกต้อง`,
 
           400
 
@@ -648,7 +648,7 @@ async function parsePayload(
 
         response: jsonError(
 
-          \`ผลการตรวจสอบรายการที่ ${index + 1} ไม่ถูกต้อง\`,
+          `ผลการตรวจสอบรายการที่ ${index + 1} ไม่ถูกต้อง`,
 
           400
 
@@ -696,7 +696,7 @@ async function parsePayload(
 
         response: jsonError(
 
-          \`จำนวนในรายการที่ ${index + 1} ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป\`,
+          `จำนวนในรายการที่ ${index + 1} ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป`,
 
           400
 
@@ -856,7 +856,7 @@ async function validateReferences(
 
     return officer
 
-      ? \`${officer.firstName} ${officer.lastName}\`.trim()
+      ? `${officer.firstName} ${officer.lastName}`.trim()
 
       : "";
 
@@ -971,7 +971,7 @@ export async function POST(request: Request) {
 
     return jsonError(
 
-      \`มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear} แล้ว\`,
+      `มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear} แล้ว`,
 
       409
 
@@ -1139,7 +1139,7 @@ export async function POST(request: Request) {
 
         return jsonError(
 
-          \`มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear} แล้ว\`,
+          `มีข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear} แล้ว`,
 
           409
 
@@ -1291,7 +1291,7 @@ export async function PUT(request: Request) {
 
     return jsonError(
 
-      \`ไม่พบข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear}\`,
+      `ไม่พบข้อมูลการตรวจสอบบัญชีพัสดุประจำปีงบประมาณ ${data.fiscalYear}`,
 
       404
 
