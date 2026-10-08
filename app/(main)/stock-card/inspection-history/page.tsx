@@ -9,6 +9,7 @@ import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 
 import AppTableCard from "@/components/AppTableCard";
+import DeleteInspectionButton from "./DeleteInspectionButton";
 
 
 
@@ -622,31 +623,7 @@ export default async function StockCardInspectionHistoryPage({
 
 
 
-                          <AppButton
-
-                            type="button"
-
-                            variant="danger"
-
-                            size="sm"
-
-                            icon={
-
-                              <span aria-hidden="true">
-
-                                🗑️
-
-                              </span>
-
-                            }
-
-                            disabled
-
-                          >
-
-                            ลบ
-
-                          </AppButton>
+                          <DeleteInspectionButton fiscalYear={inspection.fiscalYear} />
 
                         </div>
 
