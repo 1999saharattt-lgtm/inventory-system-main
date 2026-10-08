@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -119,8 +120,6 @@ model User {
   departmentId Int?
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
-  // กลุ่มงานของผู้ใช้งาน
-  // ใช้สำหรับ STAFF เพื่อกำหนดกลุ่มงานอัตโนมัติ
   sectionId Int?
   section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
 
@@ -151,10 +150,6 @@ model Material {
   receiveItems ReceiveItem[]
   issueItems   IssueItem[]
   transactions Transaction[]
-
-  // ===================================================
-  // ประวัติการตรวจสอบบัญชีพัสดุประจำปี
-  // ===================================================
 
   stockCardInspectionRows StockCardInspectionRow[]
 
@@ -190,7 +185,6 @@ model Department {
   officers Officer[]
   users    User[]
 
-  // ทะเบียนคุมครุภัณฑ์
   assets Asset[]
 }
 
@@ -206,12 +200,8 @@ model Section {
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   officers Officer[]
-
-  // ผู้ใช้งานของกลุ่มงาน
-  users User[]
-
-  // ทะเบียนคุมครุภัณฑ์
-  assets Asset[]
+  users    User[]
+  assets   Asset[]
 }
 
 // =====================================================
@@ -233,8 +223,6 @@ model Officer {
   department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   issues Issue[]
-
-  // ครุภัณฑ์ที่อยู่ในความครอบครอง
   assets Asset[]
 
   createdAt DateTime @default(now())
@@ -304,15 +292,10 @@ model Issue {
   officerId Int?
   officer   Officer? @relation(fields: [officerId], references: [id])
 
-  // PENDING  = รอ Admin ตรวจสอบและลงจำนวนเบิกจ่าย
-  // APPROVED = Admin ยืนยันการเบิกจ่ายแล้ว
-  // REJECTED = Admin ไม่อนุมัติ
   status IssueStatus @default(PENDING)
 
-  // วันที่ Admin ยืนยันการเบิกจ่าย
   approvedAt DateTime?
 
-  // Admin ผู้ยืนยันการเบิกจ่าย
   approvedById Int?
   approvedBy   User? @relation("IssueApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
@@ -337,13 +320,9 @@ model IssueItem {
   receiveItemId Int?
   receiveItem   ReceiveItem? @relation(fields: [receiveItemId], references: [id])
 
-  // จำนวนที่กลุ่มงานขอเบิก
-  qty Int
-
-  // จำนวนที่ Admin เบิกจ่ายจริง
+  qty       Int
   issuedQty Int @default(0)
 
-  // หมายเหตุรายรายการ
   remark String?
 
   manufacture DateTime?
@@ -401,10 +380,6 @@ model MaterialMaster {
 model Asset {
   id Int @id @default(autoincrement())
 
-  // ===================================================
-  // ข้อมูลครุภัณฑ์
-  // ===================================================
-
   name     String
   category AssetCategory
 
@@ -412,96 +387,37 @@ model Asset {
   model        String?
   serialNumber String?
 
-  // ===================================================
-  // จำนวน / หน่วย
-  // ===================================================
-
-  // จำนวนตามทะเบียนต้นฉบับ
   quantity Int @default(1)
+  unit     String?
 
-  // หน่วยนับตามทะเบียนต้นฉบับ
-  // เช่น เครื่อง / ตัว / ตู้ / ชุด / รายการ
-  unit String?
-
-  // ===================================================
-  // เลขทะเบียน
-  // ===================================================
-
-  // เลขครุภัณฑ์กรม / GFMIS
-  // ไม่กำหนด @unique เพราะต้นฉบับมีรหัสซ้ำ
   governmentAssetNo String?
-
-  // เลขครุภัณฑ์ประจำสำนัก
-  // ไม่กำหนด @unique เพราะต้นฉบับมีรหัสซ้ำ
-  officeAssetNo String?
-
-  // ===================================================
-  // หน่วยงานที่รับผิดชอบ
-  // ===================================================
+  officeAssetNo     String?
 
   departmentId Int
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
 
-  // ===================================================
-  // กลุ่มงานย่อย / งาน
-  // ===================================================
-
   sectionId Int?
   section   Section? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
-
-  // ===================================================
-  // ผู้ครอบครอง
-  // ===================================================
 
   officerId Int?
   officer   Officer? @relation(fields: [officerId], references: [id], onDelete: SetNull)
 
-  // ===================================================
-  // ผู้รับผิดชอบตามทะเบียนต้นฉบับ
-  // ===================================================
-
-  // เก็บข้อความตามทะเบียนต้นฉบับโดยตรง
-  // เช่น งานสารบรรณ / งานการเงิน / ห้องประชุม ฯลฯ
   responsibleName String?
 
-  // ===================================================
-  // สถานะครุภัณฑ์
-  // ===================================================
-
   status AssetStatus @default(IN_USE)
-
-  // ===================================================
-  // ข้อมูลเพิ่มเติม
-  // ===================================================
 
   purchaseDate DateTime?
   price        Float?
   location     String?
   remark       String?
 
-  // ===================================================
-  // ข้อมูลการจำหน่าย
-  // ===================================================
-
   disposalLocation String?
   disposalDate     DateTime?
-
-  // ===================================================
-  // วันที่สร้าง / แก้ไข
-  // ===================================================
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // ===================================================
-  // ประวัติการตรวจสอบ
-  // ===================================================
-
   inspections AssetInspection[]
-
-  // ===================================================
-  // Index
-  // ===================================================
 
   @@index([departmentId])
   @@index([sectionId])
@@ -519,63 +435,26 @@ model Asset {
 model AssetInspection {
   id Int @id @default(autoincrement())
 
-  // ===================================================
-  // ครุภัณฑ์ที่ตรวจ
-  // ===================================================
-
   assetId Int
   asset   Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
-  // ===================================================
-  // รอบการตรวจ
-  // ===================================================
 
   year    Int
   quarter InspectionQuarter
 
   inspectionDate DateTime @default(now())
 
-  // ===================================================
-  // วันที่ดำเนินการตรวจสอบ
-  // ===================================================
-
   inspectionStartDate DateTime?
   inspectionEndDate   DateTime?
 
-  // ===================================================
-  // ผลการตรวจจากกลุ่มงาน
-  // ===================================================
-
   status AssetInspectionStatus
 
-  // ===================================================
-  // จำนวนที่ตรวจนับได้
-  // ===================================================
-
   countedQty Int?
-
-  // ===================================================
-  // ผลการตรวจนับ
-  //
-  // CORRECT   = ถูกต้อง
-  // INCORRECT = ไม่ถูกต้อง
-  // ===================================================
-
-  accuracy String?
-
-  // ===================================================
-  // ผู้ตรวจสอบทั้ง 5 คน
-  // ===================================================
+  accuracy   String?
 
   inspectorIds   Json?
   inspectorNames Json?
 
-  // ชื่อผู้ตรวจสอบแบบเดิม
   inspectorName String?
-
-  // ===================================================
-  // รายละเอียดการตรวจ
-  // ===================================================
 
   condition String?
   location  String?
@@ -583,10 +462,6 @@ model AssetInspection {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // ===================================================
-  // Constraints / Index
-  // ===================================================
 
   @@unique([assetId, year, quarter])
   @@index([assetId])
@@ -600,55 +475,33 @@ model AssetInspection {
 //
 // 1 ปีงบประมาณ = 1 ชุดการตรวจสอบ
 //
-// หมายเหตุ:
-// model นี้เก็บเฉพาะข้อมูลการตรวจสอบ
+// เก็บเฉพาะข้อมูลการตรวจสอบ
 // ไม่แก้ไขยอด Material / Receive / Issue / Transaction
 // =====================================================
 
 model StockCardInspection {
   id Int @id @default(autoincrement())
 
-  // ===================================================
-  // ปีงบประมาณ
-  // เช่น 2569 / 2570
-  // ===================================================
-
+  // ปีงบประมาณ เช่น 2569 / 2570
   fiscalYear Int @unique
 
-  // ===================================================
-  // วันที่ตรวจสอบ
-  // วันที่ที่เลือกจากหน้า
-  // /stock-card/inspection
-  // ===================================================
-
+  // วันที่เริ่มตรวจสอบ (ฟิลด์เดิม)
   inspectionDate DateTime
 
-  // ===================================================
-  // คณะกรรมการตรวจสอบ 3 คน
-  //
-  // เก็บ ID เพื่อใช้อ้างอิง
-  // และเก็บชื่อ snapshot ไว้สำหรับประวัติเดิม
-  // ===================================================
+  // วันที่ตรวจสอบแล้วเสร็จ (ฟิลด์ใหม่)
+  // ใช้ DateTime? เพื่อรองรับข้อมูลเก่าที่ยังไม่มีวันที่
+  inspectionEndDate DateTime?
 
+  // คณะกรรมการตรวจสอบ 3 คน
+  // เก็บ ID และชื่อ snapshot สำหรับประวัติ
   inspectorIds   Json
   inspectorNames Json?
 
-  // ===================================================
   // รายการผลการตรวจสอบ
-  // ===================================================
-
   rows StockCardInspectionRow[]
-
-  // ===================================================
-  // วันที่สร้าง / แก้ไข
-  // ===================================================
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // ===================================================
-  // Index
-  // ===================================================
 
   @@index([inspectionDate])
 }
@@ -660,35 +513,13 @@ model StockCardInspection {
 model StockCardInspectionRow {
   id Int @id @default(autoincrement())
 
-  // ===================================================
-  // ชุดการตรวจสอบ
-  // ===================================================
-
   inspectionId Int
   inspection   StockCardInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
-
-  // ===================================================
-  // รายการพัสดุ
-  //
-  // ใช้ Restrict เพื่อไม่ให้ลบ Material แล้วทำให้
-  // ประวัติการตรวจสอบย้อนหลังหายตามไปด้วย
-  // ===================================================
 
   materialId Int
   material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
 
-  // ===================================================
-  // ผลการตรวจสอบ
-  //
-  // CORRECT   = ถูกต้อง
-  // INCORRECT = ไม่ถูกต้อง
-  // ===================================================
-
   accuracy String?
-
-  // ===================================================
-  // ถ้าไม่ถูกต้อง
-  // ===================================================
 
   shortageQty Int?
   excessQty   Int?
@@ -696,30 +527,14 @@ model StockCardInspectionRow {
   baht   Int?
   satang Int?
 
-  // ===================================================
-  // จำนวนที่
-  // ===================================================
-
   damagedQty      Int?
   deterioratedQty Int?
   unnecessaryQty  Int?
 
-  // ===================================================
-  // หมายเหตุ
-  // ===================================================
-
   remark String?
-
-  // ===================================================
-  // วันที่สร้าง / แก้ไข
-  // ===================================================
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // ===================================================
-  // Constraints / Index
-  // ===================================================
 
   @@unique([inspectionId, materialId])
   @@index([inspectionId])

@@ -1,16 +1,12 @@
-
 "use client";
-
 import "@/lib/fonts/THSarabunNew-normal";
 import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import AppButton from "@/components/AppButton";
-
 /* =========================================================
    TYPES
 ========================================================= */
-
 type Material = {
   materialId: number;
   code: string;
@@ -22,7 +18,6 @@ type Material = {
   issueQty: number;
   closingBalance: number;
 };
-
 type InspectionRow = {
   materialId: number;
   accuracy: string;
@@ -35,7 +30,6 @@ type InspectionRow = {
   unnecessaryQty: string;
   remark: string;
 };
-
 type Officer = {
   id: number;
   firstName: string;
@@ -47,7 +41,6 @@ type Officer = {
   department: { id: number; name: string } | null;
   section: { id: number; name: string } | null;
 };
-
 type Props = {
   fiscalYear: number;
   startShortYear: string;
@@ -59,28 +52,22 @@ type Props = {
   inspectorIds: string[];
   officers: Officer[];
 };
-
 /* =========================================================
    PAGE AND FONT
 ========================================================= */
-
 const PAGE_WIDTH = 297;
 const PAGE_HEIGHT = 210;
 const TABLE_LEFT = 4;
 const TABLE_RIGHT = 4;
 const TABLE_WIDTH = PAGE_WIDTH - TABLE_LEFT - TABLE_RIGHT;
-
 const FONT_NAME = "2.3.2 THSarabunNew";
 const FONT_STYLE = "normal";
-
 const TABLE_FONT_SIZE = 9;
 const HEADER_FONT_SIZE = 9;
 const DOCUMENT_FONT_SIZE = 15;
 const SIGNATURE_FONT_SIZE = 12;
-
 const BODY_ROW_HEIGHT = 6.1515625;
 const ROWS_PER_PAGE = 17;
-
 /*
  * ความกว้างรวม 289 มม.
  * ตรงกับตาราง 17 คอลัมน์ในหน้า InspectionForm
@@ -89,7 +76,6 @@ const COLUMN_WIDTHS = [
   7, 58, 11, 30, 15, 15, 18, 11, 13,
   10, 10, 9, 9, 13, 15, 18, 27,
 ];
-
 const CATEGORY_ORDER = [
   "OFFICE",
   "COMPUTER",
@@ -98,7 +84,6 @@ const CATEGORY_ORDER = [
   "VEHICLE",
   "PRINTING",
 ];
-
 const CATEGORY_NAME: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
@@ -107,7 +92,6 @@ const CATEGORY_NAME: Record<string, string> = {
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
-
 const THAI_MONTHS = [
   "มกราคม",
   "กุมภาพันธ์",
@@ -122,20 +106,16 @@ const THAI_MONTHS = [
   "พฤศจิกายน",
   "ธันวาคม",
 ];
-
 /* =========================================================
    HELPERS
 ========================================================= */
-
 function parseDateOnly(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return null;
-
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
   const date = new Date(year, month - 1, day);
-
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
@@ -143,55 +123,42 @@ function parseDateOnly(value: string): Date | null {
   ) {
     return null;
   }
-
   return date;
 }
-
 function getThaiMonthYear(value: string) {
   const date = parseDateOnly(value);
-
   if (!date) {
     return { month: "", year: "" };
   }
-
   return {
     month: THAI_MONTHS[date.getMonth()],
     year: String(date.getFullYear() + 543),
   };
 }
-
 function getThaiDay(value: string) {
   return parseDateOnly(value)?.getDate().toString() ?? "";
 }
-
 function displayStockValue(value: number): string {
   if (!Number.isFinite(value) || value === 0) {
     return "-";
   }
-
   return value.toLocaleString("th-TH");
 }
-
 function displayCurrentBalance(value: number): string {
   if (!Number.isFinite(value)) {
     return "0";
   }
-
   return value.toLocaleString("th-TH");
 }
-
 function displayOptionalValue(
   value: string | null | undefined
 ): string {
   const text = String(value ?? "").trim();
-
   if (!text || Number(text) === 0) {
     return "";
   }
-
   return text;
 }
-
 /*
  * สำคัญ:
  * ใช้เฉพาะฟอนต์ normal ที่มีการลงทะเบียนจริง
@@ -202,7 +169,6 @@ function setThaiFont(doc: jsPDF, size: number) {
   doc.setFontSize(size);
   doc.setTextColor(0, 0, 0);
 }
-
 /*
  * ปรับขนาดตัวอักษรให้พอดีกับความกว้าง
  * ไม่ปล่อยให้ข้อความล้นออกนอกเซลล์
@@ -215,9 +181,7 @@ function fitFontSize(
   minimumSize = 6
 ) {
   let size = preferredSize;
-
   setThaiFont(doc, size);
-
   while (
     size > minimumSize &&
     doc.getTextWidth(text) > availableWidth
@@ -225,14 +189,11 @@ function fitFontSize(
     size -= 0.25;
     setThaiFont(doc, size);
   }
-
   return size;
 }
-
 /* =========================================================
    COMPONENT
 ========================================================= */
-
 export default function ExportInspectionPdf({
   fiscalYear,
   startShortYear,
@@ -245,43 +206,34 @@ export default function ExportInspectionPdf({
   officers,
 }: Props) {
   const [isExporting, setIsExporting] = useState(false);
-
   const startDateInfo = getThaiMonthYear(inspectionStartDate);
   const endDateInfo = getThaiMonthYear(inspectionEndDate);
-
   const rowMap = new Map(
     rows.map((row) => [row.materialId, row])
   );
-
   /* =======================================================
      DOCUMENT HEADER
   ======================================================= */
-
   function drawPageHeader(doc: jsPDF): number {
     const centerX = PAGE_WIDTH / 2;
-
     setThaiFont(doc, DOCUMENT_FONT_SIZE);
-
     doc.text(
       `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`,
       centerX,
       8,
       { align: "center" }
     );
-
     doc.text(
       "สำนักอนามัยการเจริญพันธุ์",
       centerX,
       14,
       { align: "center" }
     );
-
     // เว้นเฉพาะช่อง "วันที่" ส่วนเดือนและปีใช้ค่าที่บันทึกไว้
     const dateText =
-      `วันที่เริ่มตรวจสอบ             เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
-      `ตรวจสอบแล้วเสร็จวันที่             เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
+      `วันที่เริ่มตรวจสอบ     เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
+      `ตรวจสอบแล้วเสร็จวันที่     เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
-
     const dateFontSize = fitFontSize(
       doc,
       dateText,
@@ -289,47 +241,36 @@ export default function ExportInspectionPdf({
       DOCUMENT_FONT_SIZE,
       9
     );
-
     setThaiFont(doc, dateFontSize);
-
     doc.text(dateText, centerX, 21, {
       align: "center",
       maxWidth: TABLE_WIDTH - 2,
     });
-
     return 27;
   }
-
   /* =======================================================
      SIGNATURE
   ======================================================= */
-
   function drawInspectors(doc: jsPDF, startY: number) {
     const selectedOfficers = inspectorIds.map((id) =>
       officers.find((officer) => String(officer.id) === id)
     );
-
     const columnWidth = TABLE_WIDTH / 3;
-
     selectedOfficers.forEach((officer, index) => {
       const centerX =
         TABLE_LEFT +
         columnWidth * index +
         columnWidth / 2;
-
       setThaiFont(doc, SIGNATURE_FONT_SIZE);
-
       doc.text(
         "ลงชื่อ ........................................................",
         centerX,
         startY + 6,
         { align: "center" }
       );
-
       const name = officer
         ? `(${officer.firstName} ${officer.lastName})`
         : "(................................................)";
-
       const nameSize = fitFontSize(
         doc,
         name,
@@ -337,15 +278,11 @@ export default function ExportInspectionPdf({
         SIGNATURE_FONT_SIZE,
         9
       );
-
       setThaiFont(doc, nameSize);
-
       doc.text(name, centerX, startY + 12, {
         align: "center",
       });
-
       const position = officer?.position ?? "";
-
       const positionSize = fitFontSize(
         doc,
         position,
@@ -353,26 +290,19 @@ export default function ExportInspectionPdf({
         SIGNATURE_FONT_SIZE,
         9
       );
-
       setThaiFont(doc, positionSize);
-
       doc.text(position, centerX, startY + 18, {
         align: "center",
       });
     });
   }
-
   /* =======================================================
      PREVIEW WINDOW
   ======================================================= */
-
   function createPreviewWindow(): Window | null {
     const previewWindow = window.open("", "_blank");
-
     if (!previewWindow) return null;
-
     previewWindow.document.open();
-
     previewWindow.document.write(`
       <!doctype html>
       <html lang="th">
@@ -386,14 +316,12 @@ export default function ExportInspectionPdf({
               margin: 0;
               background: #f8fafc;
             }
-
             body {
               display: flex;
               align-items: center;
               justify-content: center;
               font-family: Arial, Tahoma, sans-serif;
             }
-
             .loading {
               padding: 18px 26px;
               background: white;
@@ -410,60 +338,46 @@ export default function ExportInspectionPdf({
         </body>
       </html>
     `);
-
     previewWindow.document.close();
-
     return previewWindow;
   }
-
   /* =======================================================
      EXPORT PDF
   ======================================================= */
-
   function previewPdf() {
     if (isExporting) return;
-
     if (materials.length === 0) {
       alert("ไม่มีรายการสำหรับแสดงตัวอย่าง PDF");
       return;
     }
-
     const exportMaterials = materials.filter((material) => {
       const name = material.name.trim();
       const isSSS = /\(สสส\.\)\s*$/.test(name);
       const isCR2032 =
         material.category === "ELECTRIC" &&
         /^ถ่านกระดุม\s*ขนาด\s*CR2032$/i.test(name);
-
       return !isSSS && !isCR2032;
     });
-
     if (exportMaterials.length === 0) {
       alert("ไม่มีรายการพัสดุสำหรับส่งออก PDF หลังตัดรายการ (สสส.)");
       return;
     }
-
     const previewWindow = createPreviewWindow();
-
     if (!previewWindow) {
       alert(
         "เบราว์เซอร์บล็อกหน้าต่างพรีวิว กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้"
       );
       return;
     }
-
     try {
       setIsExporting(true);
-
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
         compress: false,
       });
-
       setThaiFont(doc, TABLE_FONT_SIZE);
-
       const groups = CATEGORY_ORDER.map((category) => ({
         category,
         name: CATEGORY_NAME[category] ?? category,
@@ -471,10 +385,8 @@ export default function ExportInspectionPdf({
           (material) => material.category === category
         ),
       })).filter((group) => group.materials.length > 0);
-
       let firstPage = true;
       let runningItemNumber = 0;
-
       for (const group of groups) {
         for (
           let startIndex = 0;
@@ -484,18 +396,13 @@ export default function ExportInspectionPdf({
           if (!firstPage) {
             doc.addPage("a4", "landscape");
           }
-
           firstPage = false;
-
           const tableStartY = drawPageHeader(doc);
-
           const pageMaterials = group.materials.slice(
             startIndex,
             startIndex + ROWS_PER_PAGE
           );
-
           const body: any[] = [];
-
           if (startIndex === 0) {
             body.push([
               {
@@ -511,7 +418,7 @@ export default function ExportInspectionPdf({
                     top: 0.5,
                     right: 1,
                     bottom: 0.5,
-                    left: 2,
+                    left: 3.5,
                   },
                   minCellHeight: BODY_ROW_HEIGHT,
                   fillColor: [255, 255, 255],
@@ -522,12 +429,10 @@ export default function ExportInspectionPdf({
               },
             ]);
           }
-
           pageMaterials.forEach((material) => {
             const inspectionRow = rowMap.get(
               material.materialId
             );
-
             body.push([
               String(++runningItemNumber),
               material.name,
@@ -548,13 +453,10 @@ export default function ExportInspectionPdf({
               inspectionRow?.remark ?? "",
             ]);
           });
-
           const headerOpening =
             `คงเหลือยอดยกมาเมื่อ 30 ก.ย. ${startShortYear}`;
-
           const headerMovement =
             `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`;
-
           /*
            * ปรับเฉพาะหัวตาราง
            *
@@ -581,7 +483,6 @@ export default function ExportInspectionPdf({
               { content: headerOpening, rowSpan: 2 },
               { content: headerMovement, colSpan: 2 },
               { content: "คงเหลือปัจจุบัน", rowSpan: 2 },
-
               {
                 content: "ผลการตรวจสอบ",
                 colSpan: 2,
@@ -595,7 +496,6 @@ export default function ExportInspectionPdf({
                 content: "จำนวนที่",
                 colSpan: 3,
               },
-
               { content: "หมายเหตุ", rowSpan: 2 },
             ],
             [
@@ -612,15 +512,12 @@ export default function ExportInspectionPdf({
               "ไม่จำเป็นต้องใช้",
             ],
           ];
-
           const columnStyles: Record<number, any> = {};
-
           COLUMN_WIDTHS.forEach((width, index) => {
             columnStyles[index] = {
               cellWidth: width,
             };
           });
-
           columnStyles[1] = {
             cellWidth: COLUMN_WIDTHS[1],
             halign: "left",
@@ -631,7 +528,6 @@ export default function ExportInspectionPdf({
               left: 3,
             },
           };
-
           columnStyles[16] = {
             cellWidth: COLUMN_WIDTHS[16],
             halign: "left",
@@ -642,7 +538,6 @@ export default function ExportInspectionPdf({
               left: 2,
             },
           };
-
           autoTable(doc, {
             startY: tableStartY,
             tableWidth: TABLE_WIDTH,
@@ -700,12 +595,10 @@ export default function ExportInspectionPdf({
             columnStyles,
             didParseCell: (data: any) => {
               const cell = data.cell;
-
               cell.styles.font = FONT_NAME;
               cell.styles.fontStyle = FONT_STYLE;
               cell.styles.valign = "middle";
               cell.styles.overflow = "hidden";
-
               if (data.section === "head") {
                 /*
                  * คำนวณพื้นที่ตามคอลัมน์จริง
@@ -713,21 +606,17 @@ export default function ExportInspectionPdf({
                  */
                 const startColumn = data.column.index;
                 const span = Math.max(1, cell.colSpan || 1);
-
                 const cellWidth = COLUMN_WIDTHS.slice(
                   startColumn,
                   startColumn + span
                 ).reduce((sum, width) => sum + width, 0);
-
                 const content = String(
                   cell.raw?.content ?? cell.text?.join(" ") ?? ""
                 );
-
                 const availableWidth = Math.max(
                   1,
                   cellWidth - 2
                 );
-
                 cell.styles.fontSize = fitFontSize(
                   doc,
                   content,
@@ -735,27 +624,32 @@ export default function ExportInspectionPdf({
                   HEADER_FONT_SIZE,
                   6
                 );
-
                 cell.styles.minCellHeight =
                   data.row.index === 0 ? 9 : 6;
-
                 cell.styles.cellPadding = {
                   top: 1,
                   right: 0.5,
                   bottom: 1,
                   left: 0.5,
                 };
-
                 return;
               }
-
               if (data.section === "body") {
+                // แถวชื่อหมวดวัสดุ: เว้นจากขอบซ้ายโดยไม่กระทบแถวพัสดุ
+                if (cell.colSpan === 17) {
+                  cell.styles.halign = "left";
+                  cell.styles.cellPadding = {
+                    top: 0.5,
+                    right: 1,
+                    bottom: 0.5,
+                    left: 3.5,
+                  };
+                  return;
+                }
                 cell.styles.fontSize = TABLE_FONT_SIZE;
                 cell.styles.minCellHeight = BODY_ROW_HEIGHT;
-
                 if (data.column.index === 1) {
                   cell.styles.halign = "left";
-
                   /*
                    * ระยะห่างจากขอบซ้าย 3 มม.
                    * รูปแบบใกล้เคียง Excel
@@ -780,20 +674,16 @@ export default function ExportInspectionPdf({
               }
             },
           });
-
           const pdfWithTable = doc as jsPDF & {
             lastAutoTable?: { finalY: number };
           };
-
           const finalY =
             pdfWithTable.lastAutoTable?.finalY ?? tableStartY;
-
           // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 14 มม. จากตาราง
           // ไม่บังคับลงไปท้ายหน้ากระดาษ
           const signatureY = finalY + 14;
           const signatureBottomY = signatureY + 18;
           const safeBottomY = PAGE_HEIGHT - 12;
-
           if (signatureBottomY <= safeBottomY) {
             drawInspectors(doc, signatureY);
           } else {
@@ -803,14 +693,11 @@ export default function ExportInspectionPdf({
           }
         }
       }
-
       // เลขแผ่นที่เรียงต่อเนื่องทุกหน้า รวมหน้าลายเซ็นที่เพิ่มอัตโนมัติ
       const totalPages = doc.getNumberOfPages();
-
       for (let pageNo = 1; pageNo <= totalPages; pageNo++) {
         doc.setPage(pageNo);
         setThaiFont(doc, DOCUMENT_FONT_SIZE);
-
         doc.text(
           `แผ่นที่ ${pageNo}`,
           PAGE_WIDTH - TABLE_RIGHT,
@@ -818,12 +705,9 @@ export default function ExportInspectionPdf({
           { align: "right" }
         );
       }
-
       const pdfBlob = doc.output("blob");
       const pdfUrl = URL.createObjectURL(pdfBlob);
-
       previewWindow.location.replace(pdfUrl);
-
       window.setTimeout(() => {
         URL.revokeObjectURL(pdfUrl);
       }, 5 * 60 * 1000);
@@ -832,21 +716,17 @@ export default function ExportInspectionPdf({
         "Preview stock card inspection PDF error:",
         error
       );
-
       if (!previewWindow.closed) {
         previewWindow.close();
       }
-
       alert("ไม่สามารถเปิดตัวอย่าง PDF ได้");
     } finally {
       setIsExporting(false);
     }
   }
-
   /* =========================================================
      BUTTON
   ========================================================= */
-
   return (
     <AppButton
       type="button"
