@@ -469,8 +469,8 @@ export default function ExportInspectionPdf({
 
     // เว้นเฉพาะช่อง "วันที่" ส่วนเดือนและปีใช้ค่าที่บันทึกไว้
     const dateText =
-      `วันที่เริ่มตรวจสอบ .......... เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
-      `ตรวจสอบแล้วเสร็จวันที่ .......... เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
+      `วันที่เริ่มตรวจสอบ             เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
+      `ตรวจสอบแล้วเสร็จวันที่             เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
 
     const dateFontSize = fitFontSize(
@@ -563,7 +563,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, nameSize);
 
-      doc.text(name, centerX, startY + 7, {
+      doc.text(name, centerX, startY + 12, {
 
         align: "center",
 
@@ -587,7 +587,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, positionSize);
 
-      doc.text(position, centerX, startY + 13, {
+      doc.text(position, centerX, startY + 18, {
 
         align: "center",
 
@@ -705,6 +705,15 @@ export default function ExportInspectionPdf({
 
     }
 
+    const exportMaterials = materials.filter(
+      (material) => !/\(สสส\.\)\s*$/.test(material.name.trim())
+    );
+
+    if (exportMaterials.length === 0) {
+      alert("ไม่มีรายการพัสดุสำหรับส่งออก PDF หลังตัดรายการ (สสส.)");
+      return;
+    }
+
     const previewWindow = createPreviewWindow();
 
     if (!previewWindow) {
@@ -743,7 +752,7 @@ export default function ExportInspectionPdf({
 
         name: CATEGORY_NAME[category] ?? category,
 
-        materials: materials.filter(
+        materials: exportMaterials.filter(
 
           (material) => material.category === category
 
@@ -1253,10 +1262,10 @@ export default function ExportInspectionPdf({
 
             pdfWithTable.lastAutoTable?.finalY ?? tableStartY;
 
-          // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 9 มม. จากตาราง
+          // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 14 มม. จากตาราง
           // ไม่บังคับลงไปท้ายหน้ากระดาษ
-          const signatureY = finalY + 9;
-          const signatureBottomY = signatureY + 13;
+          const signatureY = finalY + 14;
+          const signatureBottomY = signatureY + 18;
           const safeBottomY = PAGE_HEIGHT - 12;
 
           if (signatureBottomY <= safeBottomY) {
@@ -1264,11 +1273,21 @@ export default function ExportInspectionPdf({
           } else {
             // หน้าปัจจุบันมีพื้นที่ไม่พอสำหรับบล็อกลายเซ็นทั้งชุด
             doc.addPage("a4", "landscape");
-            drawInspectors(doc, 40);
+            drawInspectors(doc, 45);
           }
 
         }
 
+      }
+
+      // เลขแผ่นที่เรียงต่อเนื่องทุกหน้า รวมหน้าลายเซ็นที่เพิ่มอัตโนมัติ
+      const totalPages = doc.getNumberOfPages();
+      for (let pageNo = 1; pageNo <= totalPages; pageNo++) {
+        doc.setPage(pageNo);
+        setThaiFont(doc, DOCUMENT_FONT_SIZE);
+        doc.text(`แผ่นที่ ${pageNo}`, PAGE_WIDTH - TABLE_RIGHT, 8, {
+          align: "right",
+        });
       }
 
       const pdfBlob = doc.output("blob");
