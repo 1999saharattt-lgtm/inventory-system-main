@@ -1,3 +1,4 @@
+
 import { prisma } from "@/lib/prisma";
 
 import AppPage from "@/components/AppPage";
@@ -8,27 +9,56 @@ import AppTableCard from "@/components/AppTableCard";
 export const dynamic = "force-dynamic";
 
 const thaiMonths = [
-  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
-  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+  "มกราคม",
+  "กุมภาพันธ์",
+  "มีนาคม",
+  "เมษายน",
+  "พฤษภาคม",
+  "มิถุนายน",
+  "กรกฎาคม",
+  "สิงหาคม",
+  "กันยายน",
+  "ตุลาคม",
+  "พฤศจิกายน",
+  "ธันวาคม",
 ];
 
 function formatInspectionDate(value: Date | null): string {
   if (!value) return "-";
+
   const date = new Date(value);
+
   if (Number.isNaN(date.getTime())) return "-";
-  return `${date.getUTCDate()} ${thaiMonths[date.getUTCMonth()]} ${date.getUTCFullYear() + 543}`;
+
+  return `${date.getUTCDate()} ${
+    thaiMonths[date.getUTCMonth()]
+  } ${date.getUTCFullYear() + 543}`;
 }
 
 function parseInspectorNames(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item ?? "").trim())
+      .filter(Boolean);
+  }
+
   if (typeof value === "string" && value.trim()) {
     try {
       const parsed: unknown = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((item) => String(item ?? "").trim())
+          .filter(Boolean);
+      }
     } catch {
-      return value.split(",").map((item) => item.trim()).filter(Boolean);
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
     }
   }
+
   return [];
 }
 
@@ -44,9 +74,17 @@ function getCurrentFiscalYearThai(): number {
     year: "numeric",
     month: "numeric",
   });
+
   const parts = formatter.formatToParts(new Date());
-  const year = Number(parts.find((part) => part.type === "year")?.value);
-  const month = Number(parts.find((part) => part.type === "month")?.value);
+
+  const year = Number(
+    parts.find((part) => part.type === "year")?.value
+  );
+
+  const month = Number(
+    parts.find((part) => part.type === "month")?.value
+  );
+
   return (month >= 10 ? year + 1 : year) + 543;
 }
 
@@ -65,12 +103,26 @@ const cellClassName = [
   "text-sm font-semibold !text-slate-700",
 ].join(" ");
 
+const tableHeaders = [
+  "ลำดับ",
+  "ปีงบประมาณ",
+  "วันที่เริ่มตรวจสอบ",
+  "วันที่ตรวจสอบแล้วเสร็จ",
+  "จำนวนรายการ",
+  "จำนวนคณะกรรมการตรวจสอบ",
+  "รายละเอียดข้อมูล",
+  "จัดการ",
+];
+
 export default async function StockCardInspectionHistoryPage({
   searchParams,
 }: PageProps) {
   const params = await searchParams;
+
   const currentFiscalYear = getCurrentFiscalYearThai();
+
   const requestedFiscalYear = Number(params.fiscalYear);
+
   const selectedFiscalYear =
     params.fiscalYear &&
     Number.isInteger(requestedFiscalYear) &&
@@ -79,24 +131,35 @@ export default async function StockCardInspectionHistoryPage({
       ? requestedFiscalYear
       : null;
 
-  const inspections = await prisma.stockCardInspection.findMany({
-    where:
-      selectedFiscalYear !== null
-        ? { fiscalYear: selectedFiscalYear }
-        : undefined,
-    include: {
-      _count: { select: { rows: true } },
-    },
-    orderBy: [
-      { fiscalYear: "desc" },
-      { inspectionDate: "desc" },
-      { id: "desc" },
-    ],
-  });
+  const inspections =
+    await prisma.stockCardInspection.findMany({
+      where:
+        selectedFiscalYear !== null
+          ? { fiscalYear: selectedFiscalYear }
+          : undefined,
+      include: {
+        _count: {
+          select: {
+            rows: true,
+          },
+        },
+      },
+      orderBy: [
+        { fiscalYear: "desc" },
+        { inspectionDate: "desc" },
+        { id: "desc" },
+      ],
+    });
 
-  const backFiscalYear = selectedFiscalYear ?? currentFiscalYear;
-  const backHref = `/stock-card?fiscalYear=${backFiscalYear}`;
-  const newInspectionHref = `/stock-card/inspection?fiscalYear=${backFiscalYear}`;
+  const backFiscalYear =
+    selectedFiscalYear ?? currentFiscalYear;
+
+  const backHref =
+    `/stock-card?fiscalYear=${backFiscalYear}`;
+
+  const newInspectionHref =
+    `/stock-card/inspection?fiscalYear=${backFiscalYear}`;
+
   const tableSubtitle =
     selectedFiscalYear !== null
       ? `ประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`
@@ -110,10 +173,19 @@ export default async function StockCardInspectionHistoryPage({
         subtitle="ตรวจสอบและเรียกดูผลการตรวจสอบบัญชีพัสดุที่บันทึกไว้"
         actions={
           <>
-            <AppButton href={newInspectionHref} variant="primary" size="md">
+            <AppButton
+              href={newInspectionHref}
+              variant="primary"
+              size="md"
+            >
               🔎 ตรวจสอบบัญชีพัสดุประจำปี
             </AppButton>
-            <AppButton href={backHref} variant="back" size="md">
+
+            <AppButton
+              href={backHref}
+              variant="back"
+              size="md"
+            >
               กลับ
             </AppButton>
           </>
@@ -123,26 +195,34 @@ export default async function StockCardInspectionHistoryPage({
       <AppTableCard
         title="รายการประวัติการตรวจสอบ"
         subtitle={tableSubtitle}
-        badge={`${inspections.length.toLocaleString("th-TH")} รายการ`}
+        badge={`${inspections.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
         className="w-full min-w-0"
       >
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-          <table className="w-full min-w-[1250px] border-collapse bg-white text-sm">
+          <table className="w-full min-w-[1350px] border-collapse bg-white text-sm">
             <thead>
               <tr>
-                {[
-                  "ลำดับ", "ปีงบประมาณ", "วันที่เริ่มตรวจสอบ",
-                  "วันที่ตรวจสอบแล้วเสร็จ", "จำนวนรายการ",
-                  "จำนวนคณะกรรมการตรวจสอบ", "รายละเอียดข้อมูล", "จัดการ",
-                ].map((title) => (
-                  <th key={title} scope="col" className={headerClassName}>{title}</th>
+                {tableHeaders.map((title) => (
+                  <th
+                    key={title}
+                    scope="col"
+                    className={headerClassName}
+                  >
+                    {title}
+                  </th>
                 ))}
               </tr>
             </thead>
+
             <tbody>
               {inspections.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500">
+                  <td
+                    colSpan={8}
+                    className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500"
+                  >
                     {selectedFiscalYear !== null
                       ? `ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`
                       : "ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ"}
@@ -150,42 +230,105 @@ export default async function StockCardInspectionHistoryPage({
                 </tr>
               ) : (
                 inspections.map((inspection, index) => {
-                  const detailHref = `/stock-card/inspection-history/${inspection.fiscalYear}`;
-                  const inspectorCount = parseInspectorNames(inspection.inspectorNames).length;
+                  const detailHref =
+                    `/stock-card/inspection-history/${inspection.fiscalYear}`;
+
+                  const inspectorCount =
+                    parseInspectorNames(
+                      inspection.inspectorNames
+                    ).length;
+
                   return (
                     <tr
                       key={inspection.id}
-                      className={`transition-colors duration-150 hover:bg-blue-50/70 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}
+                      className={`transition-colors duration-150 hover:bg-blue-50/70 ${
+                        index % 2 === 0
+                          ? "bg-white"
+                          : "bg-slate-50/70"
+                      }`}
                     >
-                      <td className={cellClassName}>{(index + 1).toLocaleString("th-TH")}</td>
-                      <td className={`${cellClassName} text-base font-extrabold !text-slate-900`}>
+                      <td className={cellClassName}>
+                        {(index + 1).toLocaleString("th-TH")}
+                      </td>
+
+                      <td
+                        className={`${cellClassName} text-base font-extrabold !text-slate-900`}
+                      >
                         {inspection.fiscalYear}
                       </td>
-                      <td className={`${cellClassName} whitespace-nowrap`}>
-                        {formatInspectionDate(inspection.inspectionDate)}
+
+                      <td
+                        className={`${cellClassName} whitespace-nowrap`}
+                      >
+                        {formatInspectionDate(
+                          inspection.inspectionDate
+                        )}
                       </td>
-                      <td className={`${cellClassName} whitespace-nowrap`}>
-                        {formatInspectionDate(inspection.inspectionEndDate)}
+
+                      <td
+                        className={`${cellClassName} whitespace-nowrap`}
+                      >
+                        {formatInspectionDate(
+                          inspection.inspectionEndDate
+                        )}
                       </td>
+
                       <td className={cellClassName}>
-                        {inspection._count.rows.toLocaleString("th-TH")} รายการ
+                        {inspection._count.rows.toLocaleString(
+                          "th-TH"
+                        )}{" "}
+                        รายการ
                       </td>
+
                       <td className={cellClassName}>
-                        {inspectorCount.toLocaleString("th-TH")} คน
+                        {inspectorCount.toLocaleString(
+                          "th-TH"
+                        )}{" "}
+                        คน
                       </td>
+
+                      {/* รายละเอียดข้อมูล */}
                       <td className={cellClassName}>
-                        <div className="flex justify-center">
-                          <AppButton href={detailHref} variant="success" size="sm">
+                        <div className="flex items-center justify-center">
+                          <AppButton
+                            href={detailHref}
+                            variant="primary"
+                            size="sm"
+                          >
                             เปิด
                           </AppButton>
                         </div>
                       </td>
-                      <td className={cellClassName}>
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          <AppButton href={detailHref} variant="success" size="sm">
+
+                      {/* จัดการ */}
+                      <td
+                        className={`${cellClassName} whitespace-nowrap`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <AppButton
+                            href={detailHref}
+                            variant="primary"
+                            size="sm"
+                            icon={
+                              <span aria-hidden="true">
+                                ✏️
+                              </span>
+                            }
+                          >
                             แก้ไข
                           </AppButton>
-                          <AppButton type="button" variant="danger" size="sm" disabled>
+
+                          <AppButton
+                            type="button"
+                            variant="danger"
+                            size="sm"
+                            icon={
+                              <span aria-hidden="true">
+                                🗑️
+                              </span>
+                            }
+                            disabled
+                          >
                             ลบ
                           </AppButton>
                         </div>
