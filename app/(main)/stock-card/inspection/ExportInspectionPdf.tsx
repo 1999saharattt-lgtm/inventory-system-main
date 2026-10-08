@@ -273,8 +273,8 @@ export default function ExportInspectionPdf({
     );
     // เว้นเฉพาะช่อง "วันที่" ส่วนเดือนและปีใช้ค่าที่บันทึกไว้
     const dateText =
-      `วันที่เริ่มตรวจสอบ     เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
-      `ตรวจสอบแล้วเสร็จวันที่     เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
+      `วันที่เริ่มตรวจสอบ ${showSelectedDays ? getThaiDay(inspectionStartDate) : "   "} เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
+      `ตรวจสอบแล้วเสร็จวันที่ ${showSelectedDays ? getThaiDay(inspectionEndDate) : "   "} เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
     const dateFontSize = fitFontSize(
       doc,

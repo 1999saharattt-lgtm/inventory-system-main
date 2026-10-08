@@ -960,9 +960,8 @@ function InspectionForm({
     w-full
     min-w-0
     rounded-[4px]
-    border-2
-    !border-black
-    bg-white
+    border-0
+    bg-transparent
     px-1
     text-center
     text-[15px]
@@ -981,6 +980,7 @@ function InspectionForm({
     px-1 py-2
     text-center align-middle
     text-[15px] font-extrabold leading-tight
+    whitespace-normal break-keep
     !text-white
   `;
   /* =========================================================
@@ -1144,6 +1144,7 @@ function InspectionForm({
                 rows={rows}
                 inspectionStartDate={inspectionStartDate}
                 inspectionEndDate={inspectionEndDate}
+                showSelectedDays
                 inspectorIds={inspectorIds}
                 officers={officers}
               />
@@ -1217,7 +1218,7 @@ function InspectionForm({
           >
             <colgroup>
               {[
-                42, 372, 72, 132, 84, 84, 90, 60, 78,
+                60, 354, 72, 132, 84, 84, 90, 60, 78,
                 66, 66, 60, 60, 84, 90, 108, 162,
               ].map((width, index) => (
                 <col key={index} style={{ width: `${width}px` }} />
@@ -1245,23 +1246,15 @@ function InspectionForm({
                 <th rowSpan={2} className={tableHeaderClass}>
                   คงเหลือปัจจุบัน
                 </th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ถูกต้อง
-                </th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ไม่ถูกต้อง
+                <th colSpan={2} className={tableHeaderClass}>
+                  ผลการตรวจสอบ
                 </th>
                 <th colSpan={4} className={tableHeaderClass}>
-                  รายละเอียดกรณีไม่ถูกต้อง
+                  <div>ถ้าไม่ถูกต้องจำนวนที่ขาด</div>
+                  <div>จำนวนที่เกินคิดเป็นเงินร้อยละ</div>
                 </th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ชำรุด
-                </th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  เสื่อมสภาพ
-                </th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  ไม่จำเป็นต้องใช้
+                <th colSpan={3} className={tableHeaderClass}>
+                  จำนวนที่
                 </th>
                 <th rowSpan={2} className={tableHeaderClass}>
                   หมายเหตุ
@@ -1271,10 +1264,15 @@ function InspectionForm({
                 {[
                   "รับ",
                   "จ่าย",
+                  "ถูกต้อง",
+                  "ไม่ถูกต้อง",
                   "ขาด",
                   "เกิน",
                   "บาท",
                   "สต.",
+                  "ชำรุด",
+                  "เสื่อมสภาพ",
+                  "ไม่จำเป็นต้องใช้",
                 ].map((title) => (
                   <th
                     key={title}
@@ -1709,7 +1707,7 @@ function MaterialCategoryRows({
                 className="
                   h-[22px] w-full
                   rounded-none
-                  border-2 !border-black
+                  border-0
                   bg-transparent px-1
                   text-left text-[15px]
                   font-normal leading-none
