@@ -410,6 +410,10 @@ export default function ExportInspectionPdf({
 
   rows,
 
+  inspectionStartDate,
+
+  inspectionEndDate,
+
   inspectorIds,
 
   officers,
