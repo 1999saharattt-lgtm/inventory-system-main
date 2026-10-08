@@ -228,6 +228,64 @@ const THAI_MONTHS = [
 
 
 
+function parseDateOnly(value: string): Date | null {
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+
+  if (!match) return null;
+
+  const year = Number(match[1]);
+
+  const month = Number(match[2]);
+
+  const day = Number(match[3]);
+
+  const date = new Date(year, month - 1, day);
+
+  if (
+
+    date.getFullYear() !== year ||
+
+    date.getMonth() !== month - 1 ||
+
+    date.getDate() !== day
+
+  ) {
+
+    return null;
+
+  }
+
+  return date;
+
+}
+
+function getThaiMonthYear(value: string) {
+
+  const date = parseDateOnly(value);
+
+  if (!date) {
+
+    return { month: "", year: "" };
+
+  }
+
+  return {
+
+    month: THAI_MONTHS[date.getMonth()],
+
+    year: String(date.getFullYear() + 543),
+
+  };
+
+}
+
+function getThaiDay(value: string) {
+
+  return parseDateOnly(value)?.getDate().toString() ?? "";
+
+}
+
 function displayStockValue(value: number): string {
 
   if (!Number.isFinite(value) || value === 0) {
@@ -360,6 +418,9 @@ export default function ExportInspectionPdf({
 
   const [isExporting, setIsExporting] = useState(false);
 
+  const startDateInfo = getThaiMonthYear(inspectionStartDate);
+  const endDateInfo = getThaiMonthYear(inspectionEndDate);
+
   const rowMap = new Map(
 
     rows.map((row) => [row.materialId, row])
@@ -402,10 +463,10 @@ export default function ExportInspectionPdf({
 
     );
 
-    // เว้นช่องวันที่ให้คณะกรรมการกรอกเอง ไม่ใช้วันที่จากหน้าฟอร์ม
+    // เว้นเฉพาะช่อง "วันที่" ส่วนเดือนและปีใช้ค่าที่บันทึกไว้
     const dateText =
-      `วันที่เริ่มตรวจสอบ .......... เดือน ........................ พ.ศ. ..........  ` +
-      `ตรวจสอบแล้วเสร็จวันที่ .......... เดือน ........................ พ.ศ. ..........  ` +
+      `วันที่เริ่มตรวจสอบ .......... เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
+      `ตรวจสอบแล้วเสร็จวันที่ .......... เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
 
     const dateFontSize = fitFontSize(
@@ -498,7 +559,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, nameSize);
 
-      doc.text(name, centerX, startY + 12, {
+      doc.text(name, centerX, startY + 7, {
 
         align: "center",
 
@@ -522,7 +583,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, positionSize);
 
-      doc.text(position, centerX, startY + 20, {
+      doc.text(position, centerX, startY + 13, {
 
         align: "center",
 
@@ -1188,10 +1249,10 @@ export default function ExportInspectionPdf({
 
             pdfWithTable.lastAutoTable?.finalY ?? tableStartY;
 
-          // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 14 มม. จากตาราง
+          // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 9 มม. จากตาราง
           // ไม่บังคับลงไปท้ายหน้ากระดาษ
-          const signatureY = finalY + 14;
-          const signatureBottomY = signatureY + 20;
+          const signatureY = finalY + 9;
+          const signatureBottomY = signatureY + 13;
           const safeBottomY = PAGE_HEIGHT - 12;
 
           if (signatureBottomY <= safeBottomY) {
