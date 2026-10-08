@@ -138,7 +138,7 @@ const SIGNATURE_FONT_SIZE = 12;
 
 const BODY_ROW_HEIGHT = 6.1515625;
 
-const ROWS_PER_PAGE = 20;
+const ROWS_PER_PAGE = 17;
 
 /*
 
@@ -222,63 +222,11 @@ const THAI_MONTHS = [
 
 ========================================================= */
 
-function parseDateOnly(value: string): Date | null {
 
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
 
-  if (!match) return null;
 
-  const year = Number(match[1]);
 
-  const month = Number(match[2]);
 
-  const day = Number(match[3]);
-
-  const date = new Date(year, month - 1, day);
-
-  if (
-
-    date.getFullYear() !== year ||
-
-    date.getMonth() !== month - 1 ||
-
-    date.getDate() !== day
-
-  ) {
-
-    return null;
-
-  }
-
-  return date;
-
-}
-
-function getThaiMonthYear(value: string) {
-
-  const date = parseDateOnly(value);
-
-  if (!date) {
-
-    return { month: "", year: "" };
-
-  }
-
-  return {
-
-    month: THAI_MONTHS[date.getMonth()],
-
-    year: String(date.getFullYear() + 543),
-
-  };
-
-}
-
-function getThaiDay(value: string) {
-
-  return parseDateOnly(value)?.getDate().toString() ?? "";
-
-}
 
 function displayStockValue(value: number): string {
 
@@ -404,10 +352,6 @@ export default function ExportInspectionPdf({
 
   rows,
 
-  inspectionStartDate,
-
-  inspectionEndDate,
-
   inspectorIds,
 
   officers,
@@ -421,10 +365,6 @@ export default function ExportInspectionPdf({
     rows.map((row) => [row.materialId, row])
 
   );
-
-  const startDateInfo = getThaiMonthYear(inspectionStartDate);
-
-  const endDateInfo = getThaiMonthYear(inspectionEndDate);
 
   /* =======================================================
 
@@ -462,16 +402,10 @@ export default function ExportInspectionPdf({
 
     );
 
+    // เว้นช่องวันที่ให้คณะกรรมการกรอกเอง ไม่ใช้วันที่จากหน้าฟอร์ม
     const dateText =
-
-      `วันที่เริ่มตรวจสอบ ${getThaiDay(inspectionStartDate)} ` +
-
-      `เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
-
-      `ตรวจสอบแล้วเสร็จวันที่ ${getThaiDay(inspectionEndDate)} ` +
-
-      `เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
-
+      `วันที่เริ่มตรวจสอบ .......... เดือน ........................ พ.ศ. ..........  ` +
+      `ตรวจสอบแล้วเสร็จวันที่ .......... เดือน ........................ พ.ศ. ..........  ` +
       `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
 
     const dateFontSize = fitFontSize(
@@ -564,7 +498,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, nameSize);
 
-      doc.text(name, centerX, startY + 6, {
+      doc.text(name, centerX, startY + 12, {
 
         align: "center",
 
@@ -588,7 +522,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, positionSize);
 
-      doc.text(position, centerX, startY + 12, {
+      doc.text(position, centerX, startY + 20, {
 
         align: "center",
 
@@ -1254,19 +1188,18 @@ export default function ExportInspectionPdf({
 
             pdfWithTable.lastAutoTable?.finalY ?? tableStartY;
 
-          // เว้นพื้นที่สำหรับลายมือชื่อ ชื่อ และตำแหน่งกรรมการ
-          // ให้ตำแหน่งบรรทัดสุดท้ายห่างขอบล่างอย่างน้อย 12 มม.
-          const signatureY = Math.max(finalY + 6, 170);
-          const signatureBottomY = signatureY + 12;
+          // ต่อบล็อกลายเซ็นจากท้ายตารางจริง โดยเว้นระยะ 14 มม. จากตาราง
+          // ไม่บังคับลงไปท้ายหน้ากระดาษ
+          const signatureY = finalY + 14;
+          const signatureBottomY = signatureY + 20;
           const safeBottomY = PAGE_HEIGHT - 12;
 
           if (signatureBottomY <= safeBottomY) {
             drawInspectors(doc, signatureY);
           } else {
-            // หากพื้นที่ใต้ตารางไม่พอ ให้ขึ้นหน้าใหม่และวางลายเซ็นด้านบน
-            // แทนการบีบลงไปชิดขอบล่างของกระดาษ
+            // หน้าปัจจุบันมีพื้นที่ไม่พอสำหรับบล็อกลายเซ็นทั้งชุด
             doc.addPage("a4", "landscape");
-            drawInspectors(doc, 45);
+            drawInspectors(doc, 40);
           }
 
         }
