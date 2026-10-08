@@ -7,6 +7,31 @@ import AppTableCard from "@/components/AppTableCard";
 
 export const dynamic = "force-dynamic";
 
+const thaiMonths = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+
+function formatInspectionDate(value: Date | null): string {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return `${date.getUTCDate()} ${thaiMonths[date.getUTCMonth()]} ${date.getUTCFullYear() + 543}`;
+}
+
+function parseInspectorNames(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  if (typeof value === "string" && value.trim()) {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
+    } catch {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 type PageProps = {
   searchParams: Promise<{
     fiscalYear?: string;
@@ -102,18 +127,22 @@ export default async function StockCardInspectionHistoryPage({
         className="w-full min-w-0"
       >
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-          <table className="w-full min-w-[560px] border-collapse bg-white text-sm">
+          <table className="w-full min-w-[1250px] border-collapse bg-white text-sm">
             <thead>
               <tr>
-                <th scope="col" className={headerClassName}>ปีงบประมาณ</th>
-                <th scope="col" className={headerClassName}>รายละเอียดข้อมูล</th>
-                <th scope="col" className={headerClassName}>จัดการ</th>
+                {[
+                  "ลำดับ", "ปีงบประมาณ", "วันที่เริ่มตรวจสอบ",
+                  "วันที่ตรวจสอบแล้วเสร็จ", "จำนวนรายการ",
+                  "จำนวนคณะกรรมการตรวจสอบ", "รายละเอียดข้อมูล", "จัดการ",
+                ].map((title) => (
+                  <th key={title} scope="col" className={headerClassName}>{title}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {inspections.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500">
+                  <td colSpan={8} className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500">
                     {selectedFiscalYear !== null
                       ? `ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`
                       : "ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ"}
@@ -122,13 +151,27 @@ export default async function StockCardInspectionHistoryPage({
               ) : (
                 inspections.map((inspection, index) => {
                   const detailHref = `/stock-card/inspection-history/${inspection.fiscalYear}`;
+                  const inspectorCount = parseInspectorNames(inspection.inspectorNames).length;
                   return (
                     <tr
                       key={inspection.id}
                       className={`transition-colors duration-150 hover:bg-blue-50/70 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/70"}`}
                     >
+                      <td className={cellClassName}>{(index + 1).toLocaleString("th-TH")}</td>
                       <td className={`${cellClassName} text-base font-extrabold !text-slate-900`}>
                         {inspection.fiscalYear}
+                      </td>
+                      <td className={`${cellClassName} whitespace-nowrap`}>
+                        {formatInspectionDate(inspection.inspectionDate)}
+                      </td>
+                      <td className={`${cellClassName} whitespace-nowrap`}>
+                        {formatInspectionDate(inspection.inspectionEndDate)}
+                      </td>
+                      <td className={cellClassName}>
+                        {inspection._count.rows.toLocaleString("th-TH")} รายการ
+                      </td>
+                      <td className={cellClassName}>
+                        {inspectorCount.toLocaleString("th-TH")} คน
                       </td>
                       <td className={cellClassName}>
                         <div className="flex justify-center">
