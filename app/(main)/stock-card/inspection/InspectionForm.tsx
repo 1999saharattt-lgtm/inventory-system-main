@@ -1653,7 +1653,7 @@ export default function InspectionForm({
       >
         <AppButton
           href={`/stock-card?fiscalYear=${fiscalYear}`}
-          variant="primary"
+          variant="secondary"
           size="md"
           className="w-full sm:w-auto"
         >
