@@ -5,11 +5,9 @@ import { Fragment, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import AppCard from "@/components/AppCard";
-import AppButton from "@/components/AppButton";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
-
 import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
 
 type Material = {
@@ -59,12 +57,8 @@ type Props = {
   inspectorIds: string[];
   inspectionStartDate: string;
   inspectionEndDate: string;
+  initialEditMode?: boolean;
 };
-
-type EditableField = Exclude<
-  keyof InspectionRow,
-  "materialId"
->;
 
 const CATEGORY_ORDER = [
   "OFFICE",
@@ -98,20 +92,34 @@ const cellClass =
 const inputClass =
   "h-7 w-full min-w-0 rounded-md border-2 !border-black bg-white px-1 text-center text-[14px] font-medium !text-black outline-none focus:ring-2 focus:ring-blue-200";
 
-const formatStock = (value: number) =>
-  Number.isFinite(value) && value !== 0
+const numberFields = [
+  "shortageQty",
+  "excessQty",
+  "baht",
+  "satang",
+  "damagedQty",
+  "deterioratedQty",
+  "unnecessaryQty",
+] as const;
+
+type NumberField = (typeof numberFields)[number];
+
+function formatStock(value: number) {
+  return Number.isFinite(value) && value !== 0
     ? value.toLocaleString("th-TH")
     : "-";
+}
 
-const formatCurrent = (value: number) =>
-  Number.isFinite(value)
+function formatCurrent(value: number) {
+  return Number.isFinite(value)
     ? value.toLocaleString("th-TH")
     : "0";
+}
 
-const dateText = (value: string) => {
+function dateText(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "-";
 
-  const [y, m, d] = value.split("-").map(Number);
+  const [year, month, day] = value.split("-").map(Number);
 
   const months = [
     "มกราคม",
@@ -128,48 +136,40 @@ const dateText = (value: string) => {
     "ธันวาคม",
   ];
 
-  return `${d} ${months[m - 1] ?? ""} ${y + 543}`;
-};
+  return `${day} ${months[month - 1] ?? ""} ${year + 543}`;
+}
 
-const numberFields = [
-  "shortageQty",
-  "excessQty",
-  "baht",
-  "satang",
-  "damagedQty",
-  "deterioratedQty",
-  "unnecessaryQty",
-] as const;
-
-export default function InspectionHistoryView(props: Props) {
+export default function InspectionHistoryView({
+  fiscalYear,
+  startShortYear,
+  endShortYear,
+  materials,
+  rows,
+  officers,
+  inspectorIds,
+  inspectionStartDate,
+  inspectionEndDate,
+  initialEditMode = false,
+}: Props) {
   const router = useRouter();
 
-  const {
-    fiscalYear,
-    startShortYear,
-    endShortYear,
-    materials,
-    rows,
-    officers,
-    inspectorIds,
-    inspectionStartDate,
-    inspectionEndDate,
-  } = props;
-
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const [selectedCategory, setSelectedCategory] =
+    useState("ALL");
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] =
+    useState(initialEditMode);
+
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const [editedRows, setEditedRows] = useState<InspectionRow[]>(
-    () => rows.map((row) => ({ ...row }))
-  );
+  const [editedRows, setEditedRows] = useState<
+    InspectionRow[]
+  >(rows.map((row) => ({ ...row })));
 
   const [editedInspectorIds, setEditedInspectorIds] =
-    useState<string[]>(() => [
+    useState<string[]>([
       inspectorIds[0] ?? "",
       inspectorIds[1] ?? "",
       inspectorIds[2] ?? "",
@@ -199,10 +199,12 @@ export default function InspectionHistoryView(props: Props) {
           return false;
         }
 
-        const q = searchTerm.trim().toLocaleLowerCase("th");
+        const query = searchTerm
+          .trim()
+          .toLocaleLowerCase("th");
 
         return (
-          !q ||
+          !query ||
           [
             material.code,
             material.name,
@@ -212,7 +214,7 @@ export default function InspectionHistoryView(props: Props) {
             .filter(Boolean)
             .join(" ")
             .toLocaleLowerCase("th")
-            .includes(q)
+            .includes(query)
         );
       }),
     [materials, searchTerm, selectedCategory]
@@ -224,11 +226,23 @@ export default function InspectionHistoryView(props: Props) {
     materials: filtered.filter(
       (material) => material.category === category
     ),
-  })).filter((group) => group.materials.length);
+  })).filter((group) => group.materials.length > 0);
 
-  const officerMap = new Map(
-    officers.map((officer) => [String(officer.id), officer])
+  const officerMap = useMemo(
+    () =>
+      new Map(
+        officers.map((officer) => [
+          String(officer.id),
+          officer,
+        ])
+      ),
+    [officers]
   );
+
+  const officerOptions = officers.map((officer) => ({
+    value: String(officer.id),
+    label: `${officer.firstName} ${officer.lastName}`.trim(),
+  }));
 
   const categories = [
     { value: "ALL", label: "ทุกหมวด" },
@@ -238,16 +252,13 @@ export default function InspectionHistoryView(props: Props) {
     })),
   ];
 
-  const officerOptions = officers.map((officer) => ({
-    value: String(officer.id),
-    label: `${officer.firstName} ${officer.lastName}`.trim(),
-  }));
-
-  const updateRow = (
+  function updateRow(
     materialId: number,
-    field: EditableField,
+    field: keyof InspectionRow,
     value: string
-  ) => {
+  ) {
+    if (field === "materialId") return;
+
     setEditedRows((current) =>
       current.map((row) =>
         row.materialId === materialId
@@ -255,17 +266,17 @@ export default function InspectionHistoryView(props: Props) {
           : row
       )
     );
-  };
+  }
 
-  const updateInspector = (index: number, value: string) => {
+  function updateInspector(index: number, value: string) {
     setEditedInspectorIds((current) => {
       const next = [...current];
       next[index] = value;
       return next;
     });
-  };
+  }
 
-  const cancelEditing = () => {
+  function cancelEditing() {
     setEditedRows(rows.map((row) => ({ ...row })));
 
     setEditedInspectorIds([
@@ -279,17 +290,27 @@ export default function InspectionHistoryView(props: Props) {
 
     setIsEditing(false);
     setError("");
-    setMessage("");
-  };
+    setSuccess("");
+  }
 
-  const saveChanges = async () => {
+  async function saveChanges() {
     if (isSaving) return;
 
     setError("");
-    setMessage("");
+    setSuccess("");
 
     if (!editedStartDate) {
-      setError("กรุณาระบุวันที่เริ่มตรวจสอบ");
+      setError("กรุณาเลือกวันที่เริ่มตรวจสอบ");
+      return;
+    }
+
+    if (
+      editedEndDate &&
+      editedEndDate < editedStartDate
+    ) {
+      setError(
+        "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มตรวจสอบ"
+      );
       return;
     }
 
@@ -297,35 +318,26 @@ export default function InspectionHistoryView(props: Props) {
       editedInspectorIds.length !== 3 ||
       editedInspectorIds.some((id) => !id)
     ) {
-      setError("กรุณาเลือกคณะกรรมการตรวจสอบให้ครบ 3 คน");
+      setError("กรุณาเลือกคณะกรรมการให้ครบ 3 คน");
       return;
     }
 
     if (new Set(editedInspectorIds).size !== 3) {
-      setError("ไม่สามารถเลือกคณะกรรมการตรวจสอบซ้ำกันได้");
+      setError("ไม่สามารถเลือกคณะกรรมการซ้ำกันได้");
       return;
     }
 
     for (const row of editedRows) {
-      if (
-        row.accuracy &&
-        row.accuracy !== "CORRECT" &&
-        row.accuracy !== "INCORRECT"
-      ) {
-        setError(`ผลการตรวจสอบรายการ ${row.materialId} ไม่ถูกต้อง`);
-        return;
-      }
-
       for (const field of numberFields) {
         const value = row[field].trim();
 
         if (
-          value !== "" &&
+          value &&
           (!/^\d+$/.test(value) ||
             !Number.isSafeInteger(Number(value)))
         ) {
           setError(
-            `กรุณากรอกจำนวนเต็มตั้งแต่ 0 ขึ้นไป ในรายการ ${row.materialId}`
+            `ข้อมูลจำนวนของพัสดุรหัส ${row.materialId} ต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป`
           );
           return;
         }
@@ -338,18 +350,35 @@ export default function InspectionHistoryView(props: Props) {
       const payload = {
         fiscalYear,
         inspectionDate: editedStartDate,
+
+        // ต้องรองรับ field นี้ใน Prisma และ API
+        inspectionEndDate: editedEndDate || null,
+
         inspectorIds: editedInspectorIds.map(Number),
+
         rows: editedRows.map((row) => ({
           materialId: row.materialId,
           accuracy: row.accuracy || null,
           shortageQty:
-            row.shortageQty === "" ? null : Number(row.shortageQty),
+            row.shortageQty === ""
+              ? null
+              : Number(row.shortageQty),
           excessQty:
-            row.excessQty === "" ? null : Number(row.excessQty),
-          baht: row.baht === "" ? null : Number(row.baht),
-          satang: row.satang === "" ? null : Number(row.satang),
+            row.excessQty === ""
+              ? null
+              : Number(row.excessQty),
+          baht:
+            row.baht === ""
+              ? null
+              : Number(row.baht),
+          satang:
+            row.satang === ""
+              ? null
+              : Number(row.satang),
           damagedQty:
-            row.damagedQty === "" ? null : Number(row.damagedQty),
+            row.damagedQty === ""
+              ? null
+              : Number(row.damagedQty),
           deterioratedQty:
             row.deterioratedQty === ""
               ? null
@@ -363,7 +392,7 @@ export default function InspectionHistoryView(props: Props) {
       };
 
       const response = await fetch(
-        `/api/stock-card/inspection?fiscalYear=${fiscalYear}`,
+        "/api/stock-card/inspection",
         {
           method: "PUT",
           headers: {
@@ -375,27 +404,27 @@ export default function InspectionHistoryView(props: Props) {
 
       const result = await response.json();
 
-      if (!response.ok || !result.ok) {
+      if (!response.ok || result.ok === false) {
         throw new Error(
           result.message ||
-            "ไม่สามารถบันทึกการแก้ไขได้"
+            "ไม่สามารถบันทึกข้อมูลได้"
         );
       }
 
-      setMessage("บันทึกการแก้ไขเรียบร้อยแล้ว");
       setIsEditing(false);
+      setSuccess("บันทึกการแก้ไขเรียบร้อยแล้ว");
 
       router.refresh();
     } catch (cause) {
       setError(
         cause instanceof Error
           ? cause.message
-          : "เกิดข้อผิดพลาดในการบันทึกข้อมูล"
+          : "เกิดข้อผิดพลาดในการบันทึก"
       );
     } finally {
       setIsSaving(false);
     }
-  };
+  }
 
   return (
     <div className="w-full min-w-0 space-y-4">
@@ -412,7 +441,7 @@ export default function InspectionHistoryView(props: Props) {
 
               <p className="mt-0.5 text-xs font-semibold !text-slate-500">
                 {isEditing
-                  ? "กำลังแก้ไขข้อมูลการตรวจสอบ"
+                  ? "แก้ไขข้อมูลการตรวจสอบ"
                   : "ข้อมูลที่บันทึกไว้"}
               </p>
             </div>
@@ -428,7 +457,9 @@ export default function InspectionHistoryView(props: Props) {
                     type="date"
                     value={editedStartDate}
                     onChange={(event) =>
-                      setEditedStartDate(event.target.value)
+                      setEditedStartDate(
+                        event.target.value
+                      )
                     }
                     className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
                   />
@@ -444,52 +475,63 @@ export default function InspectionHistoryView(props: Props) {
                   วันที่ตรวจสอบแล้วเสร็จ
                 </label>
 
-                <div className="flex h-[46px] items-center rounded-[14px] border border-slate-200 bg-white px-4 text-sm font-bold !text-slate-900 shadow-sm">
-                  {dateText(editedEndDate)}
-                </div>
+                {isEditing ? (
+                  <input
+                    type="date"
+                    value={editedEndDate}
+                    min={editedStartDate || undefined}
+                    onChange={(event) =>
+                      setEditedEndDate(
+                        event.target.value
+                      )
+                    }
+                    className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
+                  />
+                ) : (
+                  <div className="flex h-[46px] items-center rounded-[14px] border border-slate-200 bg-white px-4 text-sm font-bold !text-slate-900 shadow-sm">
+                    {dateText(editedEndDate)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </AppCard>
 
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         {!isEditing ? (
-          <AppButton
+          <button
             type="button"
-            variant="secondary"
-            size="md"
             onClick={() => {
               setError("");
-              setMessage("");
+              setSuccess("");
               setIsEditing(true);
             }}
+            className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-extrabold !text-slate-900 shadow-sm hover:bg-slate-50"
           >
             ✏️ แก้ไขข้อมูล
-          </AppButton>
+          </button>
         ) : (
           <>
-            <AppButton
+            <button
               type="button"
-              variant="secondary"
-              size="md"
               disabled={isSaving}
               onClick={cancelEditing}
+              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-extrabold !text-slate-900 disabled:opacity-50"
             >
               ยกเลิก
-            </AppButton>
+            </button>
 
-            <AppButton
+            <button
               type="button"
-              variant="primary"
-              size="md"
               disabled={isSaving}
               onClick={saveChanges}
+              className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-extrabold !text-white shadow-sm hover:bg-slate-700 disabled:opacity-50"
             >
               {isSaving
                 ? "กำลังบันทึก..."
                 : "💾 บันทึกการแก้ไข"}
-            </AppButton>
+            </button>
           </>
         )}
       </div>
@@ -503,12 +545,12 @@ export default function InspectionHistoryView(props: Props) {
         </div>
       )}
 
-      {message && (
+      {success && (
         <div
           role="status"
           className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800"
         >
-          {message}
+          {success}
         </div>
       )}
 
@@ -916,32 +958,6 @@ export default function InspectionHistoryView(props: Props) {
           })}
         </div>
       </AppCard>
-
-      {isEditing && (
-        <div className="flex flex-wrap justify-end gap-2 pb-4">
-          <AppButton
-            type="button"
-            variant="secondary"
-            size="md"
-            disabled={isSaving}
-            onClick={cancelEditing}
-          >
-            ยกเลิก
-          </AppButton>
-
-          <AppButton
-            type="button"
-            variant="primary"
-            size="md"
-            disabled={isSaving}
-            onClick={saveChanges}
-          >
-            {isSaving
-              ? "กำลังบันทึก..."
-              : "💾 บันทึกการแก้ไข"}
-          </AppButton>
-        </div>
-      )}
     </div>
   );
 }
