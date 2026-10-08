@@ -66,6 +66,30 @@ const CATEGORY_ORDER = [
 ];
 
 /* =========================================================
+   DOCUMENT TYPE
+
+   กติกาตามหน้า Stock Card
+
+   ยอดยกเข้าระบบ
+   -> OPENING
+
+   ร.xxx
+   -> RECEIVE
+
+   จ.xxx
+   -> ISSUE
+========================================================= */
+
+const OPENING_DOCUMENT =
+  "ยอดยกเข้าระบบ";
+
+const RECEIVE_DOCUMENT_PREFIX =
+  "ร.";
+
+const ISSUE_DOCUMENT_PREFIX =
+  "จ.";
+
+/* =========================================================
    THAILAND DATE PARTS
 ========================================================= */
 
@@ -89,29 +113,26 @@ function getThailandDateParts(
     );
 
   return {
-    year:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "year"
-        )?.value
-      ),
+    year: Number(
+      parts.find(
+        (part) =>
+          part.type === "year"
+      )?.value
+    ),
 
-    month:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "month"
-        )?.value
-      ),
+    month: Number(
+      parts.find(
+        (part) =>
+          part.type === "month"
+      )?.value
+    ),
 
-    day:
-      Number(
-        parts.find(
-          (part) =>
-            part.type === "day"
-        )?.value
-      ),
+    day: Number(
+      parts.find(
+        (part) =>
+          part.type === "day"
+      )?.value
+    ),
   };
 }
 
@@ -140,8 +161,6 @@ function getCurrentFiscalYearThai(
 
 /* =========================================================
    CURRENT DATE - END EXCLUSIVE
-
-   ใช้รูปแบบเดียวกับระบบเดิม
 ========================================================= */
 
 function getCurrentThailandEndExclusive() {
@@ -166,15 +185,11 @@ function getCurrentThailandEndExclusive() {
 /* =========================================================
    FISCAL YEAR RANGE
 
-   สำคัญ:
-   ต้องใช้ boundary แบบเดียวกับหน้า Stock Card
-
    FY2569
-   01 ต.ค.2568
+   =
+   01 ต.ค. 2568
    ถึงก่อน
-   01 ต.ค.2569
-
-   ห้ามปรับ -7 ชั่วโมงตรงนี้
+   01 ต.ค. 2569
 ========================================================= */
 
 function getFiscalYearRange(
@@ -247,9 +262,100 @@ function safeNumber(
 }
 
 /* =========================================================
-   ACTUAL ISSUE QTY
+   NORMALIZE DOCUMENT NO
 
-   ใช้ logic เดียวกับ Stock Card
+   รองรับช่องว่างหน้า/หลัง
+========================================================= */
+
+function normalizeDocumentNo(
+  value:
+    | string
+    | null
+    | undefined
+) {
+  return String(
+    value ?? ""
+  )
+    .trim()
+    .replace(/\s+/g, "");
+}
+
+/* =========================================================
+   DOCUMENT CHECK
+========================================================= */
+
+function isOpeningDocument(
+  documentNo:
+    | string
+    | null
+    | undefined
+) {
+  return (
+    normalizeDocumentNo(
+      documentNo
+    ) ===
+    normalizeDocumentNo(
+      OPENING_DOCUMENT
+    )
+  );
+}
+
+function isReceiveDocument(
+  documentNo:
+    | string
+    | null
+    | undefined
+) {
+  const value =
+    normalizeDocumentNo(
+      documentNo
+    );
+
+  return value.startsWith(
+    RECEIVE_DOCUMENT_PREFIX
+  );
+}
+
+function isIssueDocument(
+  documentNo:
+    | string
+    | null
+    | undefined
+) {
+  const value =
+    normalizeDocumentNo(
+      documentNo
+    );
+
+  return value.startsWith(
+    ISSUE_DOCUMENT_PREFIX
+  );
+}
+
+/* =========================================================
+   DATE RANGE
+========================================================= */
+
+function isDateInRange(
+  value: Date,
+  startDate: Date,
+  endDate: Date
+) {
+  const time =
+    new Date(
+      value
+    ).getTime();
+
+  return (
+    time >=
+      startDate.getTime() &&
+    time <
+      endDate.getTime()
+  );
+}
+
+/* =========================================================
+   ACTUAL ISSUE QTY
 
    issuedQty มีค่า
    -> ใช้ issuedQty
@@ -285,40 +391,6 @@ function getActualIssuedQty(
 
   return safeNumber(
     item.qty
-  );
-}
-
-/* =========================================================
-   DATE CHECK
-========================================================= */
-
-function isBeforeDate(
-  value: Date,
-  target: Date
-) {
-  return (
-    new Date(
-      value
-    ).getTime() <
-    target.getTime()
-  );
-}
-
-function isDateInRange(
-  value: Date,
-  startDate: Date,
-  endDate: Date
-) {
-  const time =
-    new Date(
-      value
-    ).getTime();
-
-  return (
-    time >=
-      startDate.getTime() &&
-    time <
-      endDate.getTime()
   );
 }
 
@@ -417,6 +489,9 @@ export default async function StockCardInspectionPage({
 
   /* =======================================================
      CURRENT END
+
+     ใช้สำหรับคำนวณ
+     "คงเหลือปัจจุบัน"
   ======================================================= */
 
   const todayEndExclusive =
@@ -468,17 +543,18 @@ export default async function StockCardInspectionPage({
   }
 
   /* =======================================================
-     LOAD DATA
+     LOAD MATERIAL + DOCUMENT
 
-     ใช้แหล่งข้อมูลเดียวกับ Stock Card
+     รอบนี้จำแนกจาก "เลขที่เอกสาร"
+
+     OPENING
+     = ยอดยกเข้าระบบ
 
      RECEIVE
-     = ReceiveItem
+     = ร.xxx
 
      ISSUE
-     = IssueItem ที่ APPROVED
-
-     ไม่ใช้ Transaction.balance
+     = จ.xxx
   ======================================================= */
 
   const [
@@ -493,6 +569,13 @@ export default async function StockCardInspectionPage({
           name: true,
           unit: true,
           category: true,
+
+          /* =============================================
+             RECEIVE DOCUMENTS
+
+             โหลดถึงสิ้น FY
+             แล้วคัดตาม documentNo ภายหลัง
+          ============================================= */
 
           receiveItems: {
             where: {
@@ -512,6 +595,9 @@ export default async function StockCardInspectionPage({
                 select: {
                   receiveDate:
                     true,
+
+                  documentNo:
+                    true,
                 },
               },
             },
@@ -529,6 +615,12 @@ export default async function StockCardInspectionPage({
               },
             ],
           },
+
+          /* =============================================
+             ISSUE DOCUMENTS
+
+             เฉพาะ APPROVED
+          ============================================= */
 
           issueItems: {
             where: {
@@ -552,6 +644,9 @@ export default async function StockCardInspectionPage({
                 select: {
                   issueDate:
                     true,
+
+                  documentNo:
+                    true,
                 },
               },
             },
@@ -572,7 +667,8 @@ export default async function StockCardInspectionPage({
         },
 
         orderBy: {
-          code: "asc",
+          code:
+            "asc",
         },
       }),
 
@@ -605,7 +701,8 @@ export default async function StockCardInspectionPage({
         },
 
         orderBy: {
-          id: "asc",
+          id:
+            "asc",
         },
       }),
     ]);
@@ -613,31 +710,28 @@ export default async function StockCardInspectionPage({
   /* =======================================================
      BUILD INSPECTION ROWS
 
-     หลักการเดียวกับ Stock Card
+     *** กติกาใหม่ตามที่กำหนด ***
 
-     1. openingBalance
+     1. คงเหลือยอดยกมาเมื่อ 30 ก.ย.
+        ดูเลขที่เอกสาร
         =
-        รับทั้งหมดก่อน 1 ต.ค.
-        -
-        จ่าย APPROVED ทั้งหมดก่อน 1 ต.ค.
+        "ยอดยกเข้าระบบ"
 
-     2. receiveQty
+     2. รับ
+        ดูเลขที่เอกสาร
         =
-        Receive ตั้งแต่ 1 ต.ค. ถึงสิ้น FY
+        "ร." ตามด้วยเลขเอกสาร
 
-     3. issueQty
+     3. จ่าย
+        ดูเลขที่เอกสาร
         =
-        Approved Issue ตั้งแต่ 1 ต.ค. ถึงสิ้น FY
+        "จ." ตามด้วยเลขเอกสาร
 
-     4. closingBalance
+     4. คงเหลือปัจจุบัน
         =
-        opening
-        + รับถึงปัจจุบัน
-        - จ่ายถึงปัจจุบัน
-
-     สำคัญ:
-     ไม่มีการลบ openingBalance
-     ออกจาก receiveQty อีกครั้ง
+        ยอดยกทั้งหมด
+        + รับทั้งหมดถึงปัจจุบัน
+        - จ่ายทั้งหมดถึงปัจจุบัน
   ======================================================= */
 
   const rows =
@@ -647,21 +741,27 @@ export default async function StockCardInspectionPage({
           material
         ): MaterialRow => {
           /* =============================================
-             1. OPENING RECEIVE
+             A. OPENING BALANCE
 
-             รับทั้งหมดก่อนเริ่ม FY
+             เลขที่เอกสาร
+             =
+             "ยอดยกเข้าระบบ"
+
+             รวมทุกรายการที่ตรงชื่อเอกสาร
+
+             ไม่สนว่า Receive จริงถูกสร้าง
+             ด้วยวิธีใดในอดีต
           ============================================= */
 
-          const historicalReceiveTotal =
+          const openingBalance =
             material.receiveItems
               .filter(
                 (
                   item
                 ) =>
-                  isBeforeDate(
+                  isOpeningDocument(
                     item.receive
-                      .receiveDate,
-                    fiscalRange.startDate
+                      .documentNo
                   )
               )
               .reduce(
@@ -677,64 +777,18 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             2. OPENING ISSUE
+             B. RECEIVE
 
-             จ่าย APPROVED ทั้งหมดก่อนเริ่ม FY
-          ============================================= */
+             เลขที่เอกสารต้องขึ้นต้นด้วย
 
-          const historicalIssueTotal =
-            material.issueItems
-              .filter(
-                (
-                  item
-                ) =>
-                  isBeforeDate(
-                    item.issue
-                      .issueDate,
-                    fiscalRange.startDate
-                  )
-              )
-              .reduce(
-                (
-                  total,
-                  item
-                ) =>
-                  total +
-                  getActualIssuedQty({
-                    qty:
-                      item.qty,
+             ร.
 
-                    issuedQty:
-                      item.issuedQty,
-                  }),
-                0
-              );
+             เช่น
+             ร.01/69
+             ร.02/69
+             ร.15/69
 
-          /* =============================================
-             3. OPENING BALANCE
-
-             นี่คือค่าที่หน้า Stock Card
-             นำไปสร้าง Virtual Row
-
-             "ยอดยกเข้าระบบ"
-
-             ในตัวอย่าง = 150
-          ============================================= */
-
-          const openingBalance =
-            historicalReceiveTotal -
-            historicalIssueTotal;
-
-          /* =============================================
-             4. RECEIVE IN FULL FISCAL YEAR
-
-             รับจริงตั้งแต่ 1 ต.ค.
-             ถึงก่อน 1 ต.ค. ปีถัดไป
-
-             opening ไม่เข้ามาตรงนี้
-             เพราะ opening มาจากข้อมูลก่อน startDate
-
-             ตัวอย่าง = 435
+             และต้องอยู่ใน FY ที่เลือก
           ============================================= */
 
           const receiveQty =
@@ -743,6 +797,10 @@ export default async function StockCardInspectionPage({
                 (
                   item
                 ) =>
+                  isReceiveDocument(
+                    item.receive
+                      .documentNo
+                  ) &&
                   isDateInRange(
                     item.receive
                       .receiveDate,
@@ -763,11 +821,21 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             5. ISSUE IN FULL FISCAL YEAR
+             C. ISSUE
 
-             เฉพาะ APPROVED
+             เลขที่เอกสารต้องขึ้นต้นด้วย
 
-             ตัวอย่าง = 310
+             จ.
+
+             เช่น
+             จ.01/69
+             จ.02/69
+             จ.10/69
+
+             และต้องอยู่ใน FY ที่เลือก
+
+             query ด้านบนคัด APPROVED
+             มาแล้ว
           ============================================= */
 
           const issueQty =
@@ -776,6 +844,10 @@ export default async function StockCardInspectionPage({
                 (
                   item
                 ) =>
+                  isIssueDocument(
+                    item.issue
+                      .documentNo
+                  ) &&
                   isDateInRange(
                     item.issue
                       .issueDate,
@@ -800,9 +872,12 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             6. RECEIVE UNTIL CURRENT DATE
+             D. RECEIVE ถึงปัจจุบัน
 
-             ใช้เฉพาะคำนวณคงเหลือปัจจุบัน
+             ใช้เฉพาะเอกสาร ร.
+
+             ไม่รวม
+             "ยอดยกเข้าระบบ"
           ============================================= */
 
           const currentReceiveQty =
@@ -811,6 +886,10 @@ export default async function StockCardInspectionPage({
                 (
                   item
                 ) =>
+                  isReceiveDocument(
+                    item.receive
+                      .documentNo
+                  ) &&
                   isDateInRange(
                     item.receive
                       .receiveDate,
@@ -831,7 +910,9 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             7. ISSUE UNTIL CURRENT DATE
+             E. ISSUE ถึงปัจจุบัน
+
+             ใช้เฉพาะเอกสาร จ.
           ============================================= */
 
           const currentIssueQty =
@@ -840,6 +921,10 @@ export default async function StockCardInspectionPage({
                 (
                   item
                 ) =>
+                  isIssueDocument(
+                    item.issue
+                      .documentNo
+                  ) &&
                   isDateInRange(
                     item.issue
                       .issueDate,
@@ -864,13 +949,25 @@ export default async function StockCardInspectionPage({
               );
 
           /* =============================================
-             8. CURRENT BALANCE
+             F. CURRENT BALANCE
+
+             คงเหลือปัจจุบัน
+             =
+             ยอดยกเข้าระบบทั้งหมด
+             +
+             เอกสาร ร. ทั้งหมด
+             -
+             เอกสาร จ. ทั้งหมด
+
+             ตัวอย่าง
+
+             ยอดยก = 150
+             รับ ร. = 435
+             จ่าย จ. = 310
 
              150 + 435 - 310
              =
              275
-
-             ห้ามลบ opening จาก receive ซ้ำ
           ============================================= */
 
           const closingBalance =
