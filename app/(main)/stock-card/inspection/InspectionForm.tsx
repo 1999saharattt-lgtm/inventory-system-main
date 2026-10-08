@@ -698,7 +698,7 @@ function useSynchronizedTableScroll() {
     function measure() {
       const width = Math.max(
         TABLE_MIN_WIDTH,
-        table.scrollWidth
+        table?.scrollWidth ?? TABLE_MIN_WIDTH
       );
 
       setScrollWidth(width);
