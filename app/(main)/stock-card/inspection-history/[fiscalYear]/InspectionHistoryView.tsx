@@ -102,8 +102,6 @@ const numberFields = [
   "unnecessaryQty",
 ] as const;
 
-type NumberField = (typeof numberFields)[number];
-
 function formatStock(value: number) {
   return Number.isFinite(value) && value !== 0
     ? value.toLocaleString("th-TH")
@@ -116,29 +114,6 @@ function formatCurrent(value: number) {
     : "0";
 }
 
-function dateText(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "-";
-
-  const [year, month, day] = value.split("-").map(Number);
-
-  const months = [
-    "มกราคม",
-    "กุมภาพันธ์",
-    "มีนาคม",
-    "เมษายน",
-    "พฤษภาคม",
-    "มิถุนายน",
-    "กรกฎาคม",
-    "สิงหาคม",
-    "กันยายน",
-    "ตุลาคม",
-    "พฤศจิกายน",
-    "ธันวาคม",
-  ];
-
-  return `${day} ${months[month - 1] ?? ""} ${year + 543}`;
-}
-
 export default function InspectionHistoryView({
   fiscalYear,
   startShortYear,
@@ -149,7 +124,6 @@ export default function InspectionHistoryView({
   inspectorIds,
   inspectionStartDate,
   inspectionEndDate,
-  initialEditMode = false,
 }: Props) {
   const router = useRouter();
 
@@ -157,12 +131,9 @@ export default function InspectionHistoryView({
   const [selectedCategory, setSelectedCategory] =
     useState("ALL");
 
-  const [isEditing, setIsEditing] =
-    useState(initialEditMode);
-
+  // เปิดโหมดแก้ไขทันทีเมื่อเข้าหน้านี้
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const [editedRows, setEditedRows] = useState<
     InspectionRow[]
@@ -276,28 +247,10 @@ export default function InspectionHistoryView({
     });
   }
 
-  function cancelEditing() {
-    setEditedRows(rows.map((row) => ({ ...row })));
-
-    setEditedInspectorIds([
-      inspectorIds[0] ?? "",
-      inspectorIds[1] ?? "",
-      inspectorIds[2] ?? "",
-    ]);
-
-    setEditedStartDate(inspectionStartDate);
-    setEditedEndDate(inspectionEndDate);
-
-    setIsEditing(false);
-    setError("");
-    setSuccess("");
-  }
-
   async function saveChanges() {
     if (isSaving) return;
 
     setError("");
-    setSuccess("");
 
     if (!editedStartDate) {
       setError("กรุณาเลือกวันที่เริ่มตรวจสอบ");
@@ -350,10 +303,7 @@ export default function InspectionHistoryView({
       const payload = {
         fiscalYear,
         inspectionDate: editedStartDate,
-
-        // ต้องรองรับ field นี้ใน Prisma และ API
         inspectionEndDate: editedEndDate || null,
-
         inspectorIds: editedInspectorIds.map(Number),
 
         rows: editedRows.map((row) => ({
@@ -411,9 +361,9 @@ export default function InspectionHistoryView({
         );
       }
 
-      setIsEditing(false);
-      setSuccess("บันทึกการแก้ไขเรียบร้อยแล้ว");
-
+      router.push(
+        `/stock-card/inspection-history?fiscalYear=${fiscalYear}`
+      );
       router.refresh();
     } catch (cause) {
       setError(
@@ -440,9 +390,7 @@ export default function InspectionHistoryView({
               </h2>
 
               <p className="mt-0.5 text-xs font-semibold !text-slate-500">
-                {isEditing
-                  ? "แก้ไขข้อมูลการตรวจสอบ"
-                  : "ข้อมูลที่บันทึกไว้"}
+                แก้ไขข้อมูลการตรวจสอบ
               </p>
             </div>
 
@@ -452,22 +400,14 @@ export default function InspectionHistoryView({
                   วันที่เริ่มตรวจสอบ
                 </label>
 
-                {isEditing ? (
-                  <input
-                    type="date"
-                    value={editedStartDate}
-                    onChange={(event) =>
-                      setEditedStartDate(
-                        event.target.value
-                      )
-                    }
-                    className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
-                  />
-                ) : (
-                  <div className="flex h-[46px] items-center rounded-[14px] border border-slate-200 bg-white px-4 text-sm font-bold !text-slate-900 shadow-sm">
-                    {dateText(editedStartDate)}
-                  </div>
-                )}
+                <input
+                  type="date"
+                  value={editedStartDate}
+                  onChange={(event) =>
+                    setEditedStartDate(event.target.value)
+                  }
+                  className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
+                />
               </div>
 
               <div className="min-w-0">
@@ -475,84 +415,20 @@ export default function InspectionHistoryView({
                   วันที่ตรวจสอบแล้วเสร็จ
                 </label>
 
-                {isEditing ? (
-                  <input
-                    type="date"
-                    value={editedEndDate}
-                    min={editedStartDate || undefined}
-                    onChange={(event) =>
-                      setEditedEndDate(
-                        event.target.value
-                      )
-                    }
-                    className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
-                  />
-                ) : (
-                  <div className="flex h-[46px] items-center rounded-[14px] border border-slate-200 bg-white px-4 text-sm font-bold !text-slate-900 shadow-sm">
-                    {dateText(editedEndDate)}
-                  </div>
-                )}
+                <input
+                  type="date"
+                  value={editedEndDate}
+                  min={editedStartDate || undefined}
+                  onChange={(event) =>
+                    setEditedEndDate(event.target.value)
+                  }
+                  className="h-[46px] w-full rounded-[14px] border-2 !border-black bg-white px-4 text-sm font-bold !text-black"
+                />
               </div>
             </div>
           </div>
         </div>
       </AppCard>
-
-      <div className="flex flex-wrap justify-end gap-2">
-        {!isEditing ? (
-          <button
-            type="button"
-            onClick={() => {
-              setError("");
-              setSuccess("");
-              setIsEditing(true);
-            }}
-            className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-extrabold !text-slate-900 shadow-sm hover:bg-slate-50"
-          >
-            ✏️ แก้ไขข้อมูล
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              disabled={isSaving}
-              onClick={cancelEditing}
-              className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-extrabold !text-slate-900 disabled:opacity-50"
-            >
-              ยกเลิก
-            </button>
-
-            <button
-              type="button"
-              disabled={isSaving}
-              onClick={saveChanges}
-              className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-extrabold !text-white shadow-sm hover:bg-slate-700 disabled:opacity-50"
-            >
-              {isSaving
-                ? "กำลังบันทึก..."
-                : "💾 บันทึกการแก้ไข"}
-            </button>
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div
-          role="alert"
-          className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-700"
-        >
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div
-          role="status"
-          className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800"
-        >
-          {success}
-        </div>
-      )}
 
       <div className="relative z-10">
         <AppSearchInput
@@ -597,19 +473,17 @@ export default function InspectionHistoryView({
               />
             </div>
 
-            {!isEditing && (
-              <ExportInspectionPdf
-                fiscalYear={fiscalYear}
-                startShortYear={startShortYear}
-                endShortYear={endShortYear}
-                materials={filtered}
-                rows={editedRows}
-                inspectionStartDate={editedStartDate}
-                inspectionEndDate={editedEndDate}
-                inspectorIds={editedInspectorIds}
-                officers={officers}
-              />
-            )}
+            <ExportInspectionPdf
+              fiscalYear={fiscalYear}
+              startShortYear={startShortYear}
+              endShortYear={endShortYear}
+              materials={filtered}
+              rows={editedRows}
+              inspectionStartDate={editedStartDate}
+              inspectionEndDate={editedEndDate}
+              inspectorIds={editedInspectorIds}
+              officers={officers}
+            />
           </div>
         </div>
 
@@ -787,59 +661,43 @@ export default function InspectionHistoryView({
                           ))}
 
                           <td className={cellClass}>
-                            {isEditing ? (
-                              <input
-                                type="checkbox"
-                                aria-label={`ถูกต้อง ${material.name}`}
-                                checked={
-                                  row?.accuracy ===
-                                  "CORRECT"
-                                }
-                                onChange={(event) =>
-                                  updateRow(
-                                    material.materialId,
-                                    "accuracy",
-                                    event.target.checked
-                                      ? "CORRECT"
-                                      : ""
-                                  )
-                                }
-                                className="h-4 w-4 accent-emerald-600"
-                              />
-                            ) : row?.accuracy ===
-                              "CORRECT" ? (
-                              "✓"
-                            ) : (
-                              ""
-                            )}
+                            <input
+                              type="checkbox"
+                              aria-label={`ถูกต้อง ${material.name}`}
+                              checked={
+                                row?.accuracy === "CORRECT"
+                              }
+                              onChange={(event) =>
+                                updateRow(
+                                  material.materialId,
+                                  "accuracy",
+                                  event.target.checked
+                                    ? "CORRECT"
+                                    : ""
+                                )
+                              }
+                              className="h-4 w-4 accent-emerald-600"
+                            />
                           </td>
 
                           <td className={cellClass}>
-                            {isEditing ? (
-                              <input
-                                type="checkbox"
-                                aria-label={`ไม่ถูกต้อง ${material.name}`}
-                                checked={
-                                  row?.accuracy ===
-                                  "INCORRECT"
-                                }
-                                onChange={(event) =>
-                                  updateRow(
-                                    material.materialId,
-                                    "accuracy",
-                                    event.target.checked
-                                      ? "INCORRECT"
-                                      : ""
-                                  )
-                                }
-                                className="h-4 w-4 accent-red-600"
-                              />
-                            ) : row?.accuracy ===
-                              "INCORRECT" ? (
-                              "✓"
-                            ) : (
-                              ""
-                            )}
+                            <input
+                              type="checkbox"
+                              aria-label={`ไม่ถูกต้อง ${material.name}`}
+                              checked={
+                                row?.accuracy === "INCORRECT"
+                              }
+                              onChange={(event) =>
+                                updateRow(
+                                  material.materialId,
+                                  "accuracy",
+                                  event.target.checked
+                                    ? "INCORRECT"
+                                    : ""
+                                )
+                              }
+                              className="h-4 w-4 accent-red-600"
+                            />
                           </td>
 
                           {numberFields.map((field) => (
@@ -847,50 +705,40 @@ export default function InspectionHistoryView({
                               key={field}
                               className={cellClass}
                             >
-                              {isEditing ? (
-                                <input
-                                  type="number"
-                                  min={0}
-                                  step={1}
-                                  value={
-                                    row?.[field] ?? ""
-                                  }
-                                  onChange={(event) =>
-                                    updateRow(
-                                      material.materialId,
-                                      field,
-                                      event.target.value
-                                    )
-                                  }
-                                  aria-label={`${field} ${material.name}`}
-                                  className={inputClass}
-                                />
-                              ) : (
-                                row?.[field] ?? ""
-                              )}
+                              <input
+                                type="number"
+                                min={0}
+                                step={1}
+                                value={row?.[field] ?? ""}
+                                onChange={(event) =>
+                                  updateRow(
+                                    material.materialId,
+                                    field,
+                                    event.target.value
+                                  )
+                                }
+                                aria-label={`${field} ${material.name}`}
+                                className={inputClass}
+                              />
                             </td>
                           ))}
 
                           <td
                             className={`${cellClass} px-2 text-left`}
                           >
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                value={row?.remark ?? ""}
-                                onChange={(event) =>
-                                  updateRow(
-                                    material.materialId,
-                                    "remark",
-                                    event.target.value
-                                  )
-                                }
-                                aria-label={`หมายเหตุ ${material.name}`}
-                                className={`${inputClass} text-left`}
-                              />
-                            ) : (
-                              row?.remark ?? ""
-                            )}
+                            <input
+                              type="text"
+                              value={row?.remark ?? ""}
+                              onChange={(event) =>
+                                updateRow(
+                                  material.materialId,
+                                  "remark",
+                                  event.target.value
+                                )
+                              }
+                              aria-label={`หมายเหตุ ${material.name}`}
+                              className={`${inputClass} text-left`}
+                            />
                           </td>
                         </tr>
                       );
@@ -929,26 +777,16 @@ export default function InspectionHistoryView({
                     : `กรรมการคนที่ ${index}`}
                 </div>
 
-                {isEditing ? (
-                  <AppSearchableSelect
-                    value={
-                      editedInspectorIds[index] ?? ""
-                    }
-                    options={officerOptions}
-                    placeholder="เลือกคณะกรรมการ"
-                    searchPlaceholder="พิมพ์ค้นหาชื่อกรรมการ..."
-                    emptyText="ไม่พบรายชื่อ"
-                    onChange={(value) =>
-                      updateInspector(index, value)
-                    }
-                  />
-                ) : (
-                  <div className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 text-sm font-bold !text-slate-900">
-                    {officer
-                      ? `${officer.firstName} ${officer.lastName}`.trim()
-                      : "-"}
-                  </div>
-                )}
+                <AppSearchableSelect
+                  value={editedInspectorIds[index] ?? ""}
+                  options={officerOptions}
+                  placeholder="เลือกคณะกรรมการ"
+                  searchPlaceholder="พิมพ์ค้นหาชื่อกรรมการ..."
+                  emptyText="ไม่พบรายชื่อ"
+                  onChange={(value) =>
+                    updateInspector(index, value)
+                  }
+                />
 
                 <p className="mt-2 text-xs font-semibold !text-slate-500">
                   ตำแหน่ง: {officer?.position || "-"}
@@ -958,6 +796,42 @@ export default function InspectionHistoryView({
           })}
         </div>
       </AppCard>
+
+      {error && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-700"
+        >
+          {error}
+        </div>
+      )}
+
+      {/* ปุ่มดำเนินการอยู่ล่างสุดของหน้า */}
+      <div className="flex w-full flex-wrap items-center justify-end gap-3 border-t border-slate-200 pb-6 pt-5">
+        <button
+          type="button"
+          disabled={isSaving}
+          onClick={() =>
+            router.push(
+              `/stock-card/inspection-history?fiscalYear=${fiscalYear}`
+            )
+          }
+          className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-extrabold !text-slate-900 shadow-sm hover:bg-slate-50 disabled:opacity-50"
+        >
+          ยกเลิก
+        </button>
+
+        <button
+          type="button"
+          disabled={isSaving}
+          onClick={saveChanges}
+          className="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-extrabold !text-white shadow-sm hover:bg-slate-700 disabled:opacity-50"
+        >
+          {isSaving
+            ? "กำลังบันทึก..."
+            : "💾 บันทึกการแก้ไข"}
+        </button>
+      </div>
     </div>
   );
 }
