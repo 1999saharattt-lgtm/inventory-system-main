@@ -1465,7 +1465,7 @@ export default function InspectionHistoryView({
 
         throw new Error(
 
-          result.message ||
+          result.message || result.error ||
 
             "ไม่สามารถบันทึกข้อมูลได้"
 
@@ -1473,13 +1473,7 @@ export default function InspectionHistoryView({
 
       }
 
-      router.push(
-
-        `/stock-card/inspection-history?fiscalYear=${fiscalYear}`
-
-      );
-
-      router.refresh();
+      window.location.assign(`/stock-card/inspection-history/${fiscalYear}`);
 
     } catch (cause) {
 
