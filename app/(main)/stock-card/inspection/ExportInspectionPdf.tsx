@@ -236,30 +236,6 @@ function fitFontSize(
 /* =========================================================
    COMPONENT
 \========================================================= */
-/* ตัดบรรทัดตามคำภาษาไทย โดยไม่ตัดชื่อวัสดุกลางคำ */
-function wrapThaiMaterialName(doc: jsPDF, name: string, maxWidth: number): string {
-  const text = name.trim().replace(/\s+/g, " ");
-  if (!text) return "";
-  setThaiFont(doc, TABLE_FONT_SIZE);
-  const words = Array.from(
-    new Intl.Segmenter("th", { granularity: "word" }).segment(text),
-    (item) => item.segment
-  );
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const next = line + word;
-    if (line && doc.getTextWidth(next) > maxWidth) {
-      lines.push(line.trim());
-      line = word.trimStart();
-    } else {
-      line = next;
-    }
-  }
-  if (line.trim()) lines.push(line.trim());
-  return lines.join("\n");
-}
-
 export default function ExportInspectionPdf({
   fiscalYear,
   startShortYear,
