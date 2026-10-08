@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import AppCard from "@/components/AppCard";
 import AppTableCard from "@/components/AppTableCard";
 import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
@@ -44,17 +44,15 @@ function shouldShow(material: Material) {
   const name = material.name.trim();
   if (/\(สสส\.\)\s*$/u.test(name)) return false;
   if (material.category === "ELECTRIC" &&
-      /ถ่านกระดุม\s*ขนาด\s*CR2032/iu.test(name)) return false;
+      /ถ่านกระดุม/iu.test(name)) return false;
   return true;
 }
 function display(value: string | number | null | undefined) {
   return value === null || value === undefined || value === "" ? "-" : String(value);
 }
-const th = "border border-slate-300 bg-gradient-to-r from-slate-800 to-slate-700 px-3 py-3 text-center text-xs font-bold !text-white whitespace-nowrap";
-const td = "border border-slate-200 px-3 py-2 text-center text-xs !text-slate-800";
-const headings = ["ลำดับ", "รหัสวัสดุ", "ชื่อหรือชนิดวัสดุหรือครุภัณฑ์", "หน่วยนับ",
-  "ยอดยกมา", "รับ", "จ่าย", "คงเหลือ", "ถูกต้อง", "ไม่ถูกต้อง",
-  "ขาด", "เกิน", "บาท", "สตางค์", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้", "หมายเหตุ"];
+const th = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle text-sm font-extrabold !text-white";
+const td = "border border-black px-2 py-3 text-center align-middle text-sm font-semibold !text-slate-800";
+const categoryOrder = ["OFFICE", "COMPUTER", "ELECTRIC", "HOUSEHOLD", "VEHICLE", "PRINTING"];
 export default function InspectionHistoryView({ fiscalYear, startShortYear, endShortYear,
   materials, rows, officers, inspectorIds, inspectionStartDate, inspectionEndDate }: Props) {
   const [search, setSearch] = useState("");
@@ -114,19 +112,71 @@ export default function InspectionHistoryView({ fiscalYear, startShortYear, endS
         </div>
         <div className="border-b border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500">เลื่อนตารางซ้าย–ขวา เพื่อดูข้อมูลทั้งหมด</div>
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-          <table className="w-max min-w-full border-collapse text-sm">
-            <thead><tr>{headings.map(h => <th key={h} className={th}>{h}</th>)}</tr></thead>
+          <table className="w-full min-w-[1710px] table-fixed border-collapse bg-white text-[15px]">
+            <colgroup>
+              {[42,372,72,132,84,84,90,60,78,66,66,60,60,84,90,108,162].map((width,index) => (
+                <col key={index} style={{ width: `${width}px` }} />
+              ))}
+            </colgroup>
+            <thead>
+              <tr>
+                <th rowSpan={2} className={th}>ลำดับ</th>
+                <th rowSpan={2} className={th}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
+                <th rowSpan={2} className={th}>หน่วยนับ</th>
+                <th rowSpan={2} className={th}>
+                  <div>คงเหลือยอดยกมาเมื่อ</div><div>30 ก.ย. {startShortYear}</div>
+                </th>
+                <th colSpan={2} className={th}>{`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}</th>
+                <th rowSpan={2} className={th}>คงเหลือปัจจุบัน</th>
+                <th rowSpan={2} className={th}>ถูกต้อง</th>
+                <th rowSpan={2} className={th}>ไม่ถูกต้อง</th>
+                <th colSpan={4} className={th}>รายละเอียดกรณีไม่ถูกต้อง</th>
+                <th rowSpan={2} className={th}>ชำรุด</th>
+                <th rowSpan={2} className={th}>เสื่อมสภาพ</th>
+                <th rowSpan={2} className={th}>ไม่จำเป็นต้องใช้</th>
+                <th rowSpan={2} className={th}>หมายเหตุ</th>
+              </tr>
+              <tr>
+                {["รับ","จ่าย","ขาด","เกิน","บาท","สต."].map(label => (
+                  <th key={label} className={`${th} !py-1`}>{label}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
-              {visible.length === 0 && <tr><td colSpan={headings.length} className="p-8 text-center text-slate-500">ไม่พบรายการ</td></tr>}
-              {visible.map((m,index) => {
-                const r = saved.get(m.materialId);
-                const values = [index+1,m.code,m.name,m.unit,m.openingBalance,m.receiveQty,m.issueQty,m.closingBalance,
-                  r?.accuracy === "CORRECT" ? "◉" : "○", r?.accuracy === "INCORRECT" ? "◉" : "○",
-                  r?.shortageQty,r?.excessQty,r?.baht,r?.satang,r?.damagedQty,r?.deterioratedQty,r?.unnecessaryQty,r?.remark];
-                return <tr key={m.materialId} className={index % 2 ? "bg-slate-50/70" : "bg-white"}>
-                  {values.map((value,i) => <td key={i} className={`${td} ${i===2 ? "min-w-[250px] text-left" : "whitespace-nowrap"}`}>
-                    {i===8 || i===9 ? value : display(value)}
-                  </td>)}
+              {visible.length === 0 && (
+                <tr><td colSpan={17} className={`${td} py-12`}>ไม่พบรายการพัสดุ</td></tr>
+              )}
+              {categoryOrder.map(category => {
+                const items = visible.filter(material => material.category === category);
+                if (!items.length) return null;
+                return <Fragment key={category}>
+                  <tr><td colSpan={17} className="border border-black bg-slate-100 px-4 py-2 text-left font-extrabold !text-slate-900">
+                    {categoryNames[category] ?? category}
+                  </td></tr>
+                  {items.map((material,index) => {
+                    const row = saved.get(material.materialId);
+                    const values = [
+                      index + 1, material.name, material.unit,
+                      material.openingBalance, material.receiveQty, material.issueQty, material.closingBalance,
+                      row?.accuracy === "CORRECT" ? "✓" : "", row?.accuracy === "INCORRECT" ? "✓" : "",
+                      row?.shortageQty, row?.excessQty, row?.baht, row?.satang,
+                      row?.damagedQty, row?.deterioratedQty, row?.unnecessaryQty, row?.remark
+                    ];
+                    return <tr key={material.materialId} className={index % 2 ? "bg-slate-50/70" : "bg-white"}>
+                      {values.map((value,i) => <td key={i} className={`${td} ${i === 1 ? "text-left" : ""}`}>
+                        {i === 1 ? <><div className="font-extrabold">{material.name}</div><div className="text-xs text-slate-500">รหัส {material.code}</div></> : display(value)}
+                      </td>)}
+                    </tr>;
+                  })}
+                </Fragment>;
+              })}
+              {visible.filter(m => !categoryOrder.includes(m.category)).map((material,index) => {
+                const row = saved.get(material.materialId);
+                const values = [index+1,material.name,material.unit,material.openingBalance,material.receiveQty,material.issueQty,material.closingBalance,
+                  row?.accuracy === "CORRECT" ? "✓" : "",row?.accuracy === "INCORRECT" ? "✓" : "",row?.shortageQty,row?.excessQty,row?.baht,row?.satang,
+                  row?.damagedQty,row?.deterioratedQty,row?.unnecessaryQty,row?.remark];
+                return <tr key={material.materialId} className={index % 2 ? "bg-slate-50/70" : "bg-white"}>
+                  {values.map((value,i) => <td key={i} className={`${td} ${i===1 ? "text-left" : ""}`}>{i===1 ? <><div className="font-extrabold">{material.name}</div><div className="text-xs text-slate-500">รหัส {material.code}</div></> : display(value)}</td>)}
                 </tr>;
               })}
             </tbody>

@@ -1159,13 +1159,18 @@ export default function EditInspectionForm({
               "th"
             );
 
-        if (
-          !keyword
-        ) {
-          return rows;
+        const allowedRows = rows.filter((row) => {
+          const name = row.name.trim();
+          if (/\(สสส\.\)\s*$/u.test(name)) return false;
+          if (row.category === "ELECTRIC" && /ถ่านกระดุม/iu.test(name)) return false;
+          return true;
+        });
+
+        if (!keyword) {
+          return allowedRows;
         }
 
-        return rows.filter(
+        return allowedRows.filter(
           (
             row
           ) => {
@@ -1650,6 +1655,8 @@ export default function EditInspectionForm({
      FIELD STYLE
   ======================================================= */
 
+  const inspectionHeaderClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle text-sm font-extrabold !text-white";
+
   const numberInputClass =
     `
       h-10
@@ -2008,312 +2015,50 @@ export default function EditInspectionForm({
           <table
             className="
               w-full
-              min-w-[2050px]
+              min-w-[1710px]
 
+              table-fixed
               border-collapse
 
               bg-white
 
-              text-sm
+              text-[15px]
             "
           >
+            <colgroup>
+              {[42,372,72,132,84,84,90,60,78,66,66,60,60,84,90,108,162].map((width, index) => (
+                <col key={index} style={{ width: `${width}px` }} />
+              ))}
+            </colgroup>
             {/* =================================================
                 HEADER
             ================================================= */}
 
             <thead>
               <tr>
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  ลำดับ
+                <th rowSpan={2} className={inspectionHeaderClass}>ลำดับ</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>หน่วยนับ</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>
+                  <div>คงเหลือยอดยกมาเมื่อ</div>
+                  <div>30 ก.ย. {String(fiscalYear - 1).slice(-2)}</div>
                 </th>
-
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    min-w-[280px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-3
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  รายการพัสดุ
+                <th colSpan={2} className={inspectionHeaderClass}>
+                  {`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}
                 </th>
-
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  หน่วยนับ
-                </th>
-
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    min-w-[140px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  <div>
-                    คงเหลือยอดยกมาเมื่อ
-                  </div>
-
-                  <div className="mt-1 whitespace-nowrap">
-                    30 ก.ย.{" "}
-                    {
-                      fiscalYear -
-                      1
-                    }
-                  </div>
-                </th>
-
-                <th
-                  colSpan={
-                    2
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  {`01 ต.ค. ${
-                    fiscalYear -
-                    1
-                  } - 30 ก.ย. ${fiscalYear}`}
-                </th>
-
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  ยกไป
-                </th>
-
-                <th
-                  colSpan={
-                    6
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  ผลการตรวจสอบยอดคงเหลือตามบัญชีหรือทะเบียน
-                </th>
-
-                <th
-                  colSpan={
-                    3
-                  }
-                  className="
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  สภาพพัสดุที่ตรวจสอบ
-                </th>
-
-                <th
-                  rowSpan={
-                    2
-                  }
-                  className="
-                    min-w-[220px]
-
-                    border
-                    border-black
-
-                    bg-gradient-to-r
-                    from-slate-800
-                    to-slate-700
-
-                    px-2
-                    py-3
-
-                    text-center
-                    align-middle
-                    font-extrabold
-
-                    !text-white
-                  "
-                >
-                  หมายเหตุ
-                </th>
+                <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือปัจจุบัน</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ถูกต้อง</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ไม่ถูกต้อง</th>
+                <th colSpan={4} className={inspectionHeaderClass}>รายละเอียดกรณีไม่ถูกต้อง</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ชำรุด</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>เสื่อมสภาพ</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ไม่จำเป็นต้องใช้</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>หมายเหตุ</th>
               </tr>
-
               <tr>
-                {[
-                  "รับ",
-                  "จ่าย",
-                  "ถูกต้อง",
-                  "ไม่ถูกต้อง",
-                  "ขาด",
-                  "เกิน",
-                  "บาท",
-                  "สต.",
-                  "ชำรุด",
-                  "เสื่อมสภาพ",
-                  "ไม่จำเป็นต้องใช้",
-                ].map(
-                  (
-                    title
-                  ) => (
-                    <th
-                      key={
-                        title
-                      }
-                      className="
-                        whitespace-nowrap
-
-                        border
-                        border-black
-
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-
-                        px-2
-                        py-2.5
-
-                        text-center
-                        font-extrabold
-
-                        !text-white
-                      "
-                    >
-                      {
-                        title
-                      }
-                    </th>
-                  )
-                )}
+                {["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต."].map((title) => (
+                  <th key={title} className={`${inspectionHeaderClass} !py-1`}>{title}</th>
+                ))}
               </tr>
             </thead>
 
