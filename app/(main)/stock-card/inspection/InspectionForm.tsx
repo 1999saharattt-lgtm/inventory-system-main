@@ -481,7 +481,7 @@ function IOSDatePicker({
           flex h-[46px] w-full min-w-0
           items-center justify-between gap-3
           rounded-[14px]
-          border-2 !border-black
+          border border-slate-200
           bg-white px-4
           text-left text-sm font-bold
           !text-slate-900
@@ -947,8 +947,7 @@ export default function InspectionForm({
     w-full
     min-w-0
     rounded-[4px]
-    border-2
-    !border-black
+    border border-slate-200
     bg-white
     px-1
     text-center
@@ -1683,7 +1682,7 @@ function MaterialCategoryRows({
                 className="
                   h-[22px] w-full
                   rounded-none
-                  border-2 !border-black
+                  border-0
                   bg-transparent px-1
                   text-left text-[15px]
                   font-normal leading-none
