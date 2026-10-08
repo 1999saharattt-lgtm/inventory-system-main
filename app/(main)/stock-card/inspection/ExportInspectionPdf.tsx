@@ -535,7 +535,7 @@ export default function ExportInspectionPdf({
 
         centerX,
 
-        startY,
+        startY + 6,
 
         { align: "center" }
 
@@ -705,9 +705,14 @@ export default function ExportInspectionPdf({
 
     }
 
-    const exportMaterials = materials.filter(
-      (material) => !/\(สสส\.\)\s*$/.test(material.name.trim())
-    );
+    const exportMaterials = materials.filter((material) => {
+      const name = material.name.trim();
+      const isSSS = /\(สสส\.\)\s*$/.test(name);
+      const isCR2032 =
+        material.category === "ELECTRIC" &&
+        /^ถ่านกระดุม\s*ขนาด\s*CR2032$/i.test(name);
+      return !isSSS && !isCR2032;
+    });
 
     if (exportMaterials.length === 0) {
       alert("ไม่มีรายการพัสดุสำหรับส่งออก PDF หลังตัดรายการ (สสส.)");
@@ -761,6 +766,7 @@ export default function ExportInspectionPdf({
       })).filter((group) => group.materials.length > 0);
 
       let firstPage = true;
+      let runningItemNumber = 0;
 
       for (const group of groups) {
 
@@ -846,7 +852,7 @@ export default function ExportInspectionPdf({
 
           }
 
-          pageMaterials.forEach((material, localIndex) => {
+          pageMaterials.forEach((material) => {
 
             const inspectionRow = rowMap.get(
 
@@ -856,7 +862,7 @@ export default function ExportInspectionPdf({
 
             body.push([
 
-              String(startIndex + localIndex + 1),
+              String(++runningItemNumber),
 
               material.name,
 
