@@ -1750,6 +1750,8 @@ export default async function StockCardInspectionHistoryEditPage({
 
 
 
+    inspectionEndDate: formatDateOnly(inspection.inspectionEndDate),
+
     inspectorIds:
 
       parseInspectorIds(

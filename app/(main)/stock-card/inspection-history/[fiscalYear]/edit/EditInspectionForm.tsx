@@ -12,6 +12,7 @@ import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
+import ExportInspectionPdf from "../../../inspection/ExportInspectionPdf";
 
 /* =========================================================
    TYPES
@@ -66,6 +67,7 @@ type InitialData = {
   fiscalYear: number;
 
   inspectionDate: string;
+  inspectionEndDate?: string;
 
   inspectorIds: string[];
 
@@ -1049,6 +1051,8 @@ export default function EditInspectionForm({
     initialData.inspectionDate
   );
 
+  const [inspectionEndDate, setInspectionEndDate] = useState(initialData.inspectionEndDate ?? "");
+
   const [
     inspectorIds,
     setInspectorIds,
@@ -1550,6 +1554,7 @@ export default function EditInspectionForm({
                   fiscalYear,
 
                   inspectionDate,
+                  inspectionEndDate: inspectionEndDate || null,
 
                   inspectorIds:
                     inspectorIds.map(
@@ -1655,7 +1660,7 @@ export default function EditInspectionForm({
      FIELD STYLE
   ======================================================= */
 
-  const inspectionHeaderClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle text-sm font-extrabold !text-white";
+  const inspectionHeaderClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-3 text-center align-middle text-sm font-extrabold !text-white whitespace-normal break-words";
 
   const numberInputClass =
     `
@@ -1857,7 +1862,7 @@ export default function EditInspectionForm({
                 !text-slate-700
               "
             >
-              วันที่ตรวจสอบ
+              วันที่เริ่มตรวจสอบ
             </label>
 
             <IOSDatePicker
@@ -1869,6 +1874,10 @@ export default function EditInspectionForm({
                 setInspectionDate
               }
             />
+            <label htmlFor="inspectionEndDate" className="mb-2 mt-4 block text-sm font-extrabold !text-slate-700">
+              วันที่ตรวจสอบแล้วเสร็จ
+            </label>
+            <IOSDatePicker id="inspectionEndDate" value={inspectionEndDate} onChange={setInspectionEndDate} />
           </div>
         </div>
       </AppCard>
@@ -1996,6 +2005,17 @@ export default function EditInspectionForm({
             >
               ไม่ถูกต้องทั้งหมด
             </AppButton>
+            <ExportInspectionPdf
+              fiscalYear={fiscalYear}
+              startShortYear={String(fiscalYear - 1).slice(-2)}
+              endShortYear={String(fiscalYear).slice(-2)}
+              materials={rows.map(r => ({ materialId: r.materialId, code: r.code, name: r.name, unit: r.unit, category: r.category, openingBalance: r.openingQty, receiveQty: r.receiveQty, issueQty: r.issueQty, closingBalance: r.closingQty }))}
+              rows={rows}
+              inspectionStartDate={inspectionDate}
+              inspectionEndDate={inspectionEndDate}
+              inspectorIds={inspectorIds}
+              officers={officers.map(o => ({ ...o, position: o.position ?? "", type: "", departmentId: o.department?.id ?? null, sectionId: o.section?.id ?? null }))}
+            />
           </div>
         </div>
 
@@ -2008,13 +2028,13 @@ export default function EditInspectionForm({
             w-full
             min-w-0
 
-            overflow-x-auto
+            overflow-x-scroll
             overscroll-x-contain
           "
         >
           <table
             className="
-              w-full
+              w-[1710px]
               min-w-[1710px]
 
               table-fixed
@@ -2532,22 +2552,6 @@ function CategoryRows({
               >
                 {
                   row.name
-                }
-              </div>
-
-              <div
-                className="
-                  mt-1
-
-                  text-xs
-                  font-semibold
-
-                  !text-slate-500
-                "
-              >
-                รหัส{" "}
-                {
-                  row.code
                 }
               </div>
             </td>

@@ -138,6 +138,48 @@ function getThaiMonthYear(value: string) {
 function getThaiDay(value: string) {
   return parseDateOnly(value)?.getDate().toString() ?? "";
 }
+function wrapThaiMaterialName(doc: jsPDF, name: string, maxWidth: number): string[] {
+  setThaiFont(doc, TABLE_FONT_SIZE);
+  const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+  const words = Array.from(segmenter.segment(name), (part) => part.segment);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    if (doc.getTextWidth(line + word) <= maxWidth) {
+      line += word;
+      continue;
+    }
+    if (line.trim()) {
+      lines.push(line.trimEnd());
+      line = "";
+    }
+    if (doc.getTextWidth(word) <= maxWidth) {
+      line = word.trimStart();
+      continue;
+    }
+    // Very long unbroken token: break by grapheme, never truncate text.
+    const graphemes = Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(word), p => p.segment);
+    for (const char of graphemes) {
+      if (line && doc.getTextWidth(line + char) > maxWidth) {
+        lines.push(line);
+        line = "";
+      }
+      line += char;
+    }
+  }
+  if (line.trim()) lines.push(line.trimEnd());
+  return lines.length ? lines : [name];
+}
+
+function getPdfUnit(material: Material): string {
+  const name = material.name.trim();
+  if (material.unit.trim() === "ห่อ") return "แพ็ค";
+  if (/^ถ่านชาร์จ\s*ขนาด\s*AAA?\s*\(Rechargeable Battery\)$/iu.test(name)) {
+    return "แพ็ค";
+  }
+  return material.unit || "-";
+}
+
 function displayStockValue(value: number): string {
   if (!Number.isFinite(value) || value === 0) {
     return "-";
@@ -443,7 +485,7 @@ export default function ExportInspectionPdf({
                     top: 0.2,
                     right: 1,
                     bottom: 0.2,
-                    left: 3.5,
+                    left: 0.8,
                   },
                   minCellHeight: BODY_ROW_HEIGHT,
                   fillColor: [255, 255, 255],
@@ -461,7 +503,7 @@ export default function ExportInspectionPdf({
             body.push([
               String(++runningItemNumber),
               material.name,
-              material.unit || "-",
+              getPdfUnit(material),
               displayStockValue(material.openingBalance),
               displayStockValue(material.receiveQty),
               displayStockValue(material.issueQty),
@@ -550,7 +592,7 @@ export default function ExportInspectionPdf({
               top: 0.3,
               right: 1,
               bottom: 0.3,
-              left: 3,
+              left: 0.8,
             },
           };
           columnStyles[16] = {
@@ -623,7 +665,7 @@ export default function ExportInspectionPdf({
               cell.styles.font = FONT_NAME;
               cell.styles.fontStyle = FONT_STYLE;
               cell.styles.valign = "middle";
-              cell.styles.overflow = data.section === "head" ? "linebreak" : "hidden";
+              cell.styles.overflow = "linebreak";
               if (data.section === "head") {
                 /*
                  * คำนวณพื้นที่ตามคอลัมน์จริง
@@ -657,14 +699,13 @@ export default function ExportInspectionPdf({
               if (data.section === "body") {
                 // แถวชื่อหมวดวัสดุ: เว้นจากขอบซ้ายโดยไม่กระทบแถวพัสดุ
                 if (cell.colSpan === 17) {
-                  cell.styles.minCellHeight = 4.2;
-                    cell.styles.minCellHeight = 4.2;
+                  cell.styles.minCellHeight = BODY_ROW_HEIGHT;
                   cell.styles.halign = "left";
                   cell.styles.cellPadding = {
                     top: 0.2,
                     right: 1,
                     bottom: 0.2,
-                    left: 3.5,
+                    left: 0.8,
                   };
                   return;
                 }
@@ -680,7 +721,7 @@ export default function ExportInspectionPdf({
                     top: 0.3,
                     right: 1,
                     bottom: 0.3,
-                    left: 3,
+                    left: 0.8,
                   };
                 } else if (data.column.index === 16) {
                   cell.styles.halign = "left";
