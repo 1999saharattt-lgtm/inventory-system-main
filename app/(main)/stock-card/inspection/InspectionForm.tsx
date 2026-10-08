@@ -1,6 +1,4 @@
-
 "use client";
-
 import {
   useCallback,
   useEffect,
@@ -9,19 +7,15 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
-
 import ExportInspectionPdf from "./ExportInspectionPdf";
-
 /* =========================================================
    TYPES
-========================================================= */
-
+\========================================================= */
 type Material = {
   materialId: number;
   code: string;
@@ -33,7 +27,6 @@ type Material = {
   issueQty: number;
   closingBalance: number;
 };
-
 type Officer = {
   id: number;
   firstName: string;
@@ -51,7 +44,6 @@ type Officer = {
     name: string;
   } | null;
 };
-
 type InspectionRow = {
   materialId: number;
   accuracy: string;
@@ -64,7 +56,6 @@ type InspectionRow = {
   unnecessaryQty: string;
   remark: string;
 };
-
 type Props = {
   fiscalYear: number;
   startShortYear: string;
@@ -72,23 +63,19 @@ type Props = {
   materials: Material[];
   officers: Officer[];
 };
-
 type IOSDatePickerProps = {
   id: string;
   value: string;
   onChange: (value: string) => void;
 };
-
 type CalendarPosition = {
   top: number;
   left: number;
   width: number;
 };
-
 /* =========================================================
    CONSTANTS
-========================================================= */
-
+\========================================================= */
 const CATEGORY_ORDER = [
   "OFFICE",
   "COMPUTER",
@@ -97,7 +84,6 @@ const CATEGORY_ORDER = [
   "VEHICLE",
   "PRINTING",
 ];
-
 const CATEGORY_NAME: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
@@ -106,7 +92,6 @@ const CATEGORY_NAME: Record<string, string> = {
   VEHICLE: "วัสดุยานพาหนะ",
   PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
-
 const THAI_MONTHS = [
   "มกราคม",
   "กุมภาพันธ์",
@@ -121,7 +106,6 @@ const THAI_MONTHS = [
   "พฤศจิกายน",
   "ธันวาคม",
 ];
-
 const THAI_WEEK_DAYS = [
   "อา",
   "จ",
@@ -131,13 +115,10 @@ const THAI_WEEK_DAYS = [
   "ศ",
   "ส",
 ];
-
 const TABLE_MIN_WIDTH = 1710;
-
 /* =========================================================
    DATE HELPERS
-========================================================= */
-
+\========================================================= */
 function getCurrentDate() {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "Asia/Bangkok",
@@ -145,25 +126,18 @@ function getCurrentDate() {
     month: "2-digit",
     day: "2-digit",
   }).formatToParts(new Date());
-
   const year = parts.find((p) => p.type === "year")?.value;
   const month = parts.find((p) => p.type === "month")?.value;
   const day = parts.find((p) => p.type === "day")?.value;
-
   return `${year}-${month}-${day}`;
 }
-
 function parseDateOnly(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-
   if (!match) return null;
-
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-
   const date = new Date(year, month - 1, day);
-
   if (
     date.getFullYear() !== year ||
     date.getMonth() !== month - 1 ||
@@ -171,10 +145,8 @@ function parseDateOnly(value: string) {
   ) {
     return null;
   }
-
   return date;
 }
-
 function toDateValue(
   year: number,
   month: number,
@@ -186,20 +158,15 @@ function toDateValue(
     String(day).padStart(2, "0"),
   ].join("-");
 }
-
 function formatThaiDate(value: string) {
   const date = parseDateOnly(value);
-
   if (!date) return "";
-
   return `${date.getDate()} ${
     THAI_MONTHS[date.getMonth()]
   } ${date.getFullYear() + 543}`;
 }
-
 /* =========================================================
    IOS DATE PICKER
-
    FIX:
    - Render calendar through Portal
    - Fixed positioning
@@ -207,8 +174,7 @@ function formatThaiDate(value: string) {
    - Auto flip above when insufficient space
    - Close on outside click / Escape
    - Reposition on scroll and resize
-========================================================= */
-
+\========================================================= */
 function IOSDatePicker({
   id,
   value,
@@ -217,102 +183,74 @@ function IOSDatePicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
-
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
-
   const [position, setPosition] = useState<CalendarPosition>({
     top: 0,
     left: 0,
     width: 330,
   });
-
   const selectedDate = parseDateOnly(value);
-
   const [displayYear, setDisplayYear] = useState(() => {
     const date = parseDateOnly(value) ?? parseDateOnly(getCurrentDate())!;
     return date.getFullYear();
   });
-
   const [displayMonth, setDisplayMonth] = useState(() => {
     const date = parseDateOnly(value) ?? parseDateOnly(getCurrentDate())!;
     return date.getMonth();
   });
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
   useEffect(() => {
     const date = parseDateOnly(value);
-
     if (!date) return;
-
     setDisplayYear(date.getFullYear());
     setDisplayMonth(date.getMonth());
   }, [value]);
-
   const updatePosition = useCallback(() => {
     const button = buttonRef.current;
-
     if (!button) return;
-
     const rect = button.getBoundingClientRect();
-
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-
     const margin = 12;
     const gap = 8;
-
     const popupWidth = Math.min(
       330,
       Math.max(240, viewportWidth - margin * 2)
     );
-
     const popupHeight =
       popupRef.current?.getBoundingClientRect().height ?? 370;
-
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
-
     const shouldOpenAbove =
       spaceBelow < popupHeight + gap + margin &&
       spaceAbove > spaceBelow;
-
     let top = shouldOpenAbove
       ? rect.top - popupHeight - gap
       : rect.bottom + gap;
-
     top = Math.max(
       margin,
       Math.min(top, viewportHeight - popupHeight - margin)
     );
-
     let left = rect.left;
-
     left = Math.max(
       margin,
       Math.min(left, viewportWidth - popupWidth - margin)
     );
-
     setPosition({
       top,
       left,
       width: popupWidth,
     });
   }, []);
-
   useEffect(() => {
     if (!open) return;
-
     updatePosition();
-
     const frame = window.requestAnimationFrame(updatePosition);
-
     function handleOutside(event: PointerEvent) {
       const target = event.target as Node;
-
       if (
         !containerRef.current?.contains(target) &&
         !popupRef.current?.contains(target)
@@ -320,57 +258,44 @@ function IOSDatePicker({
         setOpen(false);
       }
     }
-
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpen(false);
         buttonRef.current?.focus();
       }
     }
-
     document.addEventListener("pointerdown", handleOutside);
     document.addEventListener("keydown", handleKeyDown);
-
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
-
     return () => {
       window.cancelAnimationFrame(frame);
-
       document.removeEventListener("pointerdown", handleOutside);
       document.removeEventListener("keydown", handleKeyDown);
-
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
   }, [open, updatePosition]);
-
   const firstDay = new Date(
     displayYear,
     displayMonth,
     1
   ).getDay();
-
   const daysInMonth = new Date(
     displayYear,
     displayMonth + 1,
     0
   ).getDate();
-
   const calendarCells: Array<number | null> = [];
-
   for (let i = 0; i < firstDay; i++) {
     calendarCells.push(null);
   }
-
   for (let day = 1; day <= daysInMonth; day++) {
     calendarCells.push(day);
   }
-
   while (calendarCells.length % 7 !== 0) {
     calendarCells.push(null);
   }
-
   function previousMonth() {
     if (displayMonth === 0) {
       setDisplayMonth(11);
@@ -379,7 +304,6 @@ function IOSDatePicker({
       setDisplayMonth((current) => current - 1);
     }
   }
-
   function nextMonth() {
     if (displayMonth === 11) {
       setDisplayMonth(0);
@@ -388,17 +312,13 @@ function IOSDatePicker({
       setDisplayMonth((current) => current + 1);
     }
   }
-
   function selectDay(day: number) {
     onChange(toDateValue(displayYear, displayMonth, day));
     setOpen(false);
   }
-
   function selectToday() {
     const today = parseDateOnly(getCurrentDate());
-
     if (!today) return;
-
     onChange(
       toDateValue(
         today.getFullYear(),
@@ -406,12 +326,10 @@ function IOSDatePicker({
         today.getDate()
       )
     );
-
     setDisplayYear(today.getFullYear());
     setDisplayMonth(today.getMonth());
     setOpen(false);
   }
-
   const calendar = (
     <div
       ref={popupRef}
@@ -447,7 +365,6 @@ function IOSDatePicker({
         >
           ‹
         </button>
-
         <div className="text-center">
           <div className="text-base font-black !text-slate-900">
             {THAI_MONTHS[displayMonth]}
@@ -456,7 +373,6 @@ function IOSDatePicker({
             พ.ศ. {displayYear + 543}
           </div>
         </div>
-
         <button
           type="button"
           onClick={nextMonth}
@@ -471,7 +387,6 @@ function IOSDatePicker({
           ›
         </button>
       </div>
-
       <div className="grid grid-cols-7 gap-1">
         {THAI_WEEK_DAYS.map((day) => (
           <div
@@ -485,19 +400,16 @@ function IOSDatePicker({
           </div>
         ))}
       </div>
-
       <div className="mt-1 grid grid-cols-7 gap-1">
         {calendarCells.map((day, index) => {
           if (day === null) {
             return <div key={`empty-${index}`} className="h-9" />;
           }
-
           const selected =
             selectedDate !== null &&
             selectedDate.getFullYear() === displayYear &&
             selectedDate.getMonth() === displayMonth &&
             selectedDate.getDate() === day;
-
           return (
             <button
               key={day}
@@ -519,7 +431,6 @@ function IOSDatePicker({
           );
         })}
       </div>
-
       <div
         className="
           mt-3 flex items-center justify-between
@@ -540,7 +451,6 @@ function IOSDatePicker({
         >
           ล้างวันที่
         </button>
-
         <button
           type="button"
           onClick={selectToday}
@@ -555,7 +465,6 @@ function IOSDatePicker({
       </div>
     </div>
   );
-
   return (
     <div
       ref={containerRef}
@@ -589,21 +498,17 @@ function IOSDatePicker({
         >
           {value ? formatThaiDate(value) : "เลือกวันที่"}
         </span>
-
         <span aria-hidden="true" className="shrink-0 text-base">
           📅
         </span>
       </button>
-
       {mounted && open && createPortal(calendar, document.body)}
     </div>
   );
 }
-
 /* =========================================================
    INITIAL ROWS
-========================================================= */
-
+\========================================================= */
 function createInitialRows(
   materials: Material[]
 ): InspectionRow[] {
@@ -620,108 +525,78 @@ function createInitialRows(
     remark: "",
   }));
 }
-
 /* =========================================================
    STOCK DISPLAY
-
    Opening / Receive / Issue:
    0 => "-"
-
    Closing balance:
    0 => "0"
-========================================================= */
-
+\========================================================= */
 function displayStockValue(value: number) {
   if (!Number.isFinite(value) || value === 0) {
     return "-";
   }
-
   return value.toLocaleString("th-TH");
 }
-
 function displayClosingBalance(value: number | null | undefined) {
   const number = Number(value ?? 0);
-
   if (!Number.isFinite(number)) {
     return "0";
   }
-
   return number.toLocaleString("th-TH");
 }
-
 /* =========================================================
    OPTIONAL INTEGER
-========================================================= */
-
+\========================================================= */
 function isValidOptionalInteger(value: string) {
   if (value.trim() === "") return true;
-
   const number = Number(value);
-
   return Number.isInteger(number) && number >= 0;
 }
-
 /* =========================================================
    SYNCHRONIZED HORIZONTAL SCROLL
-
    Top scrollbar and table scrollbar
    share the same scrollLeft.
-========================================================= */
-
+\========================================================= */
 function useSynchronizedTableScroll() {
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLTableElement>(null);
-
   const [scrollWidth, setScrollWidth] = useState(TABLE_MIN_WIDTH);
   const [canScroll, setCanScroll] = useState(false);
-
   const syncFromTop = useCallback(() => {
     if (!topRef.current || !bottomRef.current) return;
-
     bottomRef.current.scrollLeft = topRef.current.scrollLeft;
   }, []);
-
   const syncFromBottom = useCallback(() => {
     if (!topRef.current || !bottomRef.current) return;
-
     topRef.current.scrollLeft = bottomRef.current.scrollLeft;
   }, []);
-
   useEffect(() => {
     const top = topRef.current;
     const bottom = bottomRef.current;
     const table = contentRef.current;
-
     if (!top || !bottom || !table) return;
-
     function measure() {
-      const width = Math.max(
-        TABLE_MIN_WIDTH,
-        table?.scrollWidth ?? TABLE_MIN_WIDTH
-      );
-
+      const currentTop = topRef.current;
+      const currentBottom = bottomRef.current;
+      const currentTable = contentRef.current;
+      if (!currentTop || !currentBottom || !currentTable) return;
+      const width = Math.max(TABLE_MIN_WIDTH, currentTable.scrollWidth);
       setScrollWidth(width);
-      setCanScroll(width > bottom.clientWidth + 1);
-
-      top.scrollLeft = bottom.scrollLeft;
+      setCanScroll(width > currentBottom.clientWidth + 1);
+      currentTop.scrollLeft = currentBottom.scrollLeft;
     }
-
     measure();
-
     const observer = new ResizeObserver(measure);
-
     observer.observe(bottom);
     observer.observe(table);
-
     window.addEventListener("resize", measure);
-
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
   }, []);
-
   return {
     topRef,
     bottomRef,
@@ -732,11 +607,9 @@ function useSynchronizedTableScroll() {
     syncFromBottom,
   };
 }
-
 /* =========================================================
    MAIN COMPONENT
-========================================================= */
-
+\========================================================= */
 export default function InspectionForm({
   fiscalYear,
   startShortYear,
@@ -746,24 +619,19 @@ export default function InspectionForm({
 }: Props) {
   const [inspectionStartDate, setInspectionStartDate] =
     useState(getCurrentDate);
-
   const [inspectionEndDate, setInspectionEndDate] =
     useState(getCurrentDate);
-
   const [rows, setRows] = useState<InspectionRow[]>(
     () => createInitialRows(materials)
   );
-
   const [inspectorIds, setInspectorIds] = useState<string[]>([
     "",
     "",
     "",
   ]);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [isSaving, setIsSaving] = useState(false);
-
   const {
     topRef,
     bottomRef,
@@ -773,11 +641,9 @@ export default function InspectionForm({
     syncFromTop,
     syncFromBottom,
   } = useSynchronizedTableScroll();
-
   /* =======================================================
      MATERIAL MAP
   ======================================================= */
-
   const materialMap = useMemo(
     () =>
       new Map(
@@ -788,11 +654,9 @@ export default function InspectionForm({
       ),
     [materials]
   );
-
   /* =======================================================
      CATEGORY OPTIONS
   ======================================================= */
-
   const categoryOptions = useMemo(
     () => [
       {
@@ -806,14 +670,11 @@ export default function InspectionForm({
     ],
     []
   );
-
   /* =======================================================
      FILTER
   ======================================================= */
-
   const filteredMaterials = useMemo(() => {
     const keyword = searchTerm.trim().toLocaleLowerCase("th");
-
     return materials.filter((material) => {
       if (
         selectedCategory !== "ALL" &&
@@ -821,9 +682,7 @@ export default function InspectionForm({
       ) {
         return false;
       }
-
       if (!keyword) return true;
-
       const searchable = [
         material.code,
         material.name,
@@ -833,15 +692,12 @@ export default function InspectionForm({
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase("th");
-
       return searchable.includes(keyword);
     });
   }, [materials, searchTerm, selectedCategory]);
-
   /* =======================================================
      GROUP
   ======================================================= */
-
   const groupedMaterials = useMemo(
     () =>
       CATEGORY_ORDER.map((category) => ({
@@ -853,15 +709,12 @@ export default function InspectionForm({
       })).filter((group) => group.materials.length > 0),
     [filteredMaterials]
   );
-
   /* =======================================================
      ROW HELPERS
   ======================================================= */
-
   function getRow(materialId: number) {
     return rows.find((row) => row.materialId === materialId);
   }
-
   function updateRow(
     materialId: number,
     field:
@@ -886,7 +739,6 @@ export default function InspectionForm({
       )
     );
   }
-
   function updateAccuracy(materialId: number, accuracy: string) {
     setRows((current) =>
       current.map((row) =>
@@ -899,12 +751,10 @@ export default function InspectionForm({
       )
     );
   }
-
   function updateVisibleAccuracy(accuracy: string) {
     const visibleIds = new Set(
       filteredMaterials.map((material) => material.materialId)
     );
-
     setRows((current) =>
       current.map((row) =>
         visibleIds.has(row.materialId)
@@ -916,7 +766,6 @@ export default function InspectionForm({
       )
     );
   }
-
   function updateNumberField(
     materialId: number,
     field:
@@ -933,16 +782,12 @@ export default function InspectionForm({
       updateRow(materialId, field, "");
       return;
     }
-
     if (!/^\d+$/.test(value)) return;
-
     updateRow(materialId, field, value);
   }
-
   /* =======================================================
      INSPECTORS
   ======================================================= */
-
   function updateInspector(index: number, officerId: string) {
     setInspectorIds((current) => {
       const next = [...current];
@@ -950,7 +795,6 @@ export default function InspectionForm({
       return next;
     });
   }
-
   function isOfficerSelected(
     officerId: string,
     currentIndex: number
@@ -959,42 +803,34 @@ export default function InspectionForm({
       (id, index) => index !== currentIndex && id === officerId
     );
   }
-
   function getOfficer(officerId: string) {
     return officers.find(
       (officer) => String(officer.id) === officerId
     );
   }
-
   /* =======================================================
      SAVE
   ======================================================= */
-
   async function handleSave() {
     if (isSaving) return;
-
     if (!inspectionStartDate || !inspectionEndDate) {
       alert(
         "กรุณาระบุวันที่เริ่มตรวจสอบและวันที่ตรวจสอบแล้วเสร็จ"
       );
       return;
     }
-
     const startDate = parseDateOnly(inspectionStartDate);
     const endDate = parseDateOnly(inspectionEndDate);
-
     if (!startDate || !endDate) {
       alert("รูปแบบวันที่ตรวจสอบไม่ถูกต้อง");
       return;
     }
-
     if (endDate.getTime() < startDate.getTime()) {
       alert(
         "วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มตรวจสอบ"
       );
       return;
     }
-
     if (
       inspectorIds.length !== 3 ||
       inspectorIds.some((id) => !id)
@@ -1002,20 +838,16 @@ export default function InspectionForm({
       alert("กรุณาเลือกคณะกรรมการตรวจสอบให้ครบ 3 คน");
       return;
     }
-
     if (new Set(inspectorIds).size !== 3) {
       alert("ไม่สามารถเลือกคณะกรรมการตรวจสอบซ้ำกันได้");
       return;
     }
-
     if (rows.length === 0) {
       alert("ไม่พบรายการพัสดุสำหรับตรวจสอบ");
       return;
     }
-
     for (const row of rows) {
       const material = materialMap.get(row.materialId);
-
       if (!row.accuracy) {
         alert(
           `กรุณาระบุผลการตรวจสอบของรายการ "${
@@ -1024,7 +856,6 @@ export default function InspectionForm({
         );
         return;
       }
-
       const values = [
         row.shortageQty,
         row.excessQty,
@@ -1034,7 +865,6 @@ export default function InspectionForm({
         row.deterioratedQty,
         row.unnecessaryQty,
       ];
-
       if (values.some((value) => !isValidOptionalInteger(value))) {
         alert(
           `จำนวนของรายการ "${
@@ -1044,10 +874,8 @@ export default function InspectionForm({
         return;
       }
     }
-
     try {
       setIsSaving(true);
-
       const response = await fetch(
         "/api/stock-card/inspection",
         {
@@ -1075,7 +903,6 @@ export default function InspectionForm({
           }),
         }
       );
-
       let data:
         | {
             ok?: boolean;
@@ -1083,13 +910,11 @@ export default function InspectionForm({
             error?: string;
           }
         | null = null;
-
       try {
         data = await response.json();
       } catch {
         data = null;
       }
-
       if (!response.ok) {
         throw new Error(
           data?.message ||
@@ -1097,17 +922,14 @@ export default function InspectionForm({
             "ไม่สามารถบันทึกข้อมูลการตรวจสอบได้"
         );
       }
-
       alert(
         data?.message ||
           "บันทึกผลการตรวจสอบบัญชีพัสดุประจำปีเรียบร้อยแล้ว"
       );
-
       window.location.href =
         `/stock-card/inspection-history?fiscalYear=${fiscalYear}`;
     } catch (error) {
       console.error("Save stock card inspection error:", error);
-
       alert(
         error instanceof Error
           ? error.message
@@ -1117,11 +939,9 @@ export default function InspectionForm({
       setIsSaving(false);
     }
   }
-
   /* =======================================================
      TABLE INPUT STYLE
   ======================================================= */
-
   const compactInputClass = `
     h-[22px]
     w-full
@@ -1142,7 +962,6 @@ export default function InspectionForm({
     focus:ring-1
     focus:ring-blue-100
   `;
-
   const tableHeaderClass = `
     border border-black
     bg-gradient-to-r from-slate-800 to-slate-700
@@ -1151,17 +970,14 @@ export default function InspectionForm({
     text-[15px] font-extrabold leading-tight
     !text-white
   `;
-
   /* =========================================================
      UI
   ========================================================= */
-
   return (
     <div className="w-full min-w-0 space-y-4">
       {/* =====================================================
           1. INSPECTION INFO
       ===================================================== */}
-
       <AppCard
         padding={false}
         className="!overflow-visible !rounded-[22px]"
@@ -1182,7 +998,6 @@ export default function InspectionForm({
               >
                 ข้อมูลการตรวจสอบ
               </h2>
-
               <p
                 className="
                   mt-0.5 text-xs font-semibold
@@ -1192,7 +1007,6 @@ export default function InspectionForm({
                 ระบุช่วงวันที่ดำเนินการตรวจสอบ
               </p>
             </div>
-
             <div
               className="
                 grid min-w-0 flex-1
@@ -1209,14 +1023,12 @@ export default function InspectionForm({
                 >
                   วันที่เริ่มตรวจสอบ
                 </label>
-
                 <IOSDatePicker
                   id="inspectionStartDate"
                   value={inspectionStartDate}
                   onChange={setInspectionStartDate}
                 />
               </div>
-
               <div className="relative min-w-0">
                 <label
                   htmlFor="inspectionEndDate"
@@ -1227,7 +1039,6 @@ export default function InspectionForm({
                 >
                   วันที่ตรวจสอบแล้วเสร็จ
                 </label>
-
                 <IOSDatePicker
                   id="inspectionEndDate"
                   value={inspectionEndDate}
@@ -1238,11 +1049,9 @@ export default function InspectionForm({
           </div>
         </div>
       </AppCard>
-
       {/* =====================================================
           2. SEARCH
       ===================================================== */}
-
       <div className="relative z-10">
         <AppSearchInput
           value={searchTerm}
@@ -1260,11 +1069,9 @@ export default function InspectionForm({
           clearButtonText="ล้าง"
         />
       </div>
-
       {/* =====================================================
           3. TABLE
       ===================================================== */}
-
       <AppTableCard
         title="รายการตรวจสอบบัญชีพัสดุ"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
@@ -1274,7 +1081,6 @@ export default function InspectionForm({
         className="relative z-0 w-full min-w-0"
       >
         {/* CATEGORY / ACTIONS */}
-
         <div className="border-b border-slate-200 bg-white p-3">
           <div
             className="
@@ -1291,7 +1097,6 @@ export default function InspectionForm({
               >
                 เลือกหมวด
               </label>
-
               <AppSearchableSelect
                 value={selectedCategory}
                 options={categoryOptions}
@@ -1301,7 +1106,6 @@ export default function InspectionForm({
                 onChange={setSelectedCategory}
               />
             </div>
-
             <div className="flex flex-wrap items-center gap-2">
               <AppButton
                 type="button"
@@ -1311,7 +1115,6 @@ export default function InspectionForm({
               >
                 ถูกต้องทั้งหมด
               </AppButton>
-
               <AppButton
                 type="button"
                 variant="danger"
@@ -1320,7 +1123,6 @@ export default function InspectionForm({
               >
                 ไม่ถูกต้องทั้งหมด
               </AppButton>
-
               <ExportInspectionPdf
                 fiscalYear={fiscalYear}
                 startShortYear={startShortYear}
@@ -1335,15 +1137,12 @@ export default function InspectionForm({
             </div>
           </div>
         </div>
-
         {/* ===================================================
             TOP HORIZONTAL SCROLLBAR
-
             - Always positioned above the table
             - Synced with bottom scrollbar
             - Does not change table column widths
         =================================================== */}
-
         <div
           className="
             border-b border-slate-200
@@ -1354,14 +1153,12 @@ export default function InspectionForm({
             <span className="text-xs font-bold !text-slate-600">
               เลื่อนตารางซ้าย–ขวา
             </span>
-
             <span className="text-xs font-semibold !text-slate-500">
               {canScroll
                 ? "ลากแถบเลื่อนเพื่อดูคอลัมน์เพิ่มเติม"
                 : "แสดงคอลัมน์ครบแล้ว"}
             </span>
           </div>
-
           <div
             ref={topRef}
             onScroll={syncFromTop}
@@ -1385,11 +1182,9 @@ export default function InspectionForm({
             />
           </div>
         </div>
-
         {/* ===================================================
             TABLE SCROLL CONTAINER
         =================================================== */}
-
         <div
           ref={bottomRef}
           onScroll={syncFromBottom}
@@ -1415,65 +1210,50 @@ export default function InspectionForm({
                 <col key={index} style={{ width: `${width}px` }} />
               ))}
             </colgroup>
-
             {/* HEADER */}
-
             <thead>
               <tr>
                 <th rowSpan={2} className={tableHeaderClass}>
                   ลำดับ
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   ชื่อหรือชนิดวัสดุหรือครุภัณฑ์
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   หน่วยนับ
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   <div>คงเหลือยอดยกมาเมื่อ</div>
                   <div>30 ก.ย. {startShortYear}</div>
                 </th>
-
                 <th colSpan={2} className={tableHeaderClass}>
                   {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   คงเหลือปัจจุบัน
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   ถูกต้อง
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   ไม่ถูกต้อง
                 </th>
-
                 <th colSpan={4} className={tableHeaderClass}>
                   รายละเอียดกรณีไม่ถูกต้อง
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   ชำรุด
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   เสื่อมสภาพ
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   ไม่จำเป็นต้องใช้
                 </th>
-
                 <th rowSpan={2} className={tableHeaderClass}>
                   หมายเหตุ
                 </th>
               </tr>
-
               <tr>
                 {[
                   "รับ",
@@ -1492,9 +1272,7 @@ export default function InspectionForm({
                 ))}
               </tr>
             </thead>
-
             {/* BODY */}
-
             <tbody>
               {groupedMaterials.length === 0 ? (
                 <tr>
@@ -1530,11 +1308,9 @@ export default function InspectionForm({
           </table>
         </div>
       </AppTableCard>
-
       {/* =====================================================
           4. COMMITTEE
       ===================================================== */}
-
       <AppCard
         className="
           relative z-20
@@ -1551,7 +1327,6 @@ export default function InspectionForm({
           >
             คณะกรรมการตรวจสอบครุภัณฑ์
           </h2>
-
           <p
             className="
               mt-1 text-sm font-semibold
@@ -1561,7 +1336,6 @@ export default function InspectionForm({
             เลือกผู้ตรวจสอบจำนวน 3 คน โดยไม่สามารถเลือกรายชื่อซ้ำกันได้
           </p>
         </div>
-
         <div
           className="
             mt-4 grid grid-cols-1 gap-3
@@ -1572,7 +1346,6 @@ export default function InspectionForm({
             const officerOptions = officers
               .filter((officer) => {
                 const value = String(officer.id);
-
                 return (
                   value === inspectorId ||
                   !isOfficerSelected(value, index)
@@ -1590,7 +1363,6 @@ export default function InspectionForm({
                   .filter(Boolean)
                   .join(" / "),
               }));
-
             return (
               <div
                 key={index}
@@ -1611,7 +1383,6 @@ export default function InspectionForm({
                     ? "ประธานกรรมการ"
                     : `กรรมการคนที่ ${index}`}
                 </label>
-
                 <AppSearchableSelect
                   value={inspectorId}
                   options={officerOptions}
@@ -1623,7 +1394,6 @@ export default function InspectionForm({
                     updateInspector(index, officerId)
                   }
                 />
-
                 {inspectorId && (
                   <p
                     className="
@@ -1640,11 +1410,9 @@ export default function InspectionForm({
           })}
         </div>
       </AppCard>
-
       {/* =====================================================
           5. ACTION
       ===================================================== */}
-
       <div
         className="
           flex w-full flex-col gap-2
@@ -1659,7 +1427,6 @@ export default function InspectionForm({
         >
           ยกเลิก
         </AppButton>
-
         <AppButton
           type="button"
           variant="success"
@@ -1675,11 +1442,9 @@ export default function InspectionForm({
     </div>
   );
 }
-
 /* =========================================================
    CATEGORY ROWS
-========================================================= */
-
+\========================================================= */
 function MaterialCategoryRows({
   categoryName,
   materials,
@@ -1731,12 +1496,9 @@ function MaterialCategoryRows({
           {categoryName}
         </td>
       </tr>
-
       {materials.map((material, index) => {
         const row = getRow(material.materialId);
-
         if (!row) return null;
-
         return (
           <tr
             key={material.materialId}
@@ -1751,13 +1513,10 @@ function MaterialCategoryRows({
             `}
           >
             {/* 1. ORDER */}
-
             <td className={stockCellClass}>
               {index + 1}
             </td>
-
             {/* 2. NAME */}
-
             <td
               className="
                 min-h-[23.25px]
@@ -1770,39 +1529,27 @@ function MaterialCategoryRows({
             >
               {material.name}
             </td>
-
             {/* 3. UNIT */}
-
             <td className={stockCellClass}>
               {material.unit || "-"}
             </td>
-
             {/* 4. OPENING */}
-
             <td className={stockCellClass}>
               {displayStockValue(material.openingBalance)}
             </td>
-
             {/* 5. RECEIVE */}
-
             <td className={stockCellClass}>
               {displayStockValue(material.receiveQty)}
             </td>
-
             {/* 6. ISSUE */}
-
             <td className={stockCellClass}>
               {displayStockValue(material.issueQty)}
             </td>
-
             {/* 7. CURRENT BALANCE - ZERO FIX */}
-
             <td className={stockCellClass}>
               {displayClosingBalance(material.closingBalance)}
             </td>
-
             {/* 8. CORRECT */}
-
             <td className={radioCellClass}>
               <input
                 type="radio"
@@ -1817,9 +1564,7 @@ function MaterialCategoryRows({
                 "
               />
             </td>
-
             {/* 9. INCORRECT */}
-
             <td className={radioCellClass}>
               <input
                 type="radio"
@@ -1834,9 +1579,7 @@ function MaterialCategoryRows({
                 "
               />
             </td>
-
             {/* 10. SHORTAGE */}
-
             <CompactNumberCell
               value={row.shortageQty}
               inputClass={inputClass}
@@ -1848,9 +1591,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 11. EXCESS */}
-
             <CompactNumberCell
               value={row.excessQty}
               inputClass={inputClass}
@@ -1862,9 +1603,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 12. BAHT */}
-
             <CompactNumberCell
               value={row.baht}
               inputClass={inputClass}
@@ -1876,9 +1615,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 13. SATANG */}
-
             <CompactNumberCell
               value={row.satang}
               inputClass={inputClass}
@@ -1890,9 +1627,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 14. DAMAGED */}
-
             <CompactNumberCell
               value={row.damagedQty}
               inputClass={inputClass}
@@ -1904,9 +1639,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 15. DETERIORATED */}
-
             <CompactNumberCell
               value={row.deterioratedQty}
               inputClass={inputClass}
@@ -1918,9 +1651,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 16. UNNECESSARY */}
-
             <CompactNumberCell
               value={row.unnecessaryQty}
               inputClass={inputClass}
@@ -1932,9 +1663,7 @@ function MaterialCategoryRows({
                 )
               }
             />
-
             {/* 17. REMARK */}
-
             <td
               className="
                 h-[23.25px]
@@ -1970,11 +1699,9 @@ function MaterialCategoryRows({
     </>
   );
 }
-
 /* =========================================================
    SHARED TABLE CELL STYLES
-========================================================= */
-
+\========================================================= */
 const stockCellClass = `
   h-[23.25px]
   border border-black
@@ -1984,17 +1711,14 @@ const stockCellClass = `
   tabular-nums
   !text-black
 `;
-
 const radioCellClass = `
   h-[23.25px]
   border border-black
   p-0 text-center
 `;
-
 /* =========================================================
    COMPACT NUMBER CELL
-========================================================= */
-
+\========================================================= */
 function CompactNumberCell({
   value,
   inputClass,
