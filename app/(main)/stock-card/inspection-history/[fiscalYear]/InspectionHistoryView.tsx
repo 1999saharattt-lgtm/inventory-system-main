@@ -1066,6 +1066,43 @@ export default function InspectionHistoryView({
 }: Props) {
 
   const router = useRouter();
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [tableWidth, setTableWidth] = useState(1710);
+  const [canScroll, setCanScroll] = useState(false);
+
+  const syncFromTop = useCallback(() => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      tableScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  }, []);
+  const syncFromTable = useCallback(() => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = tableScrollRef.current;
+    const table = tableRef.current;
+    if (!container || !table) return;
+    const measure = () => {
+      const width = Math.max(1710, table.scrollWidth);
+      setTableWidth(width);
+      setCanScroll(width > container.clientWidth + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    observer.observe(table);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -1668,31 +1705,32 @@ export default function InspectionHistoryView({
         </div>
 
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
-
-          <div className="mb-1 text-xs font-bold !text-slate-600">
-
-            เลื่อนตารางซ้าย–ขวา
-
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="text-xs font-bold !text-slate-600">เลื่อนตารางซ้าย–ขวา</span>
+            <span className="text-xs font-semibold !text-slate-500">
+              {canScroll ? "ลากแถบเลื่อนเพื่อดูคอลัมน์เพิ่มเติม" : "แสดงคอลัมน์ครบแล้ว"}
+            </span>
           </div>
-
           <div
-
-            className="w-full overflow-x-auto rounded-md border border-slate-300 bg-white"
-
+            ref={topScrollRef}
+            onScroll={syncFromTop}
             aria-label="แถบเลื่อนตารางด้านบน"
-
+            className="w-full overflow-x-scroll overflow-y-hidden rounded-md border border-slate-300 bg-white"
+            style={{ height: 18, scrollbarWidth: "auto" }}
           >
-
-            <div style={{ width: 1710, height: 8 }} />
-
+            <div style={{ width: tableWidth, height: 1 }} />
           </div>
-
         </div>
 
-        <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
-
-          <table className="w-full min-w-[1710px] table-fixed border-collapse bg-white text-[15px]">
-
+        <div
+          ref={tableScrollRef}
+          onScroll={syncFromTable}
+          className="w-full min-w-0 overflow-x-auto overscroll-x-contain"
+        >
+          <table
+            ref={tableRef}
+            className="w-full min-w-[1710px] table-fixed border-collapse bg-white text-[15px]"
+          >
             <colgroup>
 
               {widths.map((width, index) => (
@@ -1851,7 +1889,7 @@ export default function InspectionHistoryView({
 
                       colSpan={17}
 
-                      className="h-[23.25px] border border-black bg-white px-2 py-0 text-left text-[15px] font-bold leading-none !text-black"
+                      className="h-[23.25px] border border-slate-200 bg-white px-2 py-0 text-left text-[15px] font-bold leading-none !text-black"
 
                     >
 
@@ -1951,8 +1989,9 @@ export default function InspectionHistoryView({
 
                             <input
 
-                              type="checkbox"
+                              type="radio"
 
+                              name={`accuracy-${material.materialId}`}
                               aria-label={`ถูกต้อง ${material.name}`}
 
                               checked={
@@ -1989,8 +2028,9 @@ export default function InspectionHistoryView({
 
                             <input
 
-                              type="checkbox"
+                              type="radio"
 
+                              name={`accuracy-${material.materialId}`}
                               aria-label={`ไม่ถูกต้อง ${material.name}`}
 
                               checked={
