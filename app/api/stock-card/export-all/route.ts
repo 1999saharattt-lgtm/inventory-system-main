@@ -44,7 +44,14 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { code: "asc" },
     });
-    const output = materials.map((material) => {
+    // เงื่อนไขการรวมบัญชีพัสดุเท่านั้น: ไม่เปลี่ยนข้อมูล Stock Card รายวัสดุ
+    const includedMaterials = materials.filter((material) => {
+      const name = material.name.trim();
+      if (/\(\s*สสส\.\s*\)\s*$/u.test(name)) return false;
+      if (material.category === "ELECTRIC" && /ถ่าน\s*กระดุม/u.test(name)) return false;
+      return true;
+    });
+    const output = includedMaterials.map((material) => {
       const events = [
         ...material.receiveItems.map((item) => ({ type: "RECEIVE" as const, date: item.receive.receiveDate, id: item.id, item })),
         ...material.issueItems.map((item) => ({ type: "ISSUE" as const, date: item.issue.issueDate, id: item.id, item })),
