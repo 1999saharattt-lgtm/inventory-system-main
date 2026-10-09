@@ -1238,7 +1238,7 @@ function InspectionForm({
                 </th>
                 <th rowSpan={2} className={tableHeaderClass}>
                   <div>คงเหลือยอดยกมาเมื่อ</div>
-                  <div>30 ก.ย. {startShortYear}</div>
+                  <div>01 ต.ค. {startShortYear}</div>
                 </th>
                 <th colSpan={2} className={tableHeaderClass}>
                   {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
