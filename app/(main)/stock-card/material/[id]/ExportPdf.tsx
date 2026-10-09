@@ -1536,7 +1536,7 @@ export default function ExportPdf({
 
         doc.text(
 
-          `ปีงบประมาณ ${fiscalYear}`,
+          `ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`,
 
           center,
 
