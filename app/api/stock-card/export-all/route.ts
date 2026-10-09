@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       const name = material.name.trim();
       if (/\(\s*สสส\.\s*\)\s*$/u.test(name)) return false;
       if (material.category === "ELECTRIC" && material.code === "ELE-0003" && name === "ถ่านชาร์จ ขนาด AA (Rechargeable Battery)") return false;
+      if (material.category === "ELECTRIC" && name.includes("ถ่านกระดุม")) return false;
       return true;
     });
     const output = includedMaterials.map((material) => {
