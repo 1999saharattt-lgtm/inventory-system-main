@@ -565,7 +565,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, nameSize);
 
-      doc.text(name, centerX, startY + 12, {
+      doc.text(name, centerX, startY + 6, {
 
         align: "center",
 
@@ -589,7 +589,7 @@ export default function ExportInspectionPdf({
 
       setThaiFont(doc, positionSize);
 
-      doc.text(position, centerX, startY + 18, {
+      doc.text(position, centerX, startY + 12, {
 
         align: "center",
 
