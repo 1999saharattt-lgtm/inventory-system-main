@@ -769,9 +769,8 @@ export default function ExportInspectionPdf({
       })).filter((group) => group.materials.length > 0);
 
       let firstPage = true;
-      let runningItemNumber = 0;
-
       for (const group of groups) {
+        let runningItemNumber = 0;
 
         for (
 
@@ -869,7 +868,7 @@ export default function ExportInspectionPdf({
 
               material.name,
 
-              material.category === "ELECTRIC" && material.name.trim() === "ถ่านชาร์จ ขนาด AAA (Rechargeable Battery)" ? "แพ็ค" : (material.unit || "-"),
+              material.unit?.trim() === "ห่อ" || (material.category === "ELECTRIC" && material.name.trim() === "ถ่านชาร์จ ขนาด AAA (Rechargeable Battery)") ? "แพ็ค" : (material.unit || "-"),
 
               displayStockValue(material.openingBalance),
 
