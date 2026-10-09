@@ -68,11 +68,17 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       let firstPage = true;
+      let currentCategory: string | null = null;
+      let sheetNumberInCategory = 0;
       const maxRows = 13;
       const headers = ["วันที่", "เลขที่เอกสาร", "ผู้จำหน่าย / หน่วยงาน", "ราคาล่าสุด", "รับเข้า", "เบิกจ่าย", "คงเหลือ", "วันผลิต", "วันหมดอายุ"];
       const widths = [23, 26, 96, 26, 18, 18, 18, 22, 22];
 
       for (const material of data.materials) {
+        if (material.category !== currentCategory) {
+          currentCategory = material.category;
+          sheetNumberInCategory = 0;
+        }
         const allRows: string[][] = [
           ["-", "ยอดยกมา", "ยอดคงเหลือต้นปีงบประมาณ", "-", "-", "-", formatNumber(material.openingBalance), "-", "-"],
           ...material.rows.map((row) => [
@@ -86,9 +92,12 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
         for (let i = 0; i < allRows.length; i += maxRows) chunks.push(allRows.slice(i, i + maxRows));
 
         for (const chunk of chunks) {
+          sheetNumberInCategory += 1;
           if (!firstPage) doc.addPage("a4", "landscape");
           firstPage = false;
           doc.setFont(font, "normal");
+          doc.setFontSize(14);
+          doc.text(`แผ่นที่ ${sheetNumberInCategory}`, pageWidth - 14, 11, { align: "right" });
           doc.setTextColor(0);
           doc.setFontSize(22);
           doc.text("บัญชีพัสดุ", pageWidth / 2, 14, { align: "center" });
@@ -119,12 +128,6 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
       if (firstPage) {
         doc.setFont(font, "normal");
         doc.text("ไม่พบรายการบัญชีพัสดุในปีงบประมาณนี้", 20, 25);
-      }
-      for (let page = 1; page <= doc.getNumberOfPages(); page++) {
-        doc.setPage(page);
-        doc.setFont(font, "normal");
-        doc.setFontSize(14);
-        doc.text(`แผ่นที่ ${page}`, pageWidth - 14, 11, { align: "right" });
       }
       const url = URL.createObjectURL(doc.output("blob"));
       preview.location.replace(url);
