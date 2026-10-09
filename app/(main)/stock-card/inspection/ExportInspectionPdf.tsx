@@ -499,7 +499,7 @@ export default function ExportInspectionPdf({
             ]);
           });
           const headerOpening =
-            `คงเหลือยอดยกมา\nเมื่อ 30 ก.ย. ${startShortYear}`;
+            `คงเหลือยอดยกมา\nเมื่อ 01 ต.ค. ${startShortYear}`;
           const headerMovement =
             `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`;
           /*
