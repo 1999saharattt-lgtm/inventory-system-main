@@ -4,15 +4,11 @@ import {
 
 } from "@/lib/prisma";
 
-
-
 import {
 
   notFound,
 
 } from "next/navigation";
-
-
 
 import AppPage from "@/components/AppPage";
 
@@ -20,11 +16,7 @@ import AppPageHeader from "@/components/AppPageHeader";
 
 import AppButton from "@/components/AppButton";
 
-
-
 import EditInspectionForm from "./EditInspectionForm";
-
-
 
 /* =========================================================
 
@@ -32,27 +24,19 @@ import EditInspectionForm from "./EditInspectionForm";
 
 \========================================================= */
 
-
-
 export const dynamic =
 
   "force-dynamic";
 
-
-
 export const revalidate =
 
   0;
-
-
 
 /* =========================================================
 
    TYPES
 
 \========================================================= */
-
-
 
 type PageProps = {
 
@@ -64,15 +48,11 @@ type PageProps = {
 
 };
 
-
-
 /* =========================================================
 
    CATEGORY ORDER
 
 \========================================================= */
-
-
 
 const categoryOrder = [
 
@@ -90,27 +70,19 @@ const categoryOrder = [
 
 ];
 
-
-
 /* =========================================================
 
    DATE ONLY
 
-
-
    Database:
 
    2026-10-06T00:00:00.000Z
-
-
 
    Form:
 
    2026-10-06
 
 \========================================================= */
-
-
 
 function formatDateOnly(
 
@@ -132,8 +104,6 @@ function formatDateOnly(
 
   }
 
-
-
   const date =
 
     value instanceof Date
@@ -145,8 +115,6 @@ function formatDateOnly(
           value
 
         );
-
-
 
   if (
 
@@ -162,13 +130,9 @@ function formatDateOnly(
 
   }
 
-
-
   const year =
 
     date.getUTCFullYear();
-
-
 
   const month =
 
@@ -186,8 +150,6 @@ function formatDateOnly(
 
     );
 
-
-
   const day =
 
     String(
@@ -202,21 +164,15 @@ function formatDateOnly(
 
     );
 
-
-
   return `${year}-${month}-${day}`;
 
 }
-
-
 
 /* =========================================================
 
    PARSE INSPECTOR IDS
 
 \========================================================= */
-
-
 
 function parseInspectorIds(
 
@@ -260,8 +216,6 @@ function parseInspectorIds(
 
   }
 
-
-
   if (
 
     typeof value ===
@@ -281,8 +235,6 @@ function parseInspectorIds(
           value
 
         );
-
-
 
       if (
 
@@ -352,37 +304,25 @@ function parseInspectorIds(
 
   }
 
-
-
   return [];
 
 }
-
-
 
 /* =========================================================
 
    FIELD VALUE
 
-
-
    null / undefined
 
    -> ""
-
-
 
    0
 
    -> "0"
 
-
-
    ใช้กับช่องแก้ไข เพื่อไม่ให้ 0 กลายเป็นค่าว่างโดยไม่ตั้งใจ
 
 \========================================================= */
-
-
 
 function toFieldValue(
 
@@ -408,8 +348,6 @@ function toFieldValue(
 
   }
 
-
-
   return String(
 
     value
@@ -418,13 +356,9 @@ function toFieldValue(
 
 }
 
-
-
 /* =========================================================
 
    FISCAL YEAR RANGE
-
-
 
    FY 2569
 
@@ -435,8 +369,6 @@ function toFieldValue(
    1 ต.ค. 2569
 
 \========================================================= */
-
-
 
 function getFiscalYearRange(
 
@@ -450,15 +382,11 @@ function getFiscalYearRange(
 
     543;
 
-
-
   const fiscalStartChristianYear =
 
     fiscalEndChristianYear -
 
     1;
-
-
 
   const startDate =
 
@@ -484,8 +412,6 @@ function getFiscalYearRange(
 
     );
 
-
-
   const endDate =
 
     new Date(
@@ -510,8 +436,6 @@ function getFiscalYearRange(
 
     );
 
-
-
   return {
 
     startDate,
@@ -522,15 +446,11 @@ function getFiscalYearRange(
 
 }
 
-
-
 /* =========================================================
 
    NUMBER
 
 \========================================================= */
-
-
 
 function safeInteger(
 
@@ -546,8 +466,6 @@ function safeInteger(
 
     );
 
-
-
   if (
 
     !Number.isFinite(
@@ -562,8 +480,6 @@ function safeInteger(
 
   }
 
-
-
   return Math.trunc(
 
     number
@@ -572,15 +488,11 @@ function safeInteger(
 
 }
 
-
-
 /* =========================================================
 
    PAGE
 
 \========================================================= */
-
-
 
 export default async function StockCardInspectionHistoryEditPage({
 
@@ -596,15 +508,11 @@ export default async function StockCardInspectionHistoryEditPage({
 
   } = await params;
 
-
-
   /* =======================================================
 
      FISCAL YEAR
 
   ======================================================= */
-
-
 
   const fiscalYear =
 
@@ -613,8 +521,6 @@ export default async function StockCardInspectionHistoryEditPage({
       fiscalYearParam
 
     );
-
-
 
   if (
 
@@ -634,15 +540,11 @@ export default async function StockCardInspectionHistoryEditPage({
 
   }
 
-
-
   /* =======================================================
 
      INSPECTION
 
   ======================================================= */
-
-
 
   const inspection =
 
@@ -655,8 +557,6 @@ export default async function StockCardInspectionHistoryEditPage({
           fiscalYear,
 
         },
-
-
 
         include: {
 
@@ -678,8 +578,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
     );
 
-
-
   if (
 
     !inspection
@@ -690,21 +588,15 @@ export default async function StockCardInspectionHistoryEditPage({
 
   }
 
-
-
   /* =======================================================
 
      MATERIAL IDS
-
-
 
      ใช้เฉพาะรายการที่อยู่ในประวัติรอบนี้
 
      ไม่ดึงพัสดุที่ถูกเพิ่มเข้าระบบภายหลังมาแทรก
 
   ======================================================= */
-
-
 
   const materialIds =
 
@@ -720,15 +612,11 @@ export default async function StockCardInspectionHistoryEditPage({
 
     );
 
-
-
   /* =======================================================
 
      FISCAL RANGE
 
   ======================================================= */
-
-
 
   const {
 
@@ -744,13 +632,9 @@ export default async function StockCardInspectionHistoryEditPage({
 
     );
 
-
-
   /* =======================================================
 
      TRANSACTIONS
-
-
 
      อ่านอย่างเดียว
 
@@ -760,191 +644,43 @@ export default async function StockCardInspectionHistoryEditPage({
 
   ======================================================= */
 
-
-
-  const transactions =
-
-    materialIds.length >
-
-    0
-
-      ? await prisma.transaction.findMany(
-
-          {
-
-            where: {
-
-              materialId: {
-
-                in:
-
-                  materialIds,
-
-              },
-
-
-
-              date: {
-
-                lt:
-
-                  endDate,
-
-              },
-
-            },
-
-
-
-            select: {
-
-              id: true,
-
-
-
-              materialId:
-
-                true,
-
-
-
-              date:
-
-                true,
-
-
-
-              type:
-
-                true,
-
-
-
-              receiveQty:
-
-                true,
-
-
-
-              issueQty:
-
-                true,
-
-
-
-              balance:
-
-                true,
-
-            },
-
-
-
-            orderBy: [
-
-              {
-
-                materialId:
-
-                  "asc",
-
-              },
-
-
-
-              {
-
-                date:
-
-                  "asc",
-
-              },
-
-
-
-              {
-
-                id:
-
-                  "asc",
-
-              },
-
-            ],
-
-          }
-
-        )
-
-      : [];
-
-
-
-  /* =======================================================
-
-     TRANSACTION MAP
-
-  ======================================================= */
-
-
-
-  const transactionMap =
-
-    new Map<
-
-      number,
-
-      typeof transactions
-
-    >();
-
-
-
-  for (
-
-    const transaction of
-
-      transactions
-
-  ) {
-
-    const current =
-
-      transactionMap.get(
-
-        transaction.materialId
-
-      ) ?? [];
-
-
-
-    current.push(
-
-      transaction
-
-    );
-
-
-
-    transactionMap.set(
-
-      transaction.materialId,
-
-      current
-
-    );
-
-  }
-
-
-
-  /* =======================================================
-
-     OFFICERS
-
-  ======================================================= */
-
-
+  // Same source and document rules as the inspection detail page.
+  const stockMaterials = materialIds.length
+    ? await prisma.material.findMany({
+        where: { id: { in: materialIds } },
+        select: {
+          id: true,
+          receiveItems: {
+            where: { receive: { receiveDate: { lt: endDate } } },
+            select: { qty: true, receive: { select: { documentNo: true, receiveDate: true } } },
+          },
+          issueItems: {
+            where: { issue: { status: "APPROVED", issueDate: { lt: endDate } } },
+            select: { qty: true, issuedQty: true, issue: { select: { documentNo: true, issueDate: true } } },
+          },
+        },
+      })
+    : [];
+
+  const stockMap = new Map(stockMaterials.map((material) => [material.id, material]));
+  const normalizeDocumentNo = (value: string | null | undefined) =>
+    String(value ?? "").trim().replace(/\s+/g, "");
+  const isOpening = (value: string | null | undefined) =>
+    normalizeDocumentNo(value) === "ยอดยกเข้าระบบ";
+  const isReceive = (value: string | null | undefined) =>
+    normalizeDocumentNo(value).startsWith("ร.");
+  const isIssue = (value: string | null | undefined) =>
+    normalizeDocumentNo(value).startsWith("จ.");
+  const within = (date: Date, from: Date, until: Date) => date >= from && date < until;
+  const issued = (item: { qty: number; issuedQty: number | null }) =>
+    safeInteger(item.issuedQty === null || item.issuedQty === undefined ? item.qty : item.issuedQty);
+  const today = new Date();
+  const bangkok = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(today);
+  const todayPart = (key: string) => Number(bangkok.find((p) => p.type === key)?.value);
+  const todayEnd = new Date(Date.UTC(todayPart("year"), todayPart("month") - 1, todayPart("day") + 1));
+  const currentEndExclusive = todayEnd < endDate ? todayEnd : endDate;
 
   const officers =
 
@@ -968,8 +704,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
             true,
 
-
-
           department: {
 
             select: {
@@ -981,8 +715,6 @@ export default async function StockCardInspectionHistoryEditPage({
             },
 
           },
-
-
 
           section: {
 
@@ -998,8 +730,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
         },
 
-
-
         orderBy: {
 
           id:
@@ -1012,21 +742,15 @@ export default async function StockCardInspectionHistoryEditPage({
 
     );
 
-
-
   /* =======================================================
 
      SORT INSPECTION ROWS
-
-
 
      หมวดก่อน
 
      รหัสพัสดุภายในหมวด
 
   ======================================================= */
-
-
 
   const sortedInspectionRows =
 
@@ -1054,8 +778,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
           );
 
-
-
         const categoryB =
 
           categoryOrder.indexOf(
@@ -1066,8 +788,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
           );
 
-
-
         const orderA =
 
           categoryA >= 0
@@ -1076,8 +796,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
             : Number.MAX_SAFE_INTEGER;
 
-
-
         const orderB =
 
           categoryB >= 0
@@ -1085,8 +803,6 @@ export default async function StockCardInspectionHistoryEditPage({
             ? categoryB
 
             : Number.MAX_SAFE_INTEGER;
-
-
 
         if (
 
@@ -1106,8 +822,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
         }
 
-
-
         const codeCompare =
 
           a.material.code.localeCompare(
@@ -1122,8 +836,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
                 true,
 
-
-
               sensitivity:
 
                 "base",
@@ -1131,8 +843,6 @@ export default async function StockCardInspectionHistoryEditPage({
             }
 
           );
-
-
 
         if (
 
@@ -1146,8 +856,6 @@ export default async function StockCardInspectionHistoryEditPage({
 
         }
 
-
-
         return (
 
           a.materialId -
@@ -1160,585 +868,73 @@ export default async function StockCardInspectionHistoryEditPage({
 
     );
 
-
-
   /* =======================================================
 
      BUILD EDIT ROWS
 
   ======================================================= */
 
-
-
-  const rows =
-
-    sortedInspectionRows.map(
-
-      (
-
-        inspectionRow
-
-      ) => {
-
-        const material =
-
-          inspectionRow.material;
-
-
-
-        const materialTransactions =
-
-          transactionMap.get(
-
-            material.id
-
-          ) ?? [];
-
-
-
-        /* ===============================================
-
-           BEFORE FY
-
-        =============================================== */
-
-
-
-        const beforeFiscalYear =
-
-          materialTransactions.filter(
-
-            (
-
-              transaction
-
-            ) =>
-
-              transaction.date <
-
-              startDate
-
-          );
-
-
-
-        const lastBeforeFiscalYear =
-
-          beforeFiscalYear[
-
-            beforeFiscalYear.length -
-
-              1
-
-          ];
-
-
-
-        /* ===============================================
-
-           IN FY
-
-        =============================================== */
-
-
-
-        const fiscalTransactions =
-
-          materialTransactions.filter(
-
-            (
-
-              transaction
-
-            ) =>
-
-              transaction.date >=
-
-                startDate &&
-
-              transaction.date <
-
-                endDate
-
-          );
-
-
-
-        /* ===============================================
-
-           EXISTING OPENING TRANSACTION
-
-
-
-           สำหรับข้อมูลเก่าที่มี OPENING_BALANCE
-
-           อยู่แล้วในฐานข้อมูล
-
-        =============================================== */
-
-
-
-        const openingTransactions =
-
-          fiscalTransactions.filter(
-
-            (
-
-              transaction
-
-            ) =>
-
-              transaction.type ===
-
-              "OPENING_BALANCE"
-
-          );
-
-
-
-        const lastOpeningTransaction =
-
-          openingTransactions[
-
-            openingTransactions.length -
-
-              1
-
-          ];
-
-
-
-        /* ===============================================
-
-           OPENING
-
-
-
-           FY 2569 และเก่ากว่า:
-
-           ให้เคารพข้อมูลเดิมใน Stock Card
-
-           หากมี OPENING_BALANCE เดิม ใช้ข้อมูลนั้น
-
-
-
-           FY 2570 เป็นต้นไป:
-
-           ใช้ยอดปิดก่อนเริ่มปีเป็นยอดยกเข้าแบบ Virtual
-
-           ไม่สร้าง Transaction ใหม่
-
-        =============================================== */
-
-
-
-        let openingQty =
-
-          0;
-
-
-
-        if (
-
-          fiscalYear <=
-
-          2569 &&
-
-          lastOpeningTransaction
-
-        ) {
-
-          openingQty =
-
-            safeInteger(
-
-              lastOpeningTransaction.balance
-
-            );
-
-        } else {
-
-          openingQty =
-
-            safeInteger(
-
-              lastBeforeFiscalYear
-
-                ?.balance
-
-            );
-
-
-
-          if (
-
-            openingQty ===
-
-              0 &&
-
-            lastOpeningTransaction
-
-          ) {
-
-            openingQty =
-
-              safeInteger(
-
-                lastOpeningTransaction.balance
-
-              );
-
-          }
-
-        }
-
-
-
-        /* ===============================================
-
-           MOVEMENTS
-
-
-
-           OPENING_BALANCE ไม่ถือเป็น "รับ" ซ้ำ
-
-        =============================================== */
-
-
-
-        const actualMovements =
-
-          fiscalTransactions.filter(
-
-            (
-
-              transaction
-
-            ) =>
-
-              transaction.type !==
-
-              "OPENING_BALANCE"
-
-          );
-
-
-
-        const receiveQty =
-
-          actualMovements.reduce(
-
-            (
-
-              total,
-
-              transaction
-
-            ) =>
-
-              total +
-
-              safeInteger(
-
-                transaction.receiveQty
-
-              ),
-
-            0
-
-          );
-
-
-
-        const issueQty =
-
-          actualMovements.reduce(
-
-            (
-
-              total,
-
-              transaction
-
-            ) =>
-
-              total +
-
-              safeInteger(
-
-                transaction.issueQty
-
-              ),
-
-            0
-
-          );
-
-
-
-        /* ===============================================
-
-           CLOSING
-
-
-
-           ข้อมูลเก่า:
-
-           ใช้ balance ล่าสุดที่บันทึกอยู่จริง
-
-
-
-           FY 2570+:
-
-           Virtual opening + movement
-
-        =============================================== */
-
-
-
-        const lastFiscalTransaction =
-
-          fiscalTransactions[
-
-            fiscalTransactions.length -
-
-              1
-
-          ];
-
-
-
-        let closingQty =
-
-          openingQty +
-
-          receiveQty -
-
-          issueQty;
-
-
-
-        if (
-
-          fiscalYear <=
-
-            2569 &&
-
-          lastFiscalTransaction
-
-        ) {
-
-          closingQty =
-
-            safeInteger(
-
-              lastFiscalTransaction.balance
-
-            );
-
-        }
-
-
-
-        /* ===============================================
-
-           ROW
-
-        =============================================== */
-
-
-
-        return {
-
-          materialId:
-
-            material.id,
-
-
-
-          code:
-
-            material.code,
-
-
-
-          name:
-
-            material.name,
-
-
-
-          unit:
-
-            material.unit,
-
-
-
-          category:
-
-            String(
-
-              material.category
-
-            ),
-
-
-
-          openingQty:
-
-            Math.max(
-
-              0,
-
-              openingQty
-
-            ),
-
-
-
-          receiveQty:
-
-            Math.max(
-
-              0,
-
-              receiveQty
-
-            ),
-
-
-
-          issueQty:
-
-            Math.max(
-
-              0,
-
-              issueQty
-
-            ),
-
-
-
-          closingQty:
-
-            Math.max(
-
-              0,
-
-              closingQty
-
-            ),
-
-
-
-          accuracy:
-
-            inspectionRow.accuracy ??
-
-            "",
-
-
-
-          shortageQty:
-
-            toFieldValue(
-
-              inspectionRow.shortageQty
-
-            ),
-
-
-
-          excessQty:
-
-            toFieldValue(
-
-              inspectionRow.excessQty
-
-            ),
-
-
-
-          baht:
-
-            toFieldValue(
-
-              inspectionRow.baht
-
-            ),
-
-
-
-          satang:
-
-            toFieldValue(
-
-              inspectionRow.satang
-
-            ),
-
-
-
-          damagedQty:
-
-            toFieldValue(
-
-              inspectionRow.damagedQty
-
-            ),
-
-
-
-          deterioratedQty:
-
-            toFieldValue(
-
-              inspectionRow.deterioratedQty
-
-            ),
-
-
-
-          unnecessaryQty:
-
-            toFieldValue(
-
-              inspectionRow.unnecessaryQty
-
-            ),
-
-
-
-          remark:
-
-            inspectionRow.remark ??
-
-            "",
-
-        };
-
+  const rows = sortedInspectionRows
+    .filter(({ material }) => {
+      const name = material.name.trim();
+      if (/\(สสส\.\)\s*$/u.test(name)) return false;
+      if (material.category === "ELECTRIC") {
+        if (material.code === "ELE-0003") return false;
+        if (name.includes("ถ่านกระดุม")) return false;
       }
-
-    );
-
-
-
-  /* =======================================================
-
-     INITIAL DATA
-
-  ======================================================= */
-
-
+      return true;
+    })
+    .map((inspectionRow) => {
+      const material = inspectionRow.material;
+      const stock = stockMap.get(material.id);
+      const receives = stock?.receiveItems ?? [];
+      const issues = stock?.issueItems ?? [];
+      const openingQty = receives
+        .filter((item) => isOpening(item.receive.documentNo))
+        .reduce((sum, item) => sum + safeInteger(item.qty), 0);
+      const receiveQty = receives
+        .filter((item) => isReceive(item.receive.documentNo) &&
+          within(item.receive.receiveDate, startDate, endDate))
+        .reduce((sum, item) => sum + safeInteger(item.qty), 0);
+      const issueQty = issues
+        .filter((item) => isIssue(item.issue.documentNo) &&
+          within(item.issue.issueDate, startDate, endDate))
+        .reduce((sum, item) => sum + issued(item), 0);
+      const currentReceiveQty = receives
+        .filter((item) => isReceive(item.receive.documentNo) &&
+          within(item.receive.receiveDate, startDate, currentEndExclusive))
+        .reduce((sum, item) => sum + safeInteger(item.qty), 0);
+      const currentIssueQty = issues
+        .filter((item) => isIssue(item.issue.documentNo) &&
+          within(item.issue.issueDate, startDate, currentEndExclusive))
+        .reduce((sum, item) => sum + issued(item), 0);
+      const closingQty = openingQty + currentReceiveQty - currentIssueQty;
+      return {
+        materialId: material.id,
+        code: material.code,
+        name: material.name,
+        unit: material.category === "ELECTRIC" &&
+          material.name.trim() === "ถ่านชาร์จ ขนาด AAA (Rechargeable Battery)"
+          ? "แพ็ค" : material.unit,
+        category: String(material.category),
+        openingQty, receiveQty, issueQty, closingQty,
+        accuracy: inspectionRow.accuracy ?? "",
+        shortageQty: toFieldValue(inspectionRow.shortageQty),
+        excessQty: toFieldValue(inspectionRow.excessQty),
+        baht: toFieldValue(inspectionRow.baht),
+        satang: toFieldValue(inspectionRow.satang),
+        damagedQty: toFieldValue(inspectionRow.damagedQty),
+        deterioratedQty: toFieldValue(inspectionRow.deterioratedQty),
+        unnecessaryQty: toFieldValue(inspectionRow.unnecessaryQty),
+        remark: inspectionRow.remark ?? "",
+      };
+    });
 
   const initialData = {
 
     fiscalYear:
 
       inspection.fiscalYear,
-
-
 
     inspectionDate:
 
@@ -1747,8 +943,6 @@ export default async function StockCardInspectionHistoryEditPage({
         inspection.inspectionDate
 
       ),
-
-
 
     inspectionEndDate: formatDateOnly(inspection.inspectionEndDate),
 
@@ -1760,13 +954,9 @@ export default async function StockCardInspectionHistoryEditPage({
 
       ),
 
-
-
     rows,
 
   };
-
-
 
   /* =======================================================
 
@@ -1774,27 +964,19 @@ export default async function StockCardInspectionHistoryEditPage({
 
   ======================================================= */
 
-
-
   const detailHref =
 
     `/stock-card/inspection-history/${fiscalYear}`;
 
-
-
   const submitUrl =
 
     `/api/stock-card/inspection?fiscalYear=${fiscalYear}`;
-
-
 
   /* =========================================================
 
      UI
 
   ========================================================= */
-
-
 
   return (
 
@@ -1805,8 +987,6 @@ export default async function StockCardInspectionHistoryEditPage({
           HEADER
 
       ===================================================== */}
-
-
 
       <AppPageHeader
 
@@ -1840,15 +1020,11 @@ export default async function StockCardInspectionHistoryEditPage({
 
       />
 
-
-
       {/* =====================================================
 
           EDIT FORM
 
       ===================================================== */}
-
-
 
       <EditInspectionForm
 
