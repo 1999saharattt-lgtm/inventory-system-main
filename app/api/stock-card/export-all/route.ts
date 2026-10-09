@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       const name = material.name.trim();
       if (/\(\s*สสส\.\s*\)\s*$/u.test(name)) return false;
       if (material.category === "ELECTRIC" && /ถ่าน\s*กระดุม/u.test(name)) return false;
-      if (material.category === "ELECTRIC" && /ถ่าน\s*ชาร์จ\s*2\s*AA/iu.test(name)) return false;
+      if (material.category === "ELECTRIC" && /ถ่าน\s*ชาร์จ(?:\s*ขนาด)?\s*(?:2\s*)?AA/iu.test(name)) return false;
       return true;
     });
     const output = includedMaterials.map((material) => {
