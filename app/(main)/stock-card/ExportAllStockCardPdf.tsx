@@ -173,28 +173,46 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
           doc.text("ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", 232, 18, { align: "center" });
           doc.text("หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", 232, 24, { align: "center" });
           doc.text(`รหัสพัสดุ : ${material.code || "-"}`, leftX, 38);
-          // Wrap long material names to two lines without clipping or overlapping.
+          // Break Thai text at real word boundaries, never inside a vowel/combining cluster.
           const materialLabel = `รายการพัสดุ : ${material.name || "-"}`;
           const nameMaxWidth = pageWidth - rightX - 14;
+          const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+          const words = Array.from(segmenter.segment(materialLabel), (part) => part.segment);
+          const wrapName = (): string[] => {
+            const lines: string[] = [];
+            let line = "";
+            for (const word of words) {
+              const next = line + word;
+              if (line && doc.getTextWidth(next) > nameMaxWidth) {
+                lines.push(line.trimEnd());
+                line = word.trimStart();
+              } else {
+                line = next;
+              }
+            }
+            if (line) lines.push(line.trimEnd());
+            return lines.length ? lines : ["-"];
+          };
           let nameFontSize = 16;
           doc.setFontSize(nameFontSize);
-          let nameLines = doc.splitTextToSize(materialLabel, nameMaxWidth) as string[];
+          let nameLines = wrapName();
           while (nameLines.length > 2 && nameFontSize > 8) {
             nameFontSize -= 0.5;
             doc.setFontSize(nameFontSize);
-            nameLines = doc.splitTextToSize(materialLabel, nameMaxWidth) as string[];
+            nameLines = wrapName();
           }
-          // In the rare case of an extremely long name, preserve all text.
-          const extraNameHeight = nameLines.length > 1 ? Math.max(8, (nameLines.length - 1) * 5) : 0;
-          doc.text(nameLines, rightX, 38, { lineHeightFactor: 1.0 });
+          // Retain every word; extend the header if more than two lines are needed.
+          const extraNameHeight = nameLines.length > 1 ? (nameLines.length - 1) * 7 : 0;
+          doc.text(nameLines, rightX, 38, { lineHeightFactor: 1.1 });
           doc.setFontSize(16);
           doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46 + extraNameHeight);
           doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46 + extraNameHeight);
           doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54 + extraNameHeight);
           doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54 + extraNameHeight);
-          return extraNameHeight;
+          // Page number restarts at 1 on each category and advances on every sheet.
           doc.setFontSize(16);
           doc.text(`แผ่นที่ ${number}`, pageWidth - 14, 10, { align: "right" });
+          return extraNameHeight;
         }
 
         for (const pageRows of pages) {
