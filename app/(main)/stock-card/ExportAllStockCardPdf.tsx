@@ -173,15 +173,26 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
           doc.text("ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", 232, 18, { align: "center" });
           doc.text("หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", 232, 24, { align: "center" });
           doc.text(`รหัสพัสดุ : ${material.code || "-"}`, leftX, 38);
-          // Wrap long material names within the right-hand header column.
-          // Keep the original layout and all other material data unchanged.
+          // Wrap long material names to two lines without clipping or overlapping.
           const materialLabel = `รายการพัสดุ : ${material.name || "-"}`;
-          const materialNameLines = doc.splitTextToSize(materialLabel, pageWidth - 14 - rightX);
-          doc.text(materialNameLines.slice(0, 2), rightX, 38, { lineHeightFactor: 1.0 });
-          doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46);
-          doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46);
-          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54);
-          doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54);
+          const nameMaxWidth = pageWidth - rightX - 14;
+          let nameFontSize = 16;
+          doc.setFontSize(nameFontSize);
+          let nameLines = doc.splitTextToSize(materialLabel, nameMaxWidth) as string[];
+          while (nameLines.length > 2 && nameFontSize > 8) {
+            nameFontSize -= 0.5;
+            doc.setFontSize(nameFontSize);
+            nameLines = doc.splitTextToSize(materialLabel, nameMaxWidth) as string[];
+          }
+          // In the rare case of an extremely long name, preserve all text.
+          const extraNameHeight = nameLines.length > 1 ? Math.max(8, (nameLines.length - 1) * 5) : 0;
+          doc.text(nameLines, rightX, 38, { lineHeightFactor: 1.0 });
+          doc.setFontSize(16);
+          doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46 + extraNameHeight);
+          doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46 + extraNameHeight);
+          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54 + extraNameHeight);
+          doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54 + extraNameHeight);
+          return extraNameHeight;
           doc.setFontSize(16);
           doc.text(`แผ่นที่ ${number}`, pageWidth - 14, 10, { align: "right" });
         }
@@ -190,11 +201,11 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
           if (!isFirstPage) doc.addPage("a4", "landscape");
           isFirstPage = false;
           sheetNumber++;
-          drawPageHeader(sheetNumber);
+          const headerExtraHeight = drawPageHeader(sheetNumber);
           const body = pageRows.map(createTableRow);
           while (body.length < pageSize) body.push(["", "", "", "", "", "", "", "", ""]);
           autoTable(doc, {
-            startY: 60,
+            startY: 60 + headerExtraHeight,
             tableWidth: maximumTableWidth,
             margin: { left: tableLeftX, right: tableRightMargin },
             head: [tableHeaders],
