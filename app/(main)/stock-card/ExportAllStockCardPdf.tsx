@@ -1,13 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import "@/lib/fonts/THSarabunNew-normal";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import "@/lib/fonts/THSarabunNew-normal";
 import AppButton from "@/components/AppButton";
 
-const FONT = "2.3.2 THSarabunNew";
-const CATEGORIES: Record<string, string> = {
+type StockRow = {
+  date: string;
+  documentNo: string;
+  owner: string;
+  unitPrice: number;
+  receiveQty: number;
+  issueQty: number;
+  balance: number;
+  manufacture: string | null;
+  expiry: string | null;
+  type: string;
+};
+type Material = {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+  unit: string;
+  vendor: string;
+  latestPrice: number;
+  rows: StockRow[];
+};
+type Payload = { fiscalYear: number; materials: Material[] };
+
+const font = "2.3.2 THSarabunNew";
+const categoryName: Record<string, string> = {
   OFFICE: "วัสดุสำนักงาน",
   COMPUTER: "วัสดุคอมพิวเตอร์",
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
@@ -15,88 +39,207 @@ const CATEGORIES: Record<string, string> = {
   HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ",
 };
-const MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-const money = (value: number) => Number(value || 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const qty = (value: number) => Number(value || 0).toLocaleString("th-TH");
-function dateThai(value: string | null) {
+const categoryOrder = ["OFFICE", "COMPUTER", "ELECTRIC", "PRINTING", "HOUSEHOLD", "VEHICLE"];
+const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+
+function formatThaiDate(value: string | null) {
   if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(+date)) return "-";
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
-  const part = (name: string) => Number(parts.find((p) => p.type === name)?.value);
-  return `${String(part("day")).padStart(2, "0")} ${MONTHS[part("month") - 1]} ${String(part("year") + 543).slice(-2)}`;
+  if (Number.isNaN(date.getTime())) return "-";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  const get = (part: string) => Number(parts.find((p) => p.type === part)?.value);
+  return `${String(get("day")).padStart(2, "0")} ${months[get("month") - 1]} ${String(get("year") + 543).slice(-2)}`;
 }
-type StockRow = { date: string; documentNo: string; owner: string; unitPrice: number; receiveQty: number; issueQty: number; balance: number; manufacture: string | null; expiry: string | null; type: string };
-type Material = { id: number; code: string; name: string; category: string; unit: string; vendor: string; latestPrice: number; rows: StockRow[] };
-type Payload = { fiscalYear: number; materials: Material[] };
+function formatMoney(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+  return Number(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatNumber(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "-";
+  return Number(value).toLocaleString("th-TH");
+}
+function createTableRow(row: StockRow) {
+  return [
+    formatThaiDate(row.date), row.documentNo || "-", row.owner || "-",
+    formatMoney(row.unitPrice), Number(row.receiveQty ?? 0) > 0 ? formatNumber(row.receiveQty) : "-",
+    Number(row.issueQty ?? 0) > 0 ? formatNumber(row.issueQty) : "-",
+    formatNumber(row.balance), formatThaiDate(row.manufacture), formatThaiDate(row.expiry),
+  ];
+}
 
 export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: number }) {
   const [loading, setLoading] = useState(false);
+
   async function exportPdf() {
     if (loading) return;
+    // Open the same PDF preview as the individual Stock Card.
+    const previewWindow = window.open("", "_blank");
+    if (!previewWindow) {
+      alert("ไม่สามารถเปิดหน้าต่าง PDF ได้ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้");
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch(`/api/stock-card/export-all?fiscalYear=${encodeURIComponent(fiscalYear)}`, { cache: "no-store" });
-      if (!response.ok) throw new Error((await response.json().catch(() => null))?.error ?? "ไม่สามารถดึงข้อมูลได้");
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || "ไม่สามารถดึงข้อมูลบัญชีพัสดุได้");
+      }
       const data = (await response.json()) as Payload;
+      const materials = [...data.materials].sort((a, b) => {
+        const ai = categoryOrder.indexOf(a.category);
+        const bi = categoryOrder.indexOf(b.category);
+        return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.code.localeCompare(b.code, "th") || a.id - b.id;
+      });
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      doc.setFont(font, "normal");
       const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const headers = ["วันที่", "เลขที่เอกสาร", "ผู้จำหน่าย / หน่วยงาน", "ราคาล่าสุด", "รับเข้า", "เบิกจ่าย", "คงเหลือ", "วันผลิต", "วันหมดอายุ"];
-      let firstPage = true;
-      let category = "";
-      let sheet = 0;
-      for (const material of data.materials) {
-        if (!firstPage) doc.addPage();
-        firstPage = false;
-        if (category !== material.category) { category = material.category; sheet = 0; }
-        sheet++;
-        const startPage = doc.getNumberOfPages();
-        const drawHeader = (sheetNo: number) => {
-          doc.setFont(FONT, "normal");
-          doc.setTextColor(0, 0, 0);
-          doc.setFontSize(22);
-          doc.text("บัญชีพัสดุ", pageWidth / 2, 13, { align: "center" });
-          doc.setFontSize(15);
-          doc.text(`ปีงบประมาณ ${fiscalYear}`, pageWidth / 2, 20, { align: "center" });
-          doc.text(`แผ่นที่ ${sheetNo}`, pageWidth - 12, 12, { align: "right" });
-          doc.text("ส่วนราชการ กระทรวงสาธารณสุข กรมอนามัย", pageWidth - 12, 20, { align: "right" });
-          doc.text("หน่วยงาน สำนักอนามัยการเจริญพันธุ์", pageWidth - 12, 27, { align: "right" });
-          doc.text(`รหัสพัสดุ : ${material.code || "-"}`, 12, 36);
-          doc.text(`รายการพัสดุ : ${material.name || "-"}`, 135, 36);
-          doc.text(`หมวดหมู่ : ${CATEGORIES[material.category] ?? material.category}`, 12, 44);
-          doc.text(`หน่วย : ${material.unit || "-"}`, 135, 44);
-          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, 12, 52);
-          doc.text(`ราคาล่าสุด : ${money(material.latestPrice)} บาท`, 135, 52);
+      const center = pageWidth / 2;
+      const leftX = 14;
+      const rightX = 150;
+      const tableLeftX = 14;
+      const tableRightMargin = 14;
+      const maximumTableWidth = pageWidth - tableLeftX - tableRightMargin;
+      const pageSize = 13;
+      const tableHeaders = ["วันที่", "เลขที่เอกสาร", "ผู้จำหน่าย / หน่วยงาน", "ราคาล่าสุด", "รับเข้า", "เบิกจ่าย", "คงเหลือ", "วันผลิต", "วันหมดอายุ"];
+      const minimumColumnWidths = [20, 24, 35, 22, 14, 14, 14, 20, 20];
+      const tableCellPadding = 1.1;
+      let isFirstPage = true;
+      let currentCategory = "";
+      let sheetNumber = 0;
+
+      for (const material of materials) {
+        if (material.category !== currentCategory) {
+          currentCategory = material.category;
+          sheetNumber = 0;
+        }
+        const rows = material.rows;
+        const allTableRows = rows.map(createTableRow);
+        function calculateColumnWidths(fontSize: number) {
+          doc.setFont(font, "normal");
+          doc.setFontSize(fontSize);
+          return tableHeaders.map((header, index) => {
+            let longest = doc.getTextWidth(header);
+            for (const row of allTableRows) longest = Math.max(longest, doc.getTextWidth(String(row[index] ?? "")));
+            return Math.max(minimumColumnWidths[index], longest + tableCellPadding * 2 + 1);
+          });
+        }
+        let tableFontSize = 16;
+        let columnWidths = calculateColumnWidths(tableFontSize);
+        let calculatedTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+        while (calculatedTableWidth > maximumTableWidth && tableFontSize > 5) {
+          tableFontSize -= 0.5;
+          columnWidths = calculateColumnWidths(tableFontSize);
+          calculatedTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+        }
+        while (calculatedTableWidth > maximumTableWidth && tableFontSize > 4) {
+          tableFontSize -= 0.25;
+          columnWidths = calculateColumnWidths(tableFontSize);
+          calculatedTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+        }
+        if (calculatedTableWidth < maximumTableWidth && calculatedTableWidth > 0) {
+          const scale = maximumTableWidth / calculatedTableWidth;
+          columnWidths = columnWidths.map((width) => width * scale);
+          calculatedTableWidth = maximumTableWidth;
+        }
+        if (calculatedTableWidth > maximumTableWidth) {
+          const scale = maximumTableWidth / calculatedTableWidth;
+          columnWidths = columnWidths.map((width) => width * scale);
+        }
+        const columnStyles: Record<number, { cellWidth: number; halign: "center" | "left" | "right" }> = {
+          0: { cellWidth: columnWidths[0], halign: "center" },
+          1: { cellWidth: columnWidths[1], halign: "center" },
+          2: { cellWidth: columnWidths[2], halign: "left" },
+          3: { cellWidth: columnWidths[3], halign: "right" },
+          4: { cellWidth: columnWidths[4], halign: "center" },
+          5: { cellWidth: columnWidths[5], halign: "center" },
+          6: { cellWidth: columnWidths[6], halign: "center" },
+          7: { cellWidth: columnWidths[7], halign: "center" },
+          8: { cellWidth: columnWidths[8], halign: "center" },
         };
-        drawHeader(sheet);
-        autoTable(doc, {
-          startY: 59,
-          margin: { left: 9, right: 9, top: 59, bottom: 10 },
-          head: [headers],
-          body: material.rows.length ? material.rows.map((r) => [dateThai(r.date), r.documentNo || "-", r.owner || "-", money(r.unitPrice), r.receiveQty ? qty(r.receiveQty) : "", r.issueQty ? qty(r.issueQty) : "", qty(r.balance), dateThai(r.manufacture), dateThai(r.expiry)]) : [["", "ไม่มีรายการเคลื่อนไหว", "", "", "", "", "", "", ""]],
-          theme: "grid",
-          styles: { font: FONT, fontStyle: "normal", fontSize: 13, cellPadding: 1.6, valign: "middle", textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.2, overflow: "linebreak" },
-          headStyles: { font: FONT, fontStyle: "normal", fontSize: 13, fillColor: [240, 240, 240], textColor: [0, 0, 0], halign: "center" },
-          columnStyles: { 0: { cellWidth: 24, halign: "center" }, 1: { cellWidth: 34 }, 2: { cellWidth: 70 }, 3: { cellWidth: 29, halign: "right" }, 4: { cellWidth: 21, halign: "center" }, 5: { cellWidth: 21, halign: "center" }, 6: { cellWidth: 22, halign: "center" }, 7: { cellWidth: 27, halign: "center" }, 8: { cellWidth: 27, halign: "center" } },
-          didDrawPage: (hook) => {
-            if (hook.pageNumber > 1) drawHeader(sheet + hook.pageNumber - 1);
-          },
-        });
-        const usedPages = doc.getNumberOfPages() - startPage + 1;
-        sheet += usedPages - 1;
+        const pages: StockRow[][] = [];
+        for (let i = 0; i < rows.length; i += pageSize) pages.push(rows.slice(i, i + pageSize));
+        if (pages.length === 0) pages.push([]);
+
+        function drawPageHeader(number: number) {
+          doc.setFont(font, "normal");
+          doc.setFontSize(26);
+          doc.text("บัญชีพัสดุ", center, 14, { align: "center" });
+          doc.setFontSize(17);
+          doc.text(`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`, center, 21, { align: "center" });
+          doc.setFontSize(16);
+          doc.text("ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", 232, 18, { align: "center" });
+          doc.text("หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", 232, 24, { align: "center" });
+          doc.text(`รหัสพัสดุ : ${material.code || "-"}`, leftX, 38);
+          doc.text(`รายการพัสดุ : ${material.name || "-"}`, rightX, 38);
+          doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46);
+          doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46);
+          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54);
+          doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54);
+          doc.setFontSize(16);
+          doc.text(`แผ่นที่ ${number}`, pageWidth - 14, 10, { align: "right" });
+        }
+
+        for (const pageRows of pages) {
+          if (!isFirstPage) doc.addPage("a4", "landscape");
+          isFirstPage = false;
+          sheetNumber++;
+          drawPageHeader(sheetNumber);
+          const body = pageRows.map(createTableRow);
+          while (body.length < pageSize) body.push(["", "", "", "", "", "", "", "", ""]);
+          autoTable(doc, {
+            startY: 60,
+            tableWidth: maximumTableWidth,
+            margin: { left: tableLeftX, right: tableRightMargin },
+            head: [tableHeaders],
+            body,
+            theme: "grid",
+            styles: {
+              font, fontStyle: "normal", fontSize: tableFontSize,
+              cellPadding: tableCellPadding, halign: "center", valign: "middle",
+              lineColor: [0, 0, 0], lineWidth: 0.25, minCellHeight: 8, overflow: "visible",
+            },
+            headStyles: {
+              font, fontStyle: "normal", fontSize: tableFontSize,
+              fillColor: [255, 255, 255], textColor: 0, halign: "center", valign: "middle",
+              lineColor: [0, 0, 0], lineWidth: 0.25,
+              cellPadding: tableCellPadding, overflow: "visible",
+            },
+            columnStyles,
+            rowPageBreak: "avoid",
+            didParseCell: (cell: any) => {
+              if (cell.section !== "body") return;
+              const sourceRow = pageRows[cell.row.index];
+              if (sourceRow && (sourceRow.type === "OPENING_BALANCE" || sourceRow.documentNo === "ยอดยกเข้าระบบ")) {
+                cell.cell.styles.fontStyle = "normal";
+              }
+            },
+          });
+        }
       }
-      if (firstPage) {
-        doc.setFont(FONT, "normal");
-        doc.setFontSize(18);
-        doc.text(`ไม่พบรายการพัสดุ ปีงบประมาณ ${fiscalYear}`, pageWidth / 2, pageHeight / 2, { align: "center" });
+      if (materials.length === 0) {
+        doc.setFont(font, "normal");
+        doc.setFontSize(17);
+        doc.text(`ไม่พบข้อมูลบัญชีพัสดุ ปีงบประมาณ ${fiscalYear}`, center, 21, { align: "center" });
       }
-      doc.save(`บัญชีพัสดุรวม_${fiscalYear}.pdf`);
+      const pdfUrl = URL.createObjectURL(doc.output("blob"));
+      previewWindow.location.replace(pdfUrl);
+      window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 5 * 60 * 1000);
     } catch (error) {
-      alert(error instanceof Error ? error.message : "ไม่สามารถส่งออก PDF ได้");
+      console.error("ไม่สามารถสร้าง PDF รวมบัญชีพัสดุได้:", error);
+      if (!previewWindow.closed) previewWindow.close();
+      alert(error instanceof Error ? error.message : "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
     }
   }
-  return <AppButton onClick={exportPdf} disabled={loading} variant="danger" size="md">{loading ? "กำลังจัดทำ PDF..." : "📄 รวมบัญชีพัสดุ"}</AppButton>;
+
+  return (
+    <AppButton type="button" variant="danger" size="md" onClick={exportPdf} disabled={loading}
+      icon={<span aria-hidden="true">📄</span>}>
+      {loading ? "กำลังจัดทำ PDF..." : "รวมบัญชีพัสดุ"}
+    </AppButton>
+  );
 }
