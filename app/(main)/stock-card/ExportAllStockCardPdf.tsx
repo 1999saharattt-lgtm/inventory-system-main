@@ -173,7 +173,11 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
           doc.text("ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", 232, 18, { align: "center" });
           doc.text("หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", 232, 24, { align: "center" });
           doc.text(`รหัสพัสดุ : ${material.code || "-"}`, leftX, 38);
-          doc.text(`รายการพัสดุ : ${material.name || "-"}`, rightX, 38);
+          // Wrap long material names within the right-hand header column.
+          // Keep the original layout and all other material data unchanged.
+          const materialLabel = `รายการพัสดุ : ${material.name || "-"}`;
+          const materialNameLines = doc.splitTextToSize(materialLabel, pageWidth - 14 - rightX);
+          doc.text(materialNameLines.slice(0, 2), rightX, 38, { lineHeightFactor: 1.0 });
           doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46);
           doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46);
           doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54);
