@@ -1,70 +1,117 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export async function GET(request: Request) {
-  const token = (await cookies()).get("session")?.value;
-  if (!token || !(await verifySession(token))) {
-    return NextResponse.json({ error: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
-  }
-
-  const fiscalYear = Number(new URL(request.url).searchParams.get("fiscalYear"));
-  if (!Number.isInteger(fiscalYear) || fiscalYear < 2569 || fiscalYear > 3000) {
-    return NextResponse.json({ error: "ปีงบประมาณไม่ถูกต้อง" }, { status: 400 });
-  }
-
-  const from = new Date(Date.UTC(fiscalYear - 544, 8, 30, 17)); // 1 ต.ค. 00:00 น. ประเทศไทย
-  const to = new Date(Date.UTC(fiscalYear - 543, 8, 30, 17));
-
+const CATEGORY_ORDER = ["OFFICE", "COMPUTER", "ELECTRIC", "PRINTING", "HOUSEHOLD", "VEHICLE"];
+type Lot = { id: number; qty: number; manufacture: Date | null; expiry: Date | null };
+function sortLots(lots: Lot[]) {
+  return [...lots].sort((a, b) => {
+    if (!!a.expiry !== !!b.expiry) return a.expiry ? -1 : 1;
+    if (a.expiry && b.expiry && +a.expiry !== +b.expiry) return +a.expiry - +b.expiry;
+    if (!!a.manufacture !== !!b.manufacture) return a.manufacture ? -1 : 1;
+    if (a.manufacture && b.manufacture && +a.manufacture !== +b.manufacture) return +a.manufacture - +b.manufacture;
+    return a.id - b.id;
+  });
+}
+function fiscalBounds(fy: number) {
+  return {
+    start: new Date(Date.UTC(fy - 544, 9, 1)),
+    end: new Date(Date.UTC(fy - 543, 9, 1)),
+  };
+}
+export async function GET(request: NextRequest) {
   try {
+    const fiscalYear = Number(request.nextUrl.searchParams.get("fiscalYear"));
+    if (!Number.isInteger(fiscalYear) || fiscalYear < 2569 || fiscalYear > 3000) {
+      return NextResponse.json({ error: "ปีงบประมาณไม่ถูกต้อง" }, { status: 400 });
+    }
+    const { start, end } = fiscalBounds(fiscalYear);
     const materials = await prisma.material.findMany({
       include: {
-        vendor: { select: { name: true } },
-        transactions: {
-          where: { date: { lt: to } },
-          orderBy: [{ date: "asc" }, { id: "asc" }],
+        vendor: true,
+        receiveItems: {
+          where: { receive: { receiveDate: { lt: end } } },
+          include: { receive: { include: { vendor: true } } },
+          orderBy: [{ receive: { receiveDate: "asc" } }, { id: "asc" }],
+        },
+        issueItems: {
+          where: { issue: { issueDate: { lt: end }, status: "APPROVED" } },
+          include: { issue: { include: { department: true } } },
+          orderBy: [{ issue: { issueDate: "asc" } }, { id: "asc" }],
         },
       },
-      orderBy: [{ category: "asc" }, { code: "asc" }],
+      orderBy: { code: "asc" },
     });
-
-    const result = materials
-      .filter((material) => {
-        const name = material.name.trim();
-        if (/\(สสส\.\)\s*$/u.test(name)) return false;
-        if (material.category === "ELECTRIC" && /ถ่านกระดุม/u.test(name)) return false;
-        return true;
-      })
-      .map((material) => {
-        const before = material.transactions.filter((row) => row.date < from);
-        const within = material.transactions.filter((row) => row.date >= from);
-        const openingBalance = before.length ? before[before.length - 1].balance : 0;
-        return {
-          id: material.id,
-          code: material.code,
-          name: material.name,
-          category: material.category,
-          unit: material.unit,
-          vendor: material.vendor?.name ?? "",
-          latestPrice: material.latestPrice,
-          openingBalance,
-          rows: within.map((row) => ({
-            date: row.date.toISOString(),
-            documentNo: row.documentNo,
-            owner: row.vendor || row.department || "",
-            unitPrice: row.unitPrice,
-            receiveQty: row.receiveQty,
-            issueQty: row.issueQty,
-            balance: row.balance,
-          })),
-        };
-      });
-    return NextResponse.json({ materials: result });
+    const output = materials.map((material) => {
+      const events = [
+        ...material.receiveItems.map((item) => ({ type: "RECEIVE" as const, date: item.receive.receiveDate, id: item.id, item })),
+        ...material.issueItems.map((item) => ({ type: "ISSUE" as const, date: item.issue.issueDate, id: item.id, item })),
+      ].sort((a, b) => +a.date - +b.date || (a.type === b.type ? a.id - b.id : a.type === "RECEIVE" ? -1 : 1));
+      const lots: Lot[] = [];
+      let balance = 0;
+      let lastPrice = 0;
+      let lastVendor = material.vendor?.name ?? "-";
+      let openingBalance = 0;
+      let openingPrice = 0;
+      let openingVendor = "-";
+      let captured = false;
+      const rows: Array<{ date: string; documentNo: string; owner: string; unitPrice: number; receiveQty: number; issueQty: number; balance: number; manufacture: string | null; expiry: string | null; type: string }> = [];
+      for (const event of events) {
+        if (!captured && +event.date >= +start) {
+          openingBalance = balance;
+          openingPrice = lastPrice;
+          openingVendor = lastVendor;
+          captured = true;
+        }
+        if (event.type === "RECEIVE") {
+          const item = event.item;
+          const qty = Number(item.qty ?? 0);
+          const price = Number(item.unitPrice ?? 0);
+          balance += qty;
+          lastPrice = price;
+          lastVendor = item.receive.vendor?.name ?? lastVendor;
+          lots.push({ id: item.id, qty, manufacture: item.manufacture, expiry: item.expiry });
+          if (+event.date >= +start) rows.push({ date: event.date.toISOString(), documentNo: item.receive.documentNo, owner: item.receive.vendor?.name ?? "-", unitPrice: price, receiveQty: qty, issueQty: 0, balance, manufacture: item.manufacture?.toISOString() ?? null, expiry: item.expiry?.toISOString() ?? null, type: "RECEIVE" });
+        } else {
+          const item = event.item;
+          const qty = item.issuedQty == null ? Number(item.qty ?? 0) : Number(item.issuedQty);
+          let remaining = qty;
+          let firstLot: Lot | null = null;
+          for (const lot of sortLots(lots.filter((l) => l.qty > 0))) {
+            if (remaining <= 0) break;
+            const taken = Math.min(remaining, lot.qty);
+            if (taken <= 0) continue;
+            if (!firstLot) firstLot = lot;
+            lot.qty -= taken;
+            remaining -= taken;
+          }
+          balance -= qty;
+          if (+event.date >= +start) rows.push({ date: event.date.toISOString(), documentNo: item.issue.documentNo, owner: item.issue.department?.name ?? "-", unitPrice: lastPrice, receiveQty: 0, issueQty: qty, balance, manufacture: (firstLot?.manufacture ?? item.manufacture)?.toISOString() ?? null, expiry: (firstLot?.expiry ?? item.expiry)?.toISOString() ?? null, type: "ISSUE" });
+        }
+      }
+      if (!captured) { openingBalance = balance; openingPrice = lastPrice; openingVendor = lastVendor; }
+      // FY 2569: retain all actual movement rows, never manufacture an opening row.
+      // FY 2570+: use the same virtual opening row as the individual Stock Card.
+      if (fiscalYear >= 2570 && openingBalance !== 0 && events.some((e) => +e.date < +start)) {
+        rows.unshift({ date: start.toISOString(), documentNo: "ยอดยกเข้าระบบ", owner: openingVendor, unitPrice: openingPrice, receiveQty: openingBalance, issueQty: 0, balance: openingBalance, manufacture: null, expiry: null, type: "OPENING_BALANCE" });
+      }
+      const latestReceive = material.receiveItems.at(-1);
+      return {
+        id: material.id, code: material.code, name: material.name, category: material.category, unit: material.unit,
+        vendor: latestReceive?.receive.vendor?.name ?? material.vendor?.name ?? "-",
+        latestPrice: latestReceive ? Number(latestReceive.unitPrice) : Number(material.latestPrice ?? 0),
+        rows,
+      };
+    }).sort((a, b) => {
+      const ca = CATEGORY_ORDER.indexOf(a.category);
+      const cb = CATEGORY_ORDER.indexOf(b.category);
+      return (ca < 0 ? 999 : ca) - (cb < 0 ? 999 : cb) || a.code.localeCompare(b.code, "th") || a.id - b.id;
+    });
+    return NextResponse.json({ fiscalYear, materials: output });
   } catch (error) {
-    console.error("Export all stock cards failed:", error);
-    return NextResponse.json({ error: "ไม่สามารถโหลดข้อมูลบัญชีพัสดุได้" }, { status: 500 });
+    console.error("Export all stock cards failed", error);
+    return NextResponse.json({ error: "ไม่สามารถดึงข้อมูลบัญชีพัสดุได้" }, { status: 500 });
   }
 }
