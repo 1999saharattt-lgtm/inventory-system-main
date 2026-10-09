@@ -102,6 +102,8 @@ type Props = {
 
   inspectionEndDate: string;
 
+  showSelectedDays?: boolean;
+
   inspectorIds: string[];
 
   officers: Officer[];
