@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const includedMaterials = materials.filter((material) => {
       const name = material.name.trim();
       if (/\(\s*สสส\.\s*\)\s*$/u.test(name)) return false;
-      if (material.category === "ELECTRIC" && /^ถ่านชาร์จ\s+ขนาด\s+AA$/iu.test(name)) return false;
+      if (material.category === "ELECTRIC" && material.code === "ELE-0003" && name === "ถ่านชาร์จ ขนาด AA (Rechargeable Battery)") return false;
       return true;
     });
     const output = includedMaterials.map((material) => {
@@ -106,7 +106,8 @@ export async function GET(request: NextRequest) {
       }
       const latestReceive = material.receiveItems.at(-1);
       return {
-        id: material.id, code: material.code, name: material.name, category: material.category, unit: material.unit,
+        id: material.id, code: material.code, name: material.name, category: material.category,
+        unit: material.category === "ELECTRIC" && material.name.trim() === "ถ่านชาร์จ ขนาด AAA (Rechargeable Battery)" ? "แพ็ค" : material.unit,
         vendor: latestReceive?.receive.vendor?.name ?? material.vendor?.name ?? "-",
         latestPrice: latestReceive ? Number(latestReceive.unitPrice) : Number(material.latestPrice ?? 0),
         rows,
