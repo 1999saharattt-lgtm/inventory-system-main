@@ -49,6 +49,7 @@ type Props = {
   rows: InspectionRow[];
   inspectionStartDate: string;
   inspectionEndDate: string;
+  showSelectedDays?: boolean;
   inspectorIds: string[];
   officers: Officer[];
 };
@@ -246,6 +247,7 @@ export default function ExportInspectionPdf({
   inspectionEndDate,
   inspectorIds,
   officers,
+  showSelectedDays = false,
 }: Props) {
   const [isExporting, setIsExporting] = useState(false);
   const startDateInfo = getThaiMonthYear(inspectionStartDate);
