@@ -904,7 +904,7 @@ export default function ExportInspectionPdf({
 
           const headerOpening =
 
-            `คงเหลือยอดยกมาเมื่อ 30 ก.ย. ${startShortYear}`;
+            `คงเหลือยอดยกมาเมื่อ 01 ต.ค. ${startShortYear}`;
 
           const headerMovement =
 
