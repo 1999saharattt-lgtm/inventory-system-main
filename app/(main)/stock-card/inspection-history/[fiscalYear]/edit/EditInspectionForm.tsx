@@ -1715,6 +1715,7 @@ export default function EditInspectionForm({
       ===================================================== */}
 
       <AppCard
+        padding={false}
         className="
           relative
           z-30
@@ -1724,11 +1725,10 @@ export default function EditInspectionForm({
 
           !overflow-visible
 
-          !p-3
-          sm:!p-4
           !rounded-[22px]
         "
       >
+        <div className="p-3 sm:p-4">
         <div
           className="
             mb-3
@@ -1861,6 +1861,7 @@ export default function EditInspectionForm({
               }
             />
           </div>
+        </div>
         </div>
       </AppCard>
 
