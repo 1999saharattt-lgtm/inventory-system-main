@@ -1211,7 +1211,8 @@ export default function InspectionForm({
                 <th rowSpan={2} className={tableHeaderClass}>คงเหลือปัจจุบัน</th>
                 <th colSpan={2} className={tableHeaderClass}>ผลการตรวจสอบ</th>
                 <th colSpan={4} className={tableHeaderClass}>
-                  ถ้าไม่ถูกต้องจำนวนที่ขาด จำนวนที่เกินคิดเป็นเงินร้อยละ
+                  <span className="block">ถ้าไม่ถูกต้องจำนวนที่ขาด</span>
+                  <span className="block">จำนวนที่เกินคิดเป็นเงินร้อยละ</span>
                 </th>
                 <th colSpan={3} className={tableHeaderClass}>จำนวนที่</th>
                 <th rowSpan={2} className={tableHeaderClass}>หมายเหตุ</th>
