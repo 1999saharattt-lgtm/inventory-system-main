@@ -394,6 +394,36 @@ function fitFontSize(
 
 }
 
+/* แบ่งบรรทัดเฉพาะชื่อวัสดุ: รักษาคำไทยและข้อความครบทุกตัวอักษร */
+function wrapMaterialName(doc: jsPDF, name: string, width: number, fontSize: number): string[] {
+  setThaiFont(doc, fontSize);
+  const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+  const parts = Array.from(segmenter.segment(name), ({ segment }) => segment);
+  const tokens: string[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    // ไม่ปล่อยพยัญชนะหรือเครื่องหมายเดี่ยวไปขึ้นบรรทัดใหม่
+    if (tokens.length && (/^[\p{M}\p{P}]+$/u.test(part) || /^[ก-ฮ]$/u.test(part))) {
+      tokens[tokens.length - 1] += part;
+    } else {
+      tokens.push(part);
+    }
+  }
+  const lines: string[] = [];
+  let current = "";
+  for (const token of tokens) {
+    const candidate = current + token;
+    if (current && doc.getTextWidth(candidate) > width) {
+      lines.push(current.trimEnd());
+      current = token.trimStart();
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) lines.push(current.trimEnd());
+  return lines.length ? lines : [name];
+}
+
 /* =========================================================
 
    COMPONENT
@@ -1228,17 +1258,23 @@ export default function ExportInspectionPdf({
                 if (data.column.index === 1) {
 
                   cell.styles.halign = "left";
-                  // แบ่งชื่อรายการตามความกว้างจริง โดยไม่ลบอักขระใด ๆ
-                  // พยายามให้ได้ 2 บรรทัด หากยาวกว่านั้นให้เพิ่มความสูงแถวแทนการตัดทิ้ง
+                  // ตัดบรรทัดตามคำไทย ไม่ตัดพยัญชนะเดี่ยวและไม่ทำข้อความหาย
                   const fullName = String(cell.raw ?? "");
                   const availableNameWidth = COLUMN_WIDTHS[1] - 1.5 - 1 - 0.5;
                   let nameFontSize = TABLE_FONT_SIZE;
-                  let wrappedName: string[] = [];
-                  while (nameFontSize >= 7) {
+                  let wrappedName = wrapMaterialName(doc, fullName, availableNameWidth, nameFontSize);
+                  // ให้ได้ 2 บรรทัดเมื่อทำได้ โดยไม่บังคับตัดคำ
+                  while (wrappedName.length > 2 && nameFontSize > 6.5) {
+                    nameFontSize = Math.max(6.5, nameFontSize - 0.25);
+                    wrappedName = wrapMaterialName(doc, fullName, availableNameWidth, nameFontSize);
+                  }
+                  // ถ้ามีคำเดียวยาวกว่าช่อง ให้ลดฟอนต์แทนการตัดคำกลางคำ
+                  while (wrappedName.some(line => {
                     setThaiFont(doc, nameFontSize);
-                    wrappedName = doc.splitTextToSize(fullName, availableNameWidth) as string[];
-                    if (wrappedName.length <= 2 || nameFontSize === 7) break;
-                    nameFontSize -= 0.25;
+                    return doc.getTextWidth(line) > availableNameWidth;
+                  }) && nameFontSize > 5) {
+                    nameFontSize = Math.max(5, nameFontSize - 0.25);
+                    wrappedName = wrapMaterialName(doc, fullName, availableNameWidth, nameFontSize);
                   }
                   cell.text = wrappedName;
                   cell.styles.fontSize = nameFontSize;
