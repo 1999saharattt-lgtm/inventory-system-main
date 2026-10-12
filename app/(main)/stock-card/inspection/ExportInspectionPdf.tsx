@@ -962,9 +962,7 @@ export default function ExportInspectionPdf({
 
               { content: "คงเหลือปัจจุบัน", rowSpan: 2 },
 
-              { content: "ถูกต้อง", rowSpan: 2 },
-
-              { content: "ไม่ถูกต้อง", rowSpan: 2 },
+              { content: "ผลการตรวจสอบ", colSpan: 2 },
 
               {
 
@@ -980,7 +978,7 @@ export default function ExportInspectionPdf({
 
             ],
 
-            ["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
+            ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
 
           ];
 
