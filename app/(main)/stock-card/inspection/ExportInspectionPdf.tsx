@@ -968,23 +968,19 @@ export default function ExportInspectionPdf({
 
               {
 
-                content: "รายละเอียดกรณีไม่ถูกต้อง",
+                content: "ถ้าไม่ถูกต้องจำนวนที่ขาด\nจำนวนที่เกินคิดเป็นเงินร้อยละ",
 
                 colSpan: 4,
 
               },
 
-              { content: "ชำรุด", rowSpan: 2 },
-
-              { content: "เสื่อมสภาพ", rowSpan: 2 },
-
-              { content: "ไม่จำเป็นต้องใช้", rowSpan: 2 },
+              { content: "จำนวนที่", colSpan: 3 },
 
               { content: "หมายเหตุ", rowSpan: 2 },
 
             ],
 
-            ["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต."],
+            ["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
 
           ];
 
@@ -1180,6 +1176,7 @@ export default function ExportInspectionPdf({
               cell.styles.overflow = "hidden";
 
               if (data.section === "head") {
+                cell.styles.overflow = "linebreak";
 
                 /*
 
