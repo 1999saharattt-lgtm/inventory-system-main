@@ -1722,7 +1722,7 @@ export default function EditInspectionForm({
     `
       h-10
       w-full
-      min-w-[64px]
+      min-w-0
 
       rounded-[10px]
 
@@ -1942,6 +1942,8 @@ export default function EditInspectionForm({
             className="
               flex
               flex-wrap
+              items-center
+              justify-end
               gap-2
             "
           >
@@ -2048,7 +2050,7 @@ export default function EditInspectionForm({
           <table
             ref={tableRef}
             className="
-              w-full
+              w-[1710px]
               min-w-[1710px]
 
               table-fixed
@@ -2377,7 +2379,7 @@ export default function EditInspectionForm({
           href={
             cancelHref
           }
-          variant="back"
+          variant="secondary"
           size="md"
         >
           ยกเลิก
@@ -2540,7 +2542,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[280px]
 
                 border
                 border-black
@@ -2571,7 +2572,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[90px]
 
                 border
                 border-black
@@ -2595,7 +2595,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[110px]
 
                 border
                 border-black
@@ -2621,7 +2620,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2647,7 +2645,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2673,7 +2670,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2699,7 +2695,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2741,7 +2736,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[90px]
 
                 border
                 border-black
@@ -2783,7 +2777,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[90px]
 
                 border
                 border-black
@@ -2821,7 +2814,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[90px]
 
                 border
                 border-black
@@ -2859,7 +2851,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2897,7 +2888,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[80px]
 
                 border
                 border-black
@@ -2935,7 +2925,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[90px]
 
                 border
                 border-black
@@ -2973,7 +2962,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[100px]
 
                 border
                 border-black
@@ -3011,7 +2999,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[130px]
 
                 border
                 border-black
@@ -3049,7 +3036,6 @@ function CategoryRows({
 
             <td
               className="
-                min-w-[220px]
 
                 border
                 border-black
