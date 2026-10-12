@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import {
 } from "react";
 
 import AppButton from "@/components/AppButton";
+import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
@@ -66,6 +68,7 @@ type InitialData = {
   fiscalYear: number;
 
   inspectionDate: string;
+  inspectionEndDate?: string;
 
   inspectorIds: string[];
 
@@ -1049,6 +1052,8 @@ export default function EditInspectionForm({
     initialData.inspectionDate
   );
 
+  const [inspectionEndDate, setInspectionEndDate] = useState(initialData.inspectionEndDate ?? "");
+
   const [
     inspectorIds,
     setInspectorIds,
@@ -1085,6 +1090,45 @@ export default function EditInspectionForm({
   );
 
   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const bottomScrollRef = useRef<HTMLDivElement>(null);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [tableScrollWidth, setTableScrollWidth] = useState(1710);
+  const [canScrollTable, setCanScrollTable] = useState(false);
+  const syncTopScroll = useCallback(() => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      bottomScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  }, []);
+  const syncBottomScroll = useCallback(() => {
+    if (topScrollRef.current && bottomScrollRef.current) {
+      topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+    }
+  }, []);
+  useEffect(() => {
+    const bottom = bottomScrollRef.current;
+    const table = tableRef.current;
+    if (!bottom || !table) return;
+    const measure = () => {
+      if (!bottomScrollRef.current || !tableRef.current) return;
+      const width = Math.max(1710, tableRef.current.scrollWidth);
+      setTableScrollWidth(width);
+      setCanScrollTable(width > bottomScrollRef.current.clientWidth + 1);
+      if (topScrollRef.current) {
+        topScrollRef.current.scrollLeft = bottomScrollRef.current.scrollLeft;
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(bottom);
+    observer.observe(table);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
 
   const [
     isSaving,
@@ -1438,6 +1482,15 @@ export default function EditInspectionForm({
       return;
     }
 
+    if (!inspectionEndDate || !parseDateOnly(inspectionEndDate)) {
+      alert("กรุณาระบุวันที่ตรวจสอบแล้วเสร็จ");
+      return;
+    }
+    if (inspectionEndDate < inspectionDate) {
+      alert("วันที่ตรวจสอบแล้วเสร็จต้องไม่ก่อนวันที่เริ่มตรวจสอบ");
+      return;
+    }
+
     /* ===============================================
        INSPECTORS
     =============================================== */
@@ -1557,6 +1610,7 @@ export default function EditInspectionForm({
                   fiscalYear,
 
                   inspectionDate,
+                  inspectionEndDate,
 
                   inspectorIds:
                     inspectorIds.map(
@@ -1746,21 +1800,6 @@ export default function EditInspectionForm({
             ข้อมูลการตรวจสอบ
           </h2>
 
-          <p
-            className="
-              mt-0.5
-
-              text-xs
-              font-semibold
-
-              !text-slate-500
-            "
-          >
-            แก้ไขวันที่ตรวจสอบสำหรับปีงบประมาณ{" "}
-            {
-              fiscalYear
-            }
-          </p>
         </div>
 
         <div
@@ -1773,93 +1812,14 @@ export default function EditInspectionForm({
             md:grid-cols-2
           "
         >
-          {/* ===============================================
-              FISCAL YEAR
-          =============================================== */}
-
-          <div
-            className="
-              min-w-0
-            "
-          >
-            <label
-              className="
-                mb-1.5
-                block
-
-                text-sm
-                font-extrabold
-
-                !text-slate-700
-              "
-            >
-              ปีงบประมาณ
-            </label>
-
-            <div
-              className="
-                flex
-                h-[46px]
-                items-center
-
-                rounded-[14px]
-
-                border
-                border-slate-200
-
-                bg-white
-
-                px-4
-
-                text-base
-                font-extrabold
-
-                !text-slate-800
-              "
-            >
-              พ.ศ.{" "}
-              {
-                fiscalYear
-              }
-            </div>
+          <div className="relative z-40 min-w-0">
+            <label htmlFor="inspectionDate" className="mb-1.5 block text-sm font-extrabold !text-slate-700">วันที่เริ่มตรวจสอบ</label>
+            <IOSDatePicker id="inspectionDate" value={inspectionDate} onChange={setInspectionDate} />
           </div>
 
-          {/* ===============================================
-              INSPECTION DATE
-          =============================================== */}
-
-          <div
-            className="
-              relative
-              z-40
-
-              min-w-0
-            "
-          >
-            <label
-              htmlFor="inspectionDate"
-              className="
-                mb-1.5
-                block
-
-                text-sm
-                font-extrabold
-
-                !text-slate-700
-              "
-            >
-              วันที่ตรวจสอบ
-            </label>
-
-            <IOSDatePicker
-              id="inspectionDate"
-              value={
-                inspectionDate
-              }
-              onChange={
-                setInspectionDate
-              }
-            />
+          <div className="relative z-40 min-w-0">
+            <label htmlFor="inspectionEndDate" className="mb-1.5 block text-sm font-extrabold !text-slate-700">วันที่ตรวจสอบแล้วเสร็จ</label>
+            <IOSDatePicker id="inspectionEndDate" value={inspectionEndDate} onChange={setInspectionEndDate} />
           </div>
         </div>
         </div>
@@ -2010,6 +1970,63 @@ export default function EditInspectionForm({
             >
               ไม่ถูกต้องทั้งหมด
             </AppButton>
+              <ExportInspectionPdf
+                fiscalYear={fiscalYear}
+                startShortYear={String(fiscalYear - 1).slice(-2)}
+                endShortYear={String(fiscalYear).slice(-2)}
+                materials={filteredRows.map((row) => ({
+                  materialId: row.materialId,
+                  code: row.code,
+                  name: row.name,
+                  unit: row.unit,
+                  category: row.category,
+                  openingBalance: row.openingQty,
+                  receiveQty: row.receiveQty,
+                  issueQty: row.issueQty,
+                  closingBalance: row.closingQty,
+                }))}
+                rows={rows.map((row) => ({
+                  materialId: row.materialId,
+                  accuracy: row.accuracy,
+                  shortageQty: row.shortageQty,
+                  excessQty: row.excessQty,
+                  baht: row.baht,
+                  satang: row.satang,
+                  damagedQty: row.damagedQty,
+                  deterioratedQty: row.deterioratedQty,
+                  unnecessaryQty: row.unnecessaryQty,
+                  remark: row.remark,
+                }))}
+                inspectionStartDate={inspectionDate}
+                inspectionEndDate={inspectionEndDate}
+                inspectorIds={inspectorIds}
+                officers={officers.map((officer) => ({
+                  ...officer,
+                  position: officer.position ?? "",
+                  type: "",
+                  departmentId: officer.department?.id ?? null,
+                  sectionId: officer.section?.id ?? null,
+                }))}
+              />
+          </div>
+        </div>
+
+        {/* แถบเลื่อนแนวนอนด้านบน เชื่อมกับตารางด้านล่าง */}
+        <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="text-xs font-bold !text-slate-600">เลื่อนตารางซ้าย–ขวา</span>
+            <span className="text-xs font-semibold !text-slate-500">
+              {canScrollTable ? "ลากแถบเลื่อนเพื่อดูคอลัมน์เพิ่มเติม" : "แสดงคอลัมน์ครบแล้ว"}
+            </span>
+          </div>
+          <div
+            ref={topScrollRef}
+            onScroll={syncTopScroll}
+            aria-label="แถบเลื่อนตารางด้านบน"
+            className="w-full overflow-x-scroll overflow-y-hidden rounded-md border border-slate-300 bg-white"
+            style={{ height: 18, scrollbarWidth: "auto" }}
+          >
+            <div style={{ width: tableScrollWidth, height: 1 }} />
           </div>
         </div>
 
@@ -2018,6 +2035,8 @@ export default function EditInspectionForm({
         =================================================== */}
 
         <div
+          ref={bottomScrollRef}
+          onScroll={syncBottomScroll}
           className="
             w-full
             min-w-0
@@ -2027,6 +2046,7 @@ export default function EditInspectionForm({
           "
         >
           <table
+            ref={tableRef}
             className="
               w-full
               min-w-[1710px]
@@ -2053,22 +2073,16 @@ export default function EditInspectionForm({
                 <th rowSpan={2} className={inspectionHeaderClass}>ลำดับ</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หน่วยนับ</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>
-                  <div>คงเหลือยอดยกมาเมื่อ</div>
-                  <div>01 ต.ค. {String(fiscalYear - 1).slice(-2)}</div>
-                </th>
-                <th colSpan={2} className={inspectionHeaderClass}>
-                  {`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}
-                </th>
+                <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือยอดยกมาเมื่อ<br />01 ต.ค. {String(fiscalYear - 1).slice(-2)}</th>
+                <th colSpan={2} className={inspectionHeaderClass}>{`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือปัจจุบัน</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ถูกต้อง</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ไม่ถูกต้อง</th>
+                <th colSpan={2} className={inspectionHeaderClass}>ผลการตรวจสอบ</th>
                 <th colSpan={4} className={inspectionHeaderClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<br />จำนวนที่เกินคิดเป็นเงินร้อยละ</th>
                 <th colSpan={3} className={inspectionHeaderClass}>จำนวนที่</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หมายเหตุ</th>
               </tr>
               <tr>
-                {["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].map((title) => (
+                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].map((title) => (
                   <th key={title} className={`${inspectionHeaderClass} !py-1`}>{title}</th>
                 ))}
               </tr>
@@ -2549,21 +2563,6 @@ function CategoryRows({
                 }
               </div>
 
-              <div
-                className="
-                  mt-1
-
-                  text-xs
-                  font-semibold
-
-                  !text-slate-500
-                "
-              >
-                รหัส{" "}
-                {
-                  row.code
-                }
-              </div>
             </td>
 
             {/* ===========================================
