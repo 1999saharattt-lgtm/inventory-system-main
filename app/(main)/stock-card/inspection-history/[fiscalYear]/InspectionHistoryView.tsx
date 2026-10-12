@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
@@ -50,6 +50,15 @@ export default function InspectionHistoryView(props: Props) {
     inspectorIds, inspectionStartDate, inspectionEndDate } = props;
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  const topScrollbarRef = useRef<HTMLDivElement>(null);
+  const tableScrollbarRef = useRef<HTMLDivElement>(null);
+  const syncScroll = (source: "top" | "table") => {
+    const from = source === "top" ? topScrollbarRef.current : tableScrollbarRef.current;
+    const to = source === "top" ? tableScrollbarRef.current : topScrollbarRef.current;
+    if (from && to && Math.abs(to.scrollLeft - from.scrollLeft) > 1) {
+      to.scrollLeft = from.scrollLeft;
+    }
+  };
   const rowMap = useMemo(() => new Map(rows.map(row => [row.materialId, row])), [rows]);
   const filtered = useMemo(() => materials.filter(material => {
     if (selectedCategory !== "ALL" && material.category !== selectedCategory) return false;
@@ -93,10 +102,10 @@ export default function InspectionHistoryView(props: Props) {
       </div>
       <AppTableCard title="รายการตรวจสอบบัญชีพัสดุ"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
-        badge={`${filtered.length.toLocaleString("th-TH")} รายการ`} className="relative z-0 w-full min-w-0">
-        <div className="border-b border-slate-200 bg-white p-3">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-            <div className="relative z-30 w-full sm:max-w-[420px]">
+        badge={`${filtered.length.toLocaleString("th-TH")} รายการ`} className="relative z-0 w-full min-w-0 !max-w-full">
+        <div className="border-b border-slate-200 bg-white px-3 pb-2 pt-0">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-end xl:justify-between">
+            <div className="relative z-30 w-full sm:max-w-[360px]">
               <label className="mb-1.5 block text-sm font-extrabold !text-slate-700">เลือกหมวด</label>
               <AppSearchableSelect value={selectedCategory} options={categories} placeholder="เลือกหมวด"
                 searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
@@ -109,11 +118,11 @@ export default function InspectionHistoryView(props: Props) {
         </div>
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
           <div className="mb-1 text-xs font-bold !text-slate-600">เลื่อนตารางซ้าย–ขวา</div>
-          <div className="w-full overflow-x-auto rounded-md border border-slate-300 bg-white" aria-label="แถบเลื่อนตารางด้านบน">
+          <div ref={topScrollbarRef} onScroll={() => syncScroll("top")} className="w-full max-w-full overflow-x-auto rounded-md border border-slate-300 bg-white" aria-label="แถบเลื่อนตารางด้านบน">
             <div style={{ width: 1710, height: 8 }} />
           </div>
         </div>
-        <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
+        <div ref={tableScrollbarRef} onScroll={() => syncScroll("table")} className="w-full max-w-full min-w-0 overflow-x-auto overscroll-x-contain" style={{ touchAction: "pan-x pan-y" }}>
           <table className="w-full min-w-[1710px] table-fixed border-collapse bg-white text-[15px]">
             <colgroup>{widths.map((width,index) => <col key={index} style={{width:`${width}px`}} />)}</colgroup>
             <thead>
@@ -121,7 +130,7 @@ export default function InspectionHistoryView(props: Props) {
                 <th rowSpan={2} className={headerClass}>ลำดับ</th>
                 <th rowSpan={2} className={headerClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
                 <th rowSpan={2} className={headerClass}>หน่วยนับ</th>
-                <th rowSpan={2} className={headerClass}>คงเหลือยอดยกมาเมื่อ<br />30 ก.ย. {startShortYear}</th>
+                <th rowSpan={2} className={headerClass}>คงเหลือยอดยกมาเมื่อ<br />01 ต.ค. {startShortYear}</th>
                 <th colSpan={2} className={headerClass}>01 ต.ค. {startShortYear} - 30 ก.ย. {endShortYear}</th>
                 <th rowSpan={2} className={headerClass}>คงเหลือปัจจุบัน</th>
                 <th rowSpan={2} className={headerClass}>ถูกต้อง</th>
