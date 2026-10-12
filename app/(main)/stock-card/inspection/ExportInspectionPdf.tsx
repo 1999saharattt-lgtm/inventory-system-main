@@ -904,7 +904,7 @@ export default function ExportInspectionPdf({
 
           const headerOpening =
 
-            `คงเหลือยอดยกมาเมื่อ 01 ต.ค. ${startShortYear}`;
+            `คงเหลือยอดยกมาเมื่อ 30 ก.ย. ${startShortYear}`;
 
           const headerMovement =
 
@@ -938,19 +938,23 @@ export default function ExportInspectionPdf({
 
               {
 
-                content: "ถ้าไม่ถูกต้องจำนวนที่ขาด\nจำนวนที่เกินคิดเป็นเงินร้อยละ",
+                content: "รายละเอียดกรณีไม่ถูกต้อง",
 
                 colSpan: 4,
 
               },
 
-              { content: "จำนวนที่", colSpan: 3 },
+              { content: "ชำรุด", rowSpan: 2 },
+
+              { content: "เสื่อมสภาพ", rowSpan: 2 },
+
+              { content: "ไม่จำเป็นต้องใช้", rowSpan: 2 },
 
               { content: "หมายเหตุ", rowSpan: 2 },
 
             ],
 
-            ["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
+            ["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต."],
 
           ];
 
@@ -1224,6 +1228,25 @@ export default function ExportInspectionPdf({
                 if (data.column.index === 1) {
 
                   cell.styles.halign = "left";
+                  // แบ่งชื่อรายการตามความกว้างจริง โดยไม่ลบอักขระใด ๆ
+                  // พยายามให้ได้ 2 บรรทัด หากยาวกว่านั้นให้เพิ่มความสูงแถวแทนการตัดทิ้ง
+                  const fullName = String(cell.raw ?? "");
+                  const availableNameWidth = COLUMN_WIDTHS[1] - 1.5 - 1 - 0.5;
+                  let nameFontSize = TABLE_FONT_SIZE;
+                  let wrappedName: string[] = [];
+                  while (nameFontSize >= 7) {
+                    setThaiFont(doc, nameFontSize);
+                    wrappedName = doc.splitTextToSize(fullName, availableNameWidth) as string[];
+                    if (wrappedName.length <= 2 || nameFontSize === 7) break;
+                    nameFontSize -= 0.25;
+                  }
+                  cell.text = wrappedName;
+                  cell.styles.fontSize = nameFontSize;
+                  cell.styles.overflow = "linebreak";
+                  cell.styles.minCellHeight = Math.max(
+                    BODY_ROW_HEIGHT,
+                    wrappedName.length * nameFontSize * 0.352778 * 1.2 + 0.6
+                  );
 
                   /*
 
