@@ -1662,7 +1662,7 @@ export default function EditInspectionForm({
      FIELD STYLE
   ======================================================= */
 
-  const inspectionHeaderClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle text-sm font-extrabold !text-white";
+  const inspectionHeaderClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle text-[15px] font-extrabold leading-tight !text-white";
 
   const numberInputClass =
     `
@@ -1939,12 +1939,12 @@ export default function EditInspectionForm({
 
           w-full
           min-w-0
-          max-w-full
+          !max-w-full
         "
       >
         {/* เลือกหมวด: ชิดหัวการ์ด โดยไม่เปลี่ยนปุ่มและหัวตารางเดิม */}
-        <div className="relative -mt-2 border-b border-slate-200 bg-white px-3 pb-3 pt-1">
-          <div className="relative z-30 w-full sm:max-w-[420px]">
+        <div className="border-b border-slate-200 bg-white px-3 pb-2 pt-0">
+          <div className="relative z-30 w-full sm:max-w-[360px]">
             <label className="mb-1.5 block text-sm font-extrabold !text-slate-700">
               เลือกหมวด
             </label>
@@ -2071,7 +2071,7 @@ export default function EditInspectionForm({
                 <th rowSpan={2} className={inspectionHeaderClass}>หน่วยนับ</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>
                   <div>คงเหลือยอดยกมาเมื่อ</div>
-                  <div>30 ก.ย. {String(fiscalYear - 1).slice(-2)}</div>
+                  <div>01 ต.ค. {String(fiscalYear - 1).slice(-2)}</div>
                 </th>
                 <th colSpan={2} className={inspectionHeaderClass}>
                   {`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}
@@ -2079,14 +2079,12 @@ export default function EditInspectionForm({
                 <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือปัจจุบัน</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>ถูกต้อง</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>ไม่ถูกต้อง</th>
-                <th colSpan={4} className={inspectionHeaderClass}>รายละเอียดกรณีไม่ถูกต้อง</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ชำรุด</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>เสื่อมสภาพ</th>
-                <th rowSpan={2} className={inspectionHeaderClass}>ไม่จำเป็นต้องใช้</th>
+                <th colSpan={4} className={inspectionHeaderClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<br />จำนวนที่เกินคิดเป็นเงินร้อยละ</th>
+                <th colSpan={3} className={inspectionHeaderClass}>จำนวนที่</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หมายเหตุ</th>
               </tr>
               <tr>
-                {["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต."].map((title) => (
+                {["รับ", "จ่าย", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].map((title) => (
                   <th key={title} className={`${inspectionHeaderClass} !py-1`}>{title}</th>
                 ))}
               </tr>
