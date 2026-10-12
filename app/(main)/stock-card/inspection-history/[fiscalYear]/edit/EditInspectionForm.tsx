@@ -548,7 +548,7 @@ function IOSDatePicker({
         }
         className="
           flex
-          h-[48px]
+          h-[46px]
           w-full
           min-w-0
           items-center
@@ -1779,19 +1779,12 @@ export default function EditInspectionForm({
 
           <div
             className="
-              rounded-[14px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/70
-
-              p-3
+              min-w-0
             "
           >
             <label
               className="
-                mb-2
+                mb-1.5
                 block
 
                 text-sm
@@ -1806,7 +1799,7 @@ export default function EditInspectionForm({
             <div
               className="
                 flex
-                h-[48px]
+                h-[46px]
                 items-center
 
                 rounded-[14px]
@@ -1814,7 +1807,7 @@ export default function EditInspectionForm({
                 border
                 border-slate-200
 
-                bg-slate-100
+                bg-white
 
                 px-4
 
@@ -1840,20 +1833,13 @@ export default function EditInspectionForm({
               relative
               z-40
 
-              rounded-[14px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/70
-
-              p-3
+              min-w-0
             "
           >
             <label
               htmlFor="inspectionDate"
               className="
-                mb-2
+                mb-1.5
                 block
 
                 text-sm
@@ -1974,14 +1960,13 @@ export default function EditInspectionForm({
 
             bg-slate-50/70
 
-            p-3
-
-            sm:p-4
+            px-3
+            py-2
           "
         >
           <p
             className="
-              mb-3
+              mb-1
 
               text-sm
               font-extrabold
