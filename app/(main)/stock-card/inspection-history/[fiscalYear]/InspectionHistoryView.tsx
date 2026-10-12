@@ -135,13 +135,11 @@ export default function InspectionHistoryView(props: Props) {
                 <th rowSpan={2} className={headerClass}>คงเหลือปัจจุบัน</th>
                 <th rowSpan={2} className={headerClass}>ถูกต้อง</th>
                 <th rowSpan={2} className={headerClass}>ไม่ถูกต้อง</th>
-                <th colSpan={4} className={headerClass}>รายละเอียดกรณีไม่ถูกต้อง</th>
-                <th rowSpan={2} className={headerClass}>ชำรุด</th>
-                <th rowSpan={2} className={headerClass}>เสื่อมสภาพ</th>
-                <th rowSpan={2} className={headerClass}>ไม่จำเป็นต้องใช้</th>
+                <th colSpan={4} className={headerClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<br />จำนวนที่เกินคิดเป็นเงินร้อยละ</th>
+                <th colSpan={3} className={headerClass}>จำนวนที่</th>
                 <th rowSpan={2} className={headerClass}>หมายเหตุ</th>
               </tr>
-              <tr>{["รับ","จ่าย","ขาด","เกิน","บาท","สต."].map(label =>
+              <tr>{["รับ","จ่าย","ขาด","เกิน","บาท","สต.","ชำรุด","เสื่อมสภาพ","ไม่จำเป็นต้องใช้"].map(label =>
                 <th key={label} className={`${headerClass} !py-1`}>{label}</th>)}</tr>
             </thead>
             <tbody>
