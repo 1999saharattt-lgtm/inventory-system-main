@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import AppButton from "@/components/AppButton";
-import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
+import ExportInspectionPdf from "../../../inspection/ExportInspectionPdf";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
