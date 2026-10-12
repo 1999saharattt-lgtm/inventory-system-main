@@ -2041,7 +2041,7 @@ export default async function StockCardInspectionPage({
         icon="📋"
         title="รายละเอียดการตรวจสอบบัญชีพัสดุประจำปี"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
-        actions={<AppButton href={`/stock-card/inspection-history?fiscalYear=${fiscalYear}`} variant="back" size="md">← กลับ</AppButton>}
+        actions={<AppButton href={`/stock-card/inspection-history?fiscalYear=${fiscalYear}`} variant="back" size="md">กลับ</AppButton>}
       />
       <InspectionHistoryView
         fiscalYear={fiscalYear}
