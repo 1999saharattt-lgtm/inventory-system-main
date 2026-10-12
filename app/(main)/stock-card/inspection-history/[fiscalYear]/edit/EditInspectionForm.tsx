@@ -1707,9 +1707,7 @@ export default function EditInspectionForm({
         w-full
         min-w-0
 
-        space-y-5
-
-        sm:space-y-6
+        space-y-4
       "
     >
       {/* =====================================================
@@ -1726,19 +1724,19 @@ export default function EditInspectionForm({
 
           !overflow-visible
 
-          p-4
-
-          sm:p-5
+          !p-3
+          sm:!p-4
+          !rounded-[22px]
         "
       >
         <div
           className="
-            mb-5
+            mb-3
           "
         >
           <h2
             className="
-              text-xl
+              text-lg
               font-black
               tracking-tight
 
@@ -1750,9 +1748,9 @@ export default function EditInspectionForm({
 
           <p
             className="
-              mt-1
+              mt-0.5
 
-              text-sm
+              text-xs
               font-semibold
 
               !text-slate-500
@@ -1770,7 +1768,7 @@ export default function EditInspectionForm({
             grid
             grid-cols-1
 
-            gap-4
+            gap-3
 
             md:grid-cols-2
           "
@@ -1781,14 +1779,14 @@ export default function EditInspectionForm({
 
           <div
             className="
-              rounded-[18px]
+              rounded-[14px]
 
               border
               border-slate-200
 
               bg-slate-50/70
 
-              p-4
+              p-3
             "
           >
             <label
@@ -1842,14 +1840,14 @@ export default function EditInspectionForm({
               relative
               z-40
 
-              rounded-[18px]
+              rounded-[14px]
 
               border
               border-slate-200
 
               bg-slate-50/70
 
-              p-4
+              p-3
             "
           >
             <label
@@ -2178,9 +2176,8 @@ export default function EditInspectionForm({
 
           !overflow-visible
 
-          p-4
-
-          sm:p-5
+          !p-4
+          !rounded-[22px]
         "
       >
         <div>
@@ -2212,12 +2209,12 @@ export default function EditInspectionForm({
 
         <div
           className="
-            mt-5
+            mt-4
 
             grid
             grid-cols-1
 
-            gap-4
+            gap-3
 
             lg:grid-cols-3
           "
@@ -2286,14 +2283,14 @@ export default function EditInspectionForm({
                     relative
                     min-w-0
 
-                    rounded-[18px]
+                    rounded-[16px]
 
                     border
                     border-slate-200/80
 
                     bg-slate-50/60
 
-                    p-4
+                    p-3
                   "
                 >
                   <label
