@@ -173,57 +173,24 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
           doc.text("ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", 232, 18, { align: "center" });
           doc.text("หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", 232, 24, { align: "center" });
           doc.text(`รหัสพัสดุ : ${material.code || "-"}`, leftX, 38);
-          // Break Thai text at real word boundaries, never inside a vowel/combining cluster.
-          const materialLabel = `รายการพัสดุ : ${material.name || "-"}`;
-          const nameMaxWidth = pageWidth - rightX - 14;
-          const segmenter = new Intl.Segmenter("th", { granularity: "word" });
-          const words = Array.from(segmenter.segment(materialLabel), (part) => part.segment);
-          const wrapName = (): string[] => {
-            const lines: string[] = [];
-            let line = "";
-            for (const word of words) {
-              const next = line + word;
-              if (line && doc.getTextWidth(next) > nameMaxWidth) {
-                lines.push(line.trimEnd());
-                line = word.trimStart();
-              } else {
-                line = next;
-              }
-            }
-            if (line) lines.push(line.trimEnd());
-            return lines.length ? lines : ["-"];
-          };
-          let nameFontSize = 16;
-          doc.setFontSize(nameFontSize);
-          let nameLines = wrapName();
-          while (nameLines.length > 2 && nameFontSize > 8) {
-            nameFontSize -= 0.5;
-            doc.setFontSize(nameFontSize);
-            nameLines = wrapName();
-          }
-          // Retain every word; extend the header if more than two lines are needed.
-          const extraNameHeight = nameLines.length > 1 ? (nameLines.length - 1) * 7 : 0;
-          doc.text(nameLines, rightX, 38, { lineHeightFactor: 1.1 });
-          doc.setFontSize(16);
-          doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46 + extraNameHeight);
-          doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46 + extraNameHeight);
-          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54 + extraNameHeight);
-          doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54 + extraNameHeight);
-          // Page number restarts at 1 on each category and advances on every sheet.
+          doc.text(`รายการพัสดุ : ${material.name || "-"}`, rightX, 38);
+          doc.text(`หมวดหมู่ : ${categoryName[material.category] ?? material.category ?? "-"}`, leftX, 46);
+          doc.text(`หน่วย : ${material.unit || "-"}`, rightX, 46);
+          doc.text(`ผู้จำหน่าย : ${material.vendor || "-"}`, leftX, 54);
+          doc.text(`ราคาล่าสุด : ${formatMoney(material.latestPrice)} บาท`, rightX, 54);
           doc.setFontSize(16);
           doc.text(`แผ่นที่ ${number}`, pageWidth - 14, 10, { align: "right" });
-          return extraNameHeight;
         }
 
         for (const pageRows of pages) {
           if (!isFirstPage) doc.addPage("a4", "landscape");
           isFirstPage = false;
           sheetNumber++;
-          const headerExtraHeight = drawPageHeader(sheetNumber);
+          drawPageHeader(sheetNumber);
           const body = pageRows.map(createTableRow);
           while (body.length < pageSize) body.push(["", "", "", "", "", "", "", "", ""]);
           autoTable(doc, {
-            startY: 60 + headerExtraHeight,
+            startY: 60,
             tableWidth: maximumTableWidth,
             margin: { left: tableLeftX, right: tableRightMargin },
             head: [tableHeaders],
@@ -270,8 +237,8 @@ export default function ExportAllStockCardPdf({ fiscalYear }: { fiscalYear: numb
   }
 
   return (
-    <AppButton type="button" variant="danger" size="md" onClick={exportPdf} disabled={loading}
-      icon={<span aria-hidden="true">📄</span>}>
+    <AppButton type="button" variant="primary" size="md" onClick={exportPdf} disabled={loading}
+      >
       {loading ? "กำลังจัดทำ PDF..." : "รวมบัญชีพัสดุ"}
     </AppButton>
   );
