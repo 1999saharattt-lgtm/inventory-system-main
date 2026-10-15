@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import DeleteButton from "./DeleteButton";
 
 import AppPage from "@/components/AppPage";
-import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 import AppCard from "@/components/AppCard";
@@ -853,12 +852,10 @@ export default async function ReceivePage({
           HEADER
       ===================================================== */}
 
-      <AppPageHeader
-        icon="📥"
+      <AppCard
+        icon={<span aria-hidden="true">📥</span>}
         title="รายการรับเข้าพัสดุ"
-        subtitle={
-          filterText
-        }
+        subtitle={filterText}
         actions={
           <>
             <AppButton
@@ -892,99 +889,14 @@ export default async function ReceivePage({
             </AppButton>
           </>
         }
-      />
-
-      {/* =====================================================
-          FISCAL YEAR FILTER
-      ===================================================== */}
-
-      <AppCard
-        className="
-          w-full
-          min-w-0
-
-          !overflow-visible
-        "
+        className="w-full min-w-0 !overflow-visible"
       >
-        <div
-          className="
-            flex
-            min-w-0
-            flex-col
-
-            gap-4
-
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
-          "
-        >
-          {/* =================================================
-              FISCAL YEAR SELECT
-          ================================================= */}
-
-          <ReceiveFiscalYearSelect
+        <ReceiveFiscalYearSelect
             selectedFiscalYear={selectedFiscalYear}
             availableFiscalYears={availableFiscalYears}
             date={params.date}
             period={params.period}
           />
-
-          {/* =================================================
-              FISCAL YEAR INFORMATION
-          ================================================= */}
-
-          <div
-            className="
-              min-w-0
-
-              rounded-[18px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/80
-
-              px-4
-              py-3
-
-              shadow-sm
-            "
-          >
-            <p
-              className="
-                text-sm
-                font-extrabold
-
-                !text-slate-900
-              "
-            >
-              ปีงบประมาณ{" "}
-              {
-                selectedFiscalYear
-              }
-            </p>
-
-            <p
-              className="
-                mt-1
-
-                text-sm
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              {formatThaiFullDate(
-                fiscalRange.startDate
-              )}{" "}
-              -{" "}
-              {formatThaiFullDate(
-                fiscalDisplayEndDate
-              )}
-            </p>
-          </div>
-        </div>
 
         {/* ===================================================
             QUICK FILTERS

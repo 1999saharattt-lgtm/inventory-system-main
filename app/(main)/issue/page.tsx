@@ -7,10 +7,10 @@ import {
 } from "@/lib/session";
 
 import AppPage from "@/components/AppPage";
-import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 import AppCard from "@/components/AppCard";
+import IssueFiscalYearSelect from "./IssueFiscalYearSelect";
 
 import DeleteButton from "./DeleteButton";
 
@@ -962,12 +962,10 @@ export default async function IssuePage({
           HEADER
       ===================================================== */}
 
-      <AppPageHeader
-        icon="📤"
+      <AppCard
+        icon={<span aria-hidden="true">📤</span>}
         title="รายการเบิกจ่ายพัสดุ"
-        subtitle={
-          filterText
-        }
+        subtitle={filterText}
         actions={
           <>
             <AppButton
@@ -1001,221 +999,14 @@ export default async function IssuePage({
             </AppButton>
           </>
         }
-      />
-
-      {/* =====================================================
-          FISCAL YEAR FILTER
-      ===================================================== */}
-
-      <AppCard
-        className="
-          w-full
-          min-w-0
-
-          overflow-visible
-
-          p-4
-
-          sm:p-5
-        "
+        className="w-full min-w-0 !overflow-visible"
       >
-        <div
-          className="
-            flex
-            min-w-0
-            flex-col
-
-            gap-4
-
-            lg:flex-row
-            lg:items-end
-            lg:justify-between
-          "
-        >
-          {/* =================================================
-              FISCAL YEAR SELECT
-          ================================================= */}
-
-          <form
-            method="get"
-            action="/issue"
-            className="
-              flex
-              min-w-0
-              flex-col
-
-              gap-3
-
-              sm:flex-row
-              sm:items-end
-            "
-          >
-            <div
-              className="
-                min-w-0
-
-                sm:w-[260px]
-              "
-            >
-              <label
-                htmlFor="fiscalYear"
-                className="
-                  mb-2
-                  block
-
-                  text-sm
-                  font-extrabold
-
-                  !text-slate-800
-                "
-              >
-                ปีงบประมาณ
-              </label>
-
-              <select
-                id="fiscalYear"
-                name="fiscalYear"
-                defaultValue={
-                  String(
-                    selectedFiscalYear
-                  )
-                }
-                className="
-                  h-[48px]
-                  w-full
-
-                  rounded-[14px]
-
-                  border-2
-                  !border-black
-
-                  bg-white
-
-                  px-4
-
-                  text-base
-                  font-extrabold
-
-                  !text-slate-900
-
-                  outline-none
-
-                  transition-all
-
-                  focus:ring-4
-                  focus:ring-blue-100
-                "
-              >
-                {availableFiscalYears.map(
-                  (
-                    fiscalYear
-                  ) => (
-                    <option
-                      key={
-                        fiscalYear
-                      }
-                      value={
-                        fiscalYear
-                      }
-                    >
-                      ปีงบประมาณ{" "}
-                      {
-                        fiscalYear
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            {/* ===============================================
-                PRESERVE CURRENT FILTER
-            =============================================== */}
-
-            {params.date ? (
-              <input
-                type="hidden"
-                name="date"
-                value={
-                  params.date
-                }
-              />
-            ) : null}
-
-            {params.period ? (
-              <input
-                type="hidden"
-                name="period"
-                value={
-                  params.period
-                }
-              />
-            ) : null}
-
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="md"
-            >
-              แสดงข้อมูล
-            </AppButton>
-          </form>
-
-          {/* =================================================
-              FISCAL YEAR INFORMATION
-          ================================================= */}
-
-          <div
-            className="
-              min-w-0
-
-              rounded-[18px]
-
-              border
-              border-slate-200
-
-              bg-slate-50/80
-
-              px-4
-              py-3
-
-              shadow-sm
-            "
-          >
-            <p
-              className="
-                text-sm
-                font-extrabold
-
-                !text-slate-900
-              "
-            >
-              ปีงบประมาณ{" "}
-              {
-                selectedFiscalYear
-              }
-            </p>
-
-            <p
-              className="
-                mt-1
-
-                text-sm
-                font-semibold
-
-                !text-slate-500
-              "
-            >
-              {formatThaiFullDate(
-                fiscalRange.startDate
-              )}{" "}
-              -{" "}
-              {formatThaiFullDate(
-                fiscalDisplayEndDate
-              )}
-            </p>
-          </div>
-        </div>
+        <IssueFiscalYearSelect
+            selectedFiscalYear={selectedFiscalYear}
+            availableFiscalYears={availableFiscalYears}
+            date={params.date}
+            period={params.period}
+          />
 
         {/* ===================================================
             QUICK FILTERS
