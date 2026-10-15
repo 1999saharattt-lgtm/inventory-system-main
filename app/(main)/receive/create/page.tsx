@@ -8,66 +8,110 @@ import AppCard from "@/components/AppCard";
 import ReceiveForm from "./ReceiveForm";
 
 /* =========================================================
-   THAI YEAR
+   THAI FISCAL YEAR
+
+   ปีงบประมาณไทย:
+   1 ตุลาคม - 30 กันยายน
+
+   ใช้เวลา Asia/Bangkok
+   ไม่ขึ้นอยู่กับ timezone ของ Server
+
+   ตัวอย่าง:
+   30 ก.ย. 2569 => ปีงบประมาณ 2569
+   1 ต.ค. 2569 => ปีงบประมาณ 2570
 ========================================================= */
 
-function getThaiYear() {
-  return String(
-    new Date().getFullYear() + 543
-  ).slice(-2);
+function getThaiFiscalYear() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date());
+
+  const year = Number(
+    parts.find((part) => part.type === "year")?.value
+  );
+
+  const month = Number(
+    parts.find((part) => part.type === "month")?.value
+  );
+
+  const fiscalYearGregorian =
+    month >= 10 ? year + 1 : year;
+
+  return fiscalYearGregorian + 543;
 }
 
 /* =========================================================
    GENERATE RECEIVE DOCUMENT NUMBER
+
+   รูปแบบ:
+   ร.01/70
+   ร.02/70
+
+   เริ่มเลขใหม่เมื่อเข้าสู่ปีงบประมาณใหม่
+
+   หมายเหตุ:
+   เลขที่แสดงบนฟอร์มเป็นเลขเบื้องต้น
+   การบันทึกจริงควรสร้างเลขซ้ำอีกครั้ง
+   ใน Server Action โดยใช้วันที่รับพัสดุจริง
 ========================================================= */
 
 async function generateReceiveNo() {
-  const year = getThaiYear();
+  const fiscalYearThai = getThaiFiscalYear();
 
-  const receives =
-    await prisma.receive.findMany({
-      where: {
-        documentNo: {
-          startsWith: "ร.",
-        },
+  const yearShort = String(fiscalYearThai).slice(-2);
+
+  const receives = await prisma.receive.findMany({
+    where: {
+      documentNo: {
+        startsWith: "ร.",
       },
+    },
 
-      select: {
-        documentNo: true,
-      },
-    });
+    select: {
+      documentNo: true,
+    },
+  });
 
-  let running = 1;
+  let maxRunning = 0;
 
   for (const receive of receives) {
-    const match =
-      receive.documentNo.match(
-        /^ร\.(\d+)\/(\d+)$/
-      );
+    const documentNo = String(
+      receive.documentNo ?? ""
+    ).trim();
+
+    const match = documentNo.match(
+      /^ร\.(\d+)\/(\d{2}|\d{4})$/
+    );
 
     if (!match) {
       continue;
     }
 
-    const lastNumber = Number(
-      match[1]
-    );
+    const running = Number(match[1]);
+    const documentYear = match[2];
 
-    const lastYear =
-      match[2];
+    const isSameFiscalYear =
+      documentYear === yearShort ||
+      documentYear === String(fiscalYearThai);
 
     if (
-      lastYear === year &&
-      lastNumber >= running
+      !isSameFiscalYear ||
+      !Number.isInteger(running) ||
+      running <= 0
     ) {
-      running =
-        lastNumber + 1;
+      continue;
+    }
+
+    if (running > maxRunning) {
+      maxRunning = running;
     }
   }
 
-  return `ร.${String(
-    running
-  ).padStart(2, "0")}/${year}`;
+  const nextRunning = maxRunning + 1;
+
+  return `ร.${String(nextRunning).padStart(2, "0")}/${yearShort}`;
 }
 
 /* =========================================================

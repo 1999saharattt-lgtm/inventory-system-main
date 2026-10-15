@@ -1830,6 +1830,25 @@ export default function ReceiveForm({
     getTodayInputValue()
   );
 
+  /* ปีงบประมาณตามวันที่รับจริง (ไม่ใช้ปีปฏิทิน) */
+  const selectedFiscalYearShort = useMemo(() => {
+    const [year, month] = receiveDate.split("-").map(Number);
+    if (!year || !month || month < 1 || month > 12) return "";
+    const fiscalYear = (month >= 10 ? year + 1 : year) + 543;
+    return String(fiscalYear).slice(-2);
+  }, [receiveDate]);
+
+  /* หากเปลี่ยนวันที่ไปอีกปี จะไม่แสดงเลขรันของปีเดิมผิด ๆ
+     เลขจริงสร้างใน actions.ts ขณะบันทึก */
+  const documentYear = documentNo.match(/\/(\d{2}|\d{4})$/)?.[1];
+  const displayedDocumentNo = isOpeningBalance
+    ? documentValue
+    : documentYear === selectedFiscalYearShort ||
+      (documentYear?.length === 4 && documentYear.slice(-2) === selectedFiscalYearShort)
+    ? documentNo
+    : `ร.--/${selectedFiscalYearShort}`;
+
+
   const [
     vendorId,
     setVendorId,
@@ -2084,7 +2103,7 @@ export default function ReceiveForm({
               id="documentNo"
               type="text"
               name="documentNo"
-              value={documentValue}
+              value={displayedDocumentNo}
               readOnly={
                 !isOpeningBalance
               }
@@ -2640,6 +2659,10 @@ export default function ReceiveForm({
                             focus:border-blue-300
                             focus:ring-4
                             focus:ring-blue-100/70
+
+                            [appearance:textfield]
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
                           "
                         />
                       </td>
