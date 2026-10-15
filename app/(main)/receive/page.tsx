@@ -829,19 +829,6 @@ export default async function ReceivePage({
       `ข้อมูลรับเข้าประจำเดือนนี้ • ปีงบประมาณ ${selectedFiscalYear}`;
   }
 
-  /* =======================================================
-     URL HELPERS
-  ======================================================= */
-
-  const allFiscalYearHref =
-    `/receive?fiscalYear=${selectedFiscalYear}`;
-
-  const todayHref =
-    `/receive?fiscalYear=${selectedFiscalYear}&date=today`;
-
-  const monthHref =
-    `/receive?fiscalYear=${selectedFiscalYear}&period=month`;
-
   /* =========================================================
      UI
   ========================================================= */
@@ -892,90 +879,11 @@ export default async function ReceivePage({
         className="w-full min-w-0 !overflow-visible"
       >
         <ReceiveFiscalYearSelect
-            selectedFiscalYear={selectedFiscalYear}
-            availableFiscalYears={availableFiscalYears}
-            date={params.date}
-            period={params.period}
-          />
-
-        {/* ===================================================
-            QUICK FILTERS
-        =================================================== */}
-
-        <div
-          className="
-            mt-4
-
-            flex
-            flex-wrap
-            items-center
-
-            gap-2
-
-            border-t
-            border-slate-200
-
-            pt-4
-          "
-        >
-          <span
-            className="
-              mr-1
-
-              text-sm
-              font-extrabold
-
-              !text-slate-600
-            "
-          >
-            แสดง:
-          </span>
-
-          <AppButton
-            href={
-              allFiscalYearHref
-            }
-            variant={
-              !params.date &&
-              !params.period
-                ? "primary"
-                : "secondary"
-            }
-            size="sm"
-          >
-            ทั้งปีงบประมาณ
-          </AppButton>
-
-          <AppButton
-            href={
-              todayHref
-            }
-            variant={
-              params.date ===
-              "today"
-                ? "primary"
-                : "secondary"
-            }
-            size="sm"
-          >
-            วันนี้
-          </AppButton>
-
-          <AppButton
-            href={
-              monthHref
-            }
-            variant={
-              params.period ===
-              "month"
-                ? "primary"
-                : "secondary"
-            }
-            size="sm"
-          >
-            เดือนนี้
-          </AppButton>
-        </div>
+          selectedFiscalYear={selectedFiscalYear}
+          availableFiscalYears={availableFiscalYears}
+          date={params.date}
+          period={params.period}
+        />
       </AppCard>
 
       {/* =====================================================
