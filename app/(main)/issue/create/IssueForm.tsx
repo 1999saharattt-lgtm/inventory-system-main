@@ -2250,6 +2250,10 @@ export default function IssueForm({
                             focus:border-blue-300
                             focus:ring-4
                             focus:ring-blue-100/70
+
+                            [appearance:textfield]
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
                           "
                         />
                       </td>

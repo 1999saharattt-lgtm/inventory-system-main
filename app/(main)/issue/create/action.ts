@@ -12,8 +12,7 @@ import path from "path";
    พอ.101 มี 18 รายการ
 ========================================================= */
 
-const ISSUE_ROW_COUNT =
-  18;
+const ISSUE_ROW_COUNT = 18;
 
 /* =========================================================
    TYPES
@@ -26,139 +25,181 @@ type IssueRow = {
 };
 
 type FiscalYearInfo = {
-  fiscalYearGregorian:
-    number;
+  fiscalYearGregorian: number;
+  fiscalYearThai: number;
+  fiscalYearThaiShort: string;
 
-  fiscalYearThai:
-    number;
-
-  fiscalYearThaiShort:
-    string;
-
-  startDate:
-    Date;
-
-  endDate:
-    Date;
+  startDate: Date;
+  endDate: Date;
 };
+
+/* =========================================================
+   THAILAND DATE PARTS
+
+   ใช้ timezone Asia/Bangkok เสมอ
+
+   ป้องกันปัญหา Vercel ทำงานด้วย UTC
+========================================================= */
+
+function getThailandDateParts(value: Date) {
+  const formatter = new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }
+  );
+
+  const parts = formatter.formatToParts(value);
+
+  const year = Number(
+    parts.find(
+      (part) => part.type === "year"
+    )?.value
+  );
+
+  const month = Number(
+    parts.find(
+      (part) => part.type === "month"
+    )?.value
+  );
+
+  const day = Number(
+    parts.find(
+      (part) => part.type === "day"
+    )?.value
+  );
+
+  return {
+    year,
+    month,
+    day,
+  };
+}
 
 /* =========================================================
    DATE ONLY
 
-   รับค่าจาก input type="date"
-
+   รับค่าจาก input:
    YYYY-MM-DD
 
-   ไม่ใช้ new Date("YYYY-MM-DD") ตรง ๆ
-   ใน logic วันที่
+   แปลงเป็นเวลาไทย 00:00 น.
+
+   ตัวอย่าง:
+
+   2026-10-01
+   =
+   1 ต.ค. 2569 00:00 ประเทศไทย
+   =
+   2026-09-30T17:00:00.000Z
+
+   ไม่ใช้ new Date("YYYY-MM-DD")
+   เพื่อป้องกันปัญหา timezone
 ========================================================= */
 
 function parseDateOnly(
   value: string
 ): Date | null {
-  const trimmed =
-    value.trim();
+  const trimmed = value.trim();
 
   if (!trimmed) {
     return null;
   }
 
-  const match =
-    trimmed.match(
-      /^(\d{4})-(\d{2})-(\d{2})$/
-    );
+  const match = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})$/
+  );
 
   if (!match) {
     return null;
   }
 
-  const year =
-    Number(
-      match[1]
-    );
-
-  const month =
-    Number(
-      match[2]
-    );
-
-  const day =
-    Number(
-      match[3]
-    );
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
 
   if (
-    !Number.isInteger(
-      year
-    ) ||
-    !Number.isInteger(
-      month
-    ) ||
-    !Number.isInteger(
-      day
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
+
+  if (year < 1900 || year > 3000) {
+    return null;
+  }
+
+  if (month < 1 || month > 12) {
+    return null;
+  }
+
+  if (day < 1 || day > 31) {
+    return null;
+  }
+
+  /* =======================================================
+     VALIDATE CALENDAR DATE
+
+     ตรวจวันที่จริงก่อนแปลง timezone
+
+     เช่น:
+     31 ก.พ. ต้องไม่ผ่าน
+  ======================================================= */
+
+  const checkDate = new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day,
+      0,
+      0,
+      0,
+      0
     )
-  ) {
-    return null;
-  }
+  );
 
   if (
-    year < 1900 ||
-    year > 3000
+    checkDate.getUTCFullYear() !== year ||
+    checkDate.getUTCMonth() !== month - 1 ||
+    checkDate.getUTCDate() !== day
   ) {
     return null;
   }
 
-  if (
-    month < 1 ||
-    month > 12
-  ) {
-    return null;
-  }
+  /* =======================================================
+     CONVERT TO THAILAND MIDNIGHT
 
-  if (
-    day < 1 ||
-    day > 31
-  ) {
-    return null;
-  }
+     เวลาไทย UTC+7
 
-  const date =
-    new Date(
-      Date.UTC(
-        year,
-        month - 1,
-        day,
-        0,
-        0,
-        0,
-        0
-      )
-    );
+     00:00 ไทย
+     =
+     17:00 UTC ของวันก่อนหน้า
+  ======================================================= */
 
-  /*
-   * ตรวจวันที่จริง
-   *
-   * เช่น:
-   * 31 ก.พ.
-   * ต้องไม่ผ่าน
-   */
-
-  if (
-    date.getUTCFullYear() !==
-      year ||
-    date.getUTCMonth() !==
-      month - 1 ||
-    date.getUTCDate() !==
-      day
-  ) {
-    return null;
-  }
+  const date = new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      day - 1,
+      17,
+      0,
+      0,
+      0
+    )
+  );
 
   return date;
 }
 
 /* =========================================================
    FISCAL YEAR FROM ISSUE DATE
+
+   ปีงบประมาณไทย:
+
+   1 ต.ค. - 30 ก.ย.
 
    ตัวอย่าง:
 
@@ -169,22 +210,18 @@ function parseDateOnly(
    1 ต.ค. 2569
    =>
    FY 2570
+
+   สำคัญ:
+   ใช้วันที่ตาม timezone Asia/Bangkok
 ========================================================= */
 
 function getFiscalYearInfoFromDate(
   date: Date
 ): FiscalYearInfo {
-  /*
-   * date มาจาก parseDateOnly()
-   * จึงอ่านส่วนวันที่ด้วย UTC
-   */
+  const thailand = getThailandDateParts(date);
 
-  const year =
-    date.getUTCFullYear();
-
-  const month =
-    date.getUTCMonth() +
-    1;
+  const year = thailand.year;
+  const month = thailand.month;
 
   const fiscalYearGregorian =
     month >= 10
@@ -192,70 +229,56 @@ function getFiscalYearInfoFromDate(
       : year;
 
   const fiscalYearThai =
-    fiscalYearGregorian +
-    543;
+    fiscalYearGregorian + 543;
 
   const fiscalYearThaiShort =
-    String(
-      fiscalYearThai
-    ).slice(
-      -2
-    );
+    String(fiscalYearThai).slice(-2);
 
-  /*
-   * ช่วงปีงบประมาณตามเวลาไทย
-   *
-   * FY 2570:
-   *
-   * start:
-   * 1 ต.ค. 2569 00:00 ไทย
-   *
-   * end exclusive:
-   * 1 ต.ค. 2570 00:00 ไทย
-   *
-   * เวลาไทย UTC+7
-   *
-   * 00:00 ไทย
-   * =
-   * 17:00 UTC วันก่อนหน้า
-   */
+  /* =======================================================
+     FISCAL YEAR RANGE
 
-  const startDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian -
-          1,
-        8,
-        30,
-        17,
-        0,
-        0,
-        0
-      )
-    );
+     FY 2570
 
-  const endDate =
-    new Date(
-      Date.UTC(
-        fiscalYearGregorian,
-        8,
-        30,
-        17,
-        0,
-        0,
-        0
-      )
-    );
+     เริ่ม:
+     1 ต.ค. 2569 00:00 ไทย
+
+     สิ้นสุดแบบ exclusive:
+     1 ต.ค. 2570 00:00 ไทย
+
+     ใช้ช่วง:
+     gte startDate
+     lt endDate
+  ======================================================= */
+
+  const startDate = new Date(
+    Date.UTC(
+      fiscalYearGregorian - 1,
+      8,
+      30,
+      17,
+      0,
+      0,
+      0
+    )
+  );
+
+  const endDate = new Date(
+    Date.UTC(
+      fiscalYearGregorian,
+      8,
+      30,
+      17,
+      0,
+      0,
+      0
+    )
+  );
 
   return {
     fiscalYearGregorian,
-
     fiscalYearThai,
-
     fiscalYearThaiShort,
-
     startDate,
-
     endDate,
   };
 }
@@ -264,6 +287,7 @@ function getFiscalYearInfoFromDate(
    GENERATE ISSUE DOCUMENT NUMBER
 
    รูปแบบ:
+
    จ.01/70
    จ.02/70
    จ.03/70
@@ -282,36 +306,28 @@ async function generateIssueNo(
   issueDate: Date
 ) {
   const fiscal =
-    getFiscalYearInfoFromDate(
-      issueDate
-    );
+    getFiscalYearInfoFromDate(issueDate);
 
   /* =======================================================
      LOAD DOCUMENTS IN SAME FISCAL YEAR
   ======================================================= */
 
-  const issues =
-    await tx.issue.findMany({
-      where: {
-        issueDate: {
-          gte:
-            fiscal.startDate,
-
-          lt:
-            fiscal.endDate,
-        },
-
-        documentNo: {
-          startsWith:
-            "จ.",
-        },
+  const issues = await tx.issue.findMany({
+    where: {
+      issueDate: {
+        gte: fiscal.startDate,
+        lt: fiscal.endDate,
       },
 
-      select: {
-        documentNo:
-          true,
+      documentNo: {
+        startsWith: "จ.",
       },
-    });
+    },
+
+    select: {
+      documentNo: true,
+    },
+  });
 
   /* =======================================================
      FIND HIGHEST RUNNING NUMBER
@@ -327,68 +343,44 @@ async function generateIssueNo(
      จ.01/70
   ======================================================= */
 
-  let maxRunning =
-    0;
+  let maxRunning = 0;
 
-  for (
-    const issue of
-      issues
-  ) {
-    const documentNo =
-      String(
-        issue.documentNo ??
-          ""
-      ).trim();
+  for (const issue of issues) {
+    const documentNo = String(
+      issue.documentNo ?? ""
+    ).trim();
 
-    const match =
-      documentNo.match(
-        /^จ\.(\d+)\/(\d{2}|\d{4})$/
-      );
+    const match = documentNo.match(
+      /^จ\.(\d+)\/(\d{2}|\d{4})$/
+    );
 
     if (!match) {
       continue;
     }
 
-    const running =
-      Number(
-        match[1]
-      );
+    const running = Number(match[1]);
 
     if (
-      !Number.isInteger(
-        running
-      ) ||
+      !Number.isInteger(running) ||
       running <= 0
     ) {
       continue;
     }
 
-    if (
-      running >
-      maxRunning
-    ) {
-      maxRunning =
-        running;
+    if (running > maxRunning) {
+      maxRunning = running;
     }
   }
 
-  const nextRunning =
-    maxRunning +
-    1;
+  const nextRunning = maxRunning + 1;
 
   const documentNo =
-    `จ.${String(
-      nextRunning
-    ).padStart(
-      2,
-      "0"
-    )}/${fiscal.fiscalYearThaiShort}`;
+    `จ.${String(nextRunning).padStart(2, "0")}` +
+    `/${fiscal.fiscalYearThaiShort}`;
 
   return {
     documentNo,
-
-    fiscalYearThai:
-      fiscal.fiscalYearThai,
+    fiscalYearThai: fiscal.fiscalYearThai,
   };
 }
 
@@ -402,14 +394,8 @@ function sanitizeFileName(
   value: string
 ) {
   return value
-    .replace(
-      /[\\/]/g,
-      "_"
-    )
-    .replace(
-      /\s+/g,
-      "_"
-    )
+    .replace(/[\\/]/g, "_")
+    .replace(/\s+/g, "_")
     .trim();
 }
 
@@ -424,45 +410,28 @@ export async function createIssue(
      HEADER
   ======================================================= */
 
-  const issueDateValue =
-    String(
-      formData.get(
-        "issueDate"
-      ) ?? ""
-    ).trim();
+  const issueDateValue = String(
+    formData.get("issueDate") ?? ""
+  ).trim();
 
   const issueDate =
-    parseDateOnly(
-      issueDateValue
-    );
+    parseDateOnly(issueDateValue);
 
-  const departmentId =
-    Number(
-      formData.get(
-        "departmentId"
-      )
-    );
+  const departmentId = Number(
+    formData.get("departmentId")
+  );
 
-  const officerIdValue =
-    String(
-      formData.get(
-        "officerId"
-      ) ?? ""
-    ).trim();
+  const officerIdValue = String(
+    formData.get("officerId") ?? ""
+  ).trim();
 
-  const officerId =
-    officerIdValue
-      ? Number(
-          officerIdValue
-        )
-      : null;
+  const officerId = officerIdValue
+    ? Number(officerIdValue)
+    : null;
 
-  const remark =
-    String(
-      formData.get(
-        "remark"
-      ) ?? ""
-    ).trim();
+  const remark = String(
+    formData.get("remark") ?? ""
+  ).trim();
 
   /* =======================================================
      VALIDATE HEADER
@@ -478,9 +447,7 @@ export async function createIssue(
   }
 
   if (
-    !Number.isInteger(
-      departmentId
-    ) ||
+    !Number.isInteger(departmentId) ||
     departmentId <= 0
   ) {
     throw new Error(
@@ -491,9 +458,7 @@ export async function createIssue(
   if (
     officerId !== null &&
     (
-      !Number.isInteger(
-        officerId
-      ) ||
+      !Number.isInteger(officerId) ||
       officerId <= 0
     )
   ) {
@@ -506,49 +471,41 @@ export async function createIssue(
      ITEMS
 
      ตอนสร้าง:
-     - qty = จำนวนที่ขอ
-     - issuedQty = 0
-     - receiveItemId = null
-     - ยังไม่ตัด Stock
-     - ยังไม่ FEFO
+
+     qty = จำนวนที่ขอ
+     issuedQty = 0
+     receiveItemId = null
+
+     ยังไม่ตัด Stock
+     ยังไม่ FEFO
   ======================================================= */
 
-  const items:
-    IssueRow[] =
-    [];
+  const items: IssueRow[] = [];
 
   for (
     let i = 0;
-    i <
-    ISSUE_ROW_COUNT;
+    i < ISSUE_ROW_COUNT;
     i++
   ) {
-    const materialIdValue =
+    const materialIdValue = formData.get(
+      `items[${i}].materialId`
+    );
+
+    const qtyValue = formData.get(
+      `items[${i}].qty`
+    );
+
+    const itemRemark = String(
       formData.get(
-        `items[${i}].materialId`
-      );
+        `items[${i}].remark`
+      ) ?? ""
+    ).trim();
 
-    const qtyValue =
-      formData.get(
-        `items[${i}].qty`
-      );
+    const materialId = Number(
+      materialIdValue
+    );
 
-    const itemRemark =
-      String(
-        formData.get(
-          `items[${i}].remark`
-        ) ?? ""
-      ).trim();
-
-    const materialId =
-      Number(
-        materialIdValue
-      );
-
-    const qty =
-      Number(
-        qtyValue
-      );
+    const qty = Number(qtyValue);
 
     /* =====================================================
        EMPTY ROW
@@ -556,20 +513,12 @@ export async function createIssue(
 
     if (
       (
-        materialIdValue ===
-          null ||
-        String(
-          materialIdValue
-        ).trim() ===
-          ""
+        materialIdValue === null ||
+        String(materialIdValue).trim() === ""
       ) &&
       (
-        qtyValue ===
-          null ||
-        String(
-          qtyValue
-        ).trim() ===
-          ""
+        qtyValue === null ||
+        String(qtyValue).trim() === ""
       )
     ) {
       continue;
@@ -580,15 +529,11 @@ export async function createIssue(
     ===================================================== */
 
     if (
-      !Number.isInteger(
-        materialId
-      ) ||
+      !Number.isInteger(materialId) ||
       materialId <= 0
     ) {
       throw new Error(
-        `กรุณาเลือกพัสดุในรายการที่ ${
-          i + 1
-        }`
+        `กรุณาเลือกพัสดุในรายการที่ ${i + 1}`
       );
     }
 
@@ -597,28 +542,19 @@ export async function createIssue(
     ===================================================== */
 
     if (
-      !Number.isFinite(
-        qty
-      ) ||
-      !Number.isInteger(
-        qty
-      ) ||
+      !Number.isFinite(qty) ||
+      !Number.isInteger(qty) ||
       qty <= 0
     ) {
       throw new Error(
-        `จำนวนที่ขอเบิกของรายการที่ ${
-          i + 1
-        } ต้องเป็นจำนวนเต็มมากกว่า 0`
+        `จำนวนที่ขอเบิกของรายการที่ ${i + 1} ต้องเป็นจำนวนเต็มมากกว่า 0`
       );
     }
 
     items.push({
       materialId,
-
       qty,
-
-      remark:
-        itemRemark,
+      remark: itemRemark,
     });
   }
 
@@ -626,10 +562,7 @@ export async function createIssue(
      REQUIRE ITEMS
   ======================================================= */
 
-  if (
-    items.length ===
-    0
-  ) {
+  if (items.length === 0) {
     throw new Error(
       "กรุณาเลือกรายการพัสดุ"
     );
@@ -638,22 +571,18 @@ export async function createIssue(
   /* =======================================================
      DUPLICATE MATERIAL
 
-     1 ใบเบิก
-     ไม่ควรมี Material เดียวกันซ้ำหลายแถว
+     1 ใบเบิกไม่ควรมี Material
+     เดียวกันซ้ำหลายแถว
 
      ช่วยให้การอนุมัติและตัด FEFO ชัดเจน
   ======================================================= */
 
-  const materialIds =
-    items.map(
-      (item) =>
-        item.materialId
-    );
+  const materialIds = items.map(
+    (item) => item.materialId
+  );
 
   if (
-    new Set(
-      materialIds
-    ).size !==
+    new Set(materialIds).size !==
     materialIds.length
   ) {
     throw new Error(
@@ -668,13 +597,11 @@ export async function createIssue(
   const department =
     await prisma.department.findUnique({
       where: {
-        id:
-          departmentId,
+        id: departmentId,
       },
 
       select: {
-        id:
-          true,
+        id: true,
       },
     });
 
@@ -688,20 +615,15 @@ export async function createIssue(
      VALIDATE OFFICER
   ======================================================= */
 
-  if (
-    officerId !==
-    null
-  ) {
+  if (officerId !== null) {
     const officer =
       await prisma.officer.findUnique({
         where: {
-          id:
-            officerId,
+          id: officerId,
         },
 
         select: {
-          id:
-            true,
+          id: true,
         },
       });
 
@@ -726,32 +648,23 @@ export async function createIssue(
     await prisma.material.findMany({
       where: {
         id: {
-          in:
-            materialIds,
+          in: materialIds,
         },
       },
 
       select: {
-        id:
-          true,
-
-        name:
-          true,
+        id: true,
+        name: true,
       },
     });
 
-  const existingMaterialIds =
-    new Set(
-      materials.map(
-        (material) =>
-          material.id
-      )
-    );
+  const existingMaterialIds = new Set(
+    materials.map(
+      (material) => material.id
+    )
+  );
 
-  for (
-    const item of
-      items
-  ) {
+  for (const item of items) {
     if (
       !existingMaterialIds.has(
         item.materialId
@@ -769,25 +682,19 @@ export async function createIssue(
      คงวิธีการเดิมของระบบไว้
   ======================================================= */
 
-  let pdfPath:
-    string | null =
-    null;
+  let pdfPath: string | null = null;
 
   const fileValue =
-    formData.get(
-      "pdf"
-    );
+    formData.get("pdf");
 
   const file =
-    fileValue instanceof
-    File
+    fileValue instanceof File
       ? fileValue
       : null;
 
   if (
     file &&
-    file.size >
-      0
+    file.size > 0
   ) {
     /* =====================================================
        PDF VALIDATION
@@ -795,21 +702,17 @@ export async function createIssue(
 
     const originalFileName =
       sanitizeFileName(
-        file.name ||
-          "document.pdf"
+        file.name || "document.pdf"
       );
 
     const isPdfName =
       originalFileName
         .toLowerCase()
-        .endsWith(
-          ".pdf"
-        );
+        .endsWith(".pdf");
 
     const isPdfType =
       !file.type ||
-      file.type ===
-        "application/pdf";
+      file.type === "application/pdf";
 
     if (
       !isPdfName ||
@@ -824,34 +727,29 @@ export async function createIssue(
       await file.arrayBuffer();
 
     const buffer =
-      Buffer.from(
-        bytes
-      );
+      Buffer.from(bytes);
 
-    const uploadDir =
-      path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "issue"
-      );
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      "issue"
+    );
 
     await fs.mkdir(
       uploadDir,
       {
-        recursive:
-          true,
+        recursive: true,
       }
     );
 
     const filename =
       `${Date.now()}-${originalFileName}`;
 
-    const filepath =
-      path.join(
-        uploadDir,
-        filename
-      );
+    const filepath = path.join(
+      uploadDir,
+      filename
+    );
 
     await fs.writeFile(
       filepath,
@@ -864,12 +762,13 @@ export async function createIssue(
 
   /* =======================================================
      FISCAL YEAR FOR REDIRECT
+
+     ใช้วันที่เบิกจริง
+     ไม่ใช้วันที่ปัจจุบัน
   ======================================================= */
 
   const fiscal =
-    getFiscalYearInfoFromDate(
-      issueDate
-    );
+    getFiscalYearInfoFromDate(issueDate);
 
   /* =======================================================
      CREATE ISSUE
@@ -884,9 +783,7 @@ export async function createIssue(
   ======================================================= */
 
   await prisma.$transaction(
-    async (
-      tx: any
-    ) => {
+    async (tx: any) => {
       /* =================================================
          GENERATE FINAL DOCUMENT NUMBER
 
@@ -920,74 +817,53 @@ export async function createIssue(
 
             remark,
 
-            pdf:
-              pdfPath,
+            pdf: pdfPath,
 
-            status:
-              "PENDING",
+            status: "PENDING",
 
-            approvedAt:
-              null,
+            approvedAt: null,
 
-            approvedById:
-              null,
+            approvedById: null,
           },
         });
 
       /* =================================================
          CREATE ISSUE ITEMS
 
-         qty
-         =
-         จำนวนที่ขอ
+         qty = จำนวนที่ขอ
 
-         issuedQty
-         =
-         0
+         issuedQty = 0
 
          Admin จะลงจำนวนจ่ายจริงภายหลัง
       ================================================= */
 
-      for (
-        const item of
-          items
-      ) {
+      for (const item of items) {
         await tx.issueItem.create({
           data: {
-            issueId:
-              issue.id,
+            issueId: issue.id,
 
             materialId:
               item.materialId,
 
-            qty:
-              item.qty,
+            qty: item.qty,
 
-            issuedQty:
-              0,
+            issuedQty: 0,
 
-            receiveItemId:
-              null,
+            receiveItemId: null,
 
-            manufacture:
-              null,
+            manufacture: null,
 
-            expiry:
-              null,
+            expiry: null,
 
             remark:
-              item.remark ||
-              null,
+              item.remark || null,
           },
         });
       }
     },
     {
-      maxWait:
-        30000,
-
-      timeout:
-        60000,
+      maxWait: 30000,
+      timeout: 60000,
     }
   );
 

@@ -235,9 +235,9 @@ function getFiscalYearRange(
       Date.UTC(
         fiscalYearGregorian -
           1,
-        9,
-        1,
-        0,
+        8,
+        30,
+        17,
         0,
         0,
         0
@@ -248,9 +248,9 @@ function getFiscalYearRange(
     new Date(
       Date.UTC(
         fiscalYearGregorian,
-        9,
-        1,
-        0,
+        8,
+        30,
+        17,
         0,
         0,
         0
