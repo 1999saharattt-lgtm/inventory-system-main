@@ -7,6 +7,7 @@ import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 import AppCard from "@/components/AppCard";
+import ReceiveFiscalYearSelect from "./ReceiveFiscalYearSelect";
 
 /* =========================================================
    FORCE FRESH DATA
@@ -902,11 +903,7 @@ export default async function ReceivePage({
           w-full
           min-w-0
 
-          overflow-visible
-
-          p-4
-
-          sm:p-5
+          !overflow-visible
         "
       >
         <div
@@ -926,129 +923,12 @@ export default async function ReceivePage({
               FISCAL YEAR SELECT
           ================================================= */}
 
-          <form
-            method="get"
-            action="/receive"
-            className="
-              flex
-              min-w-0
-              flex-col
-
-              gap-3
-
-              sm:flex-row
-              sm:items-end
-            "
-          >
-            <div
-              className="
-                min-w-0
-                sm:w-[260px]
-              "
-            >
-              <label
-                htmlFor="fiscalYear"
-                className="
-                  mb-2
-                  block
-
-                  text-sm
-                  font-extrabold
-
-                  !text-slate-800
-                "
-              >
-                ปีงบประมาณ
-              </label>
-
-              <select
-                id="fiscalYear"
-                name="fiscalYear"
-                defaultValue={
-                  String(
-                    selectedFiscalYear
-                  )
-                }
-                className="
-                  h-[48px]
-                  w-full
-
-                  rounded-[14px]
-
-                  border-2
-                  !border-black
-
-                  bg-white
-
-                  px-4
-
-                  text-base
-                  font-extrabold
-
-                  !text-slate-900
-
-                  outline-none
-
-                  transition-all
-
-                  focus:ring-4
-                  focus:ring-blue-100
-                "
-              >
-                {availableFiscalYears.map(
-                  (
-                    fiscalYear
-                  ) => (
-                    <option
-                      key={
-                        fiscalYear
-                      }
-                      value={
-                        fiscalYear
-                      }
-                    >
-                      ปีงบประมาณ{" "}
-                      {
-                        fiscalYear
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            {/* ===============================================
-                PRESERVE FILTER
-            =============================================== */}
-
-            {params.date ? (
-              <input
-                type="hidden"
-                name="date"
-                value={
-                  params.date
-                }
-              />
-            ) : null}
-
-            {params.period ? (
-              <input
-                type="hidden"
-                name="period"
-                value={
-                  params.period
-                }
-              />
-            ) : null}
-
-            <AppButton
-              type="submit"
-              variant="primary"
-              size="md"
-            >
-              แสดงข้อมูล
-            </AppButton>
-          </form>
+          <ReceiveFiscalYearSelect
+            selectedFiscalYear={selectedFiscalYear}
+            availableFiscalYears={availableFiscalYears}
+            date={params.date}
+            period={params.period}
+          />
 
           {/* =================================================
               FISCAL YEAR INFORMATION
