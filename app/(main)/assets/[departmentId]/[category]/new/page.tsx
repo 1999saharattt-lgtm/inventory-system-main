@@ -239,10 +239,6 @@ export default async function NewAssetPage({
         )
       );
 
-    const categoryType = normalizeText(
-      String(formData.get("categoryType") ?? "")
-    );
-
     const brand =
       normalizeText(
         String(
@@ -250,6 +246,14 @@ export default async function NewAssetPage({
             ""
         )
       );
+
+    const statusFromForm = String(formData.get("status") ?? "IN_USE").trim();
+    const allowedStatuses = ["IN_USE", "DAMAGED", "DETERIORATED", "UNNECESSARY"] as const;
+    if (!allowedStatuses.some((value) => value === statusFromForm)) {
+      throw new Error("สถานะการใช้งานไม่ถูกต้อง");
+    }
+    // คงสิทธิ์เดิม: เฉพาะ ADMIN ที่กำหนดสถานะตอนเพิ่มครุภัณฑ์ได้
+    const assetStatus = currentUser.role === "ADMIN" ? statusFromForm : "IN_USE";
 
     const model = "";
 
@@ -656,12 +660,10 @@ export default async function NewAssetPage({
 
         responsibleName,
 
-        status: "IN_USE",
+        status: assetStatus as "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY",
 
         remark:
-          [categoryType ? `หมวด/ชนิด: ${categoryType}` : "", remark]
-            .filter(Boolean)
-            .join("\n") || null,
+          remark || null,
       },
     });
 
@@ -817,7 +819,7 @@ export default async function NewAssetPage({
           >
             {/* NAME */}
 
-            <div className="min-w-0 sm:col-span-2">
+            <div className="min-w-0">
               <AppInfoCard>
                 <label
                   htmlFor="name"
@@ -844,20 +846,27 @@ export default async function NewAssetPage({
               </AppInfoCard>
             </div>
 
-            {/* CATEGORY / TYPE */}
+            {/* USAGE STATUS */}
 
-            <AppInfoCard>
-              <label htmlFor="categoryType" className={labelClassName}>
-                หมวด/ชนิด
-              </label>
-              <input
-                id="categoryType"
-                name="categoryType"
-                type="text"
-                placeholder="กรอกหมวด/ชนิด"
-                className={inputClassName}
-              />
-            </AppInfoCard>
+            <div className="min-w-0">
+              <AppInfoCard>
+                <label htmlFor="status" className={labelClassName}>
+                  สถานะการใช้งาน <span className="!text-red-500">*</span>
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  required
+                  defaultValue="IN_USE"
+                  className={inputClassName}
+                >
+                  <option value="IN_USE">ใช้งานปกติ</option>
+                  <option value="DAMAGED">ชำรุด</option>
+                  <option value="DETERIORATED">เสื่อมสภาพ</option>
+                  <option value="UNNECESSARY">ไม่จำเป็นต้องใช้งาน</option>
+                </select>
+              </AppInfoCard>
+            </div>
 
             {/* BRAND */}
 
@@ -1040,9 +1049,6 @@ export default async function NewAssetPage({
 
           <div
             className="
-              relative
-              z-30
-              !overflow-visible
               mt-6
               border-t
               border-slate-200
@@ -1102,8 +1108,6 @@ export default async function NewAssetPage({
 
           <div
             className="
-              relative
-              z-0
               mt-6
               border-t
               border-slate-200
