@@ -18,6 +18,9 @@ type Props = {
   params: Promise<{
     departmentId: string;
   }>;
+  searchParams: Promise<{
+    fiscalYear?: string | string[];
+  }>;
 };
 
 /* =========================================================
@@ -241,6 +244,7 @@ function getStatusClass(
 
 export default async function AllAssetsPage({
   params,
+  searchParams,
 }: Props) {
   const {
     departmentId,
@@ -259,6 +263,44 @@ export default async function AllAssetsPage({
   ) {
     notFound();
   }
+
+  /* =======================================================
+     FISCAL YEAR
+     คงปีงบประมาณที่เลือกจากหน้า /assets
+     ไม่กรอง Asset เพราะเป็นทะเบียนครุภัณฑ์หลัก
+  ======================================================= */
+
+  const { fiscalYear: fiscalYearParam } = await searchParams;
+  const rawFiscalYear = Array.isArray(fiscalYearParam)
+    ? fiscalYearParam[0]
+    : fiscalYearParam;
+
+  const bangkokParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(new Date());
+
+  const currentYear = Number(
+    bangkokParts.find((part) => part.type === "year")?.value
+  );
+  const currentMonth = Number(
+    bangkokParts.find((part) => part.type === "month")?.value
+  );
+  const currentFiscalYear =
+    currentYear + 543 + (currentMonth >= 10 ? 1 : 0);
+
+  const parsedFiscalYear = Number(rawFiscalYear);
+  const selectedFiscalYear =
+    rawFiscalYear &&
+    /^\d{4}$/.test(rawFiscalYear) &&
+    Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2569 &&
+    parsedFiscalYear <= 3000
+      ? parsedFiscalYear
+      : currentFiscalYear;
+
+  const fiscalYearQuery = `fiscalYear=${selectedFiscalYear}`;
 
   /* =======================================================
      DEPARTMENT
@@ -371,7 +413,7 @@ export default async function AllAssetsPage({
             =============================================== */}
 
             <AppButton
-              href={`/assets/${departmentIdForPage}`}
+              href={`/assets/${departmentIdForPage}?${fiscalYearQuery}`}
               variant="back"
               size="md"
             >
@@ -497,7 +539,7 @@ export default async function AllAssetsPage({
                      */
 
                     const detailPath =
-                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all`;
+                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all&${fiscalYearQuery}`;
 
                     const responsible =
                       getResponsibleName(
