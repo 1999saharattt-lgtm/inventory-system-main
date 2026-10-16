@@ -136,13 +136,41 @@ type HistoryItem = {
    PAGE
 ========================================================= */
 
-export default async function InspectionHistoryPage() {
+type Props = {
+  searchParams?: Promise<{
+    fiscalYear?: string | string[];
+  }>;
+};
+
+export default async function InspectionHistoryPage({
+  searchParams,
+}: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYearValue = Array.isArray(rawFiscalYear)
+    ? rawFiscalYear[0]
+    : rawFiscalYear;
+  const parsedFiscalYear = fiscalYearValue
+    ? Number(fiscalYearValue)
+    : null;
+  const selectedFiscalYear =
+    parsedFiscalYear !== null &&
+    Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2400 &&
+    parsedFiscalYear <= 3000
+      ? parsedFiscalYear
+      : null;
+  const fiscalYearQuery = selectedFiscalYear
+    ? `?fiscalYear=${selectedFiscalYear}`
+    : "";
+
   /* =======================================================
      INSPECTIONS
   ======================================================= */
 
   const inspections =
     await prisma.assetInspection.findMany({
+      ...(selectedFiscalYear !== null ? { where: { year: selectedFiscalYear } } : {}),
       include: {
         asset: {
           include: {
@@ -356,7 +384,7 @@ export default async function InspectionHistoryPage() {
         subtitle="แสดงประวัติการตรวจสอบครุภัณฑ์แยกตามกลุ่มงานและปีงบประมาณ"
         actions={
           <AppButton
-            href="/assets"
+            href={`/assets${fiscalYearQuery}`}
             variant="back"
             size="md"
           >
