@@ -105,8 +105,8 @@ function getUnitFromRemark(
     return "";
   }
   const patterns = [
-    /(?:^|**\|**)\s*UNIT:([^|]+)/i,
-    /(?:^|**\|**)\s*หน่วย:([^|]+)/i,
+    /(?:^|\|)\s*UNIT:([^|]+)/i,
+    /(?:^|\|)\s*หน่วย:([^|]+)/i,
   ];
   for (const pattern of patterns) {
     const match =
