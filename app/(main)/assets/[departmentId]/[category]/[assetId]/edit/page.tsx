@@ -347,7 +347,7 @@ export default async function EditAssetPage({
                 </span>
               }
             >
-              การจำหน่าย
+              จำหน่าย
             </AppButton>
 
             {/* ===============================================
