@@ -23,6 +23,7 @@ type Props = {
 
   searchParams?: Promise<{
     from?: string | string[];
+    fiscalYear?: string | string[];
   }>;
 };
 
@@ -134,6 +135,29 @@ export default async function AssetDetailPage({
     )
       ?.trim()
       .toLowerCase() ?? "";
+
+  /* =======================================================
+     FISCAL YEAR
+     รักษาปีงบประมาณจากหน้าก่อนหน้า โดยไม่เปลี่ยนข้อมูล Asset
+  ======================================================= */
+
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYearValue = Array.isArray(rawFiscalYear)
+    ? rawFiscalYear[0]
+    : rawFiscalYear;
+  const parsedFiscalYear = Number(fiscalYearValue);
+  const fiscalYear =
+    fiscalYearValue &&
+    /^\d{4}$/.test(fiscalYearValue) &&
+    Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2400 &&
+    parsedFiscalYear <= 3000
+      ? String(parsedFiscalYear)
+      : null;
+
+  const fiscalYearQuery = fiscalYear
+    ? `?fiscalYear=${encodeURIComponent(fiscalYear)}`
+    : "";
 
   /* =======================================================
      PARAM VALIDATION
@@ -253,9 +277,9 @@ export default async function AssetDetailPage({
    */
 
   const backPath =
-    from === "all"
+    (from === "all"
       ? allAssetsPath
-      : categoryPath;
+      : categoryPath) + fiscalYearQuery;
 
   /* =======================================================
      SHARED STYLE
