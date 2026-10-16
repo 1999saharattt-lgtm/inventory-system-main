@@ -1,515 +1,135 @@
 import { prisma } from "@/lib/prisma";
-
 import ComputerLotLabelsPdf from "./ComputerLotLabelsPdf";
 
-/* =========================================================
-   FORCE FRESH DATA
-========================================================= */
-
-export const dynamic =
-  "force-dynamic";
-
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type LotLabel = {
   receiveItemId: number;
   receiveId: number;
   materialId: number;
-
   code: string;
   name: string;
   unit: string;
-
   balance: number;
-
-  manufacture:
-    string | null;
-
-  expiry:
-    string | null;
-
-  receiveDate:
-    string | null;
-
+  manufacture: string | null;
+  expiry: string | null;
+  receiveDate: string | null;
   documentNo: string;
 };
 
-/* =========================================================
-   NORMALIZE
-========================================================= */
-
-function normalizeSearchText(
-  value: string
-): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(
-      /\s+/g,
-      " "
-    );
+function normalizeSearchText(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-/* =========================================================
-   THAILAND DATE ONLY
-
-   Date ในฐานข้อมูล
-   ->
-   YYYY-MM-DD ตาม Asia/Bangkok
-
-   รองรับทั้ง:
-   - ข้อมูลเก่าที่เคยบันทึกเป็นเวลาไทย
-   - ข้อมูลใหม่ที่บันทึก UTC 00:00
-
-   ไม่ใช้ toISOString().slice(0,10)
-   เพราะอาจทำวันที่เดิมของข้อมูลเก่าเลื่อนได้
-========================================================= */
-
-function toThailandDateOnly(
-  value: Date | null
-): string | null {
-  if (!value) {
-    return null;
-  }
-
-  if (
-    Number.isNaN(
-      value.getTime()
-    )
-  ) {
-    return null;
-  }
-
-  const formatter =
-    new Intl.DateTimeFormat(
-      "en-CA",
-      {
-        timeZone:
-          "Asia/Bangkok",
-
-        year:
-          "numeric",
-
-        month:
-          "2-digit",
-
-        day:
-          "2-digit",
-      }
-    );
-
-  const parts =
-    formatter.formatToParts(
-      value
-    );
-
-  const year =
-    parts.find(
-      (part) =>
-        part.type ===
-        "year"
-    )?.value;
-
-  const month =
-    parts.find(
-      (part) =>
-        part.type ===
-        "month"
-    )?.value;
-
-  const day =
-    parts.find(
-      (part) =>
-        part.type ===
-        "day"
-    )?.value;
-
-  if (
-    !year ||
-    !month ||
-    !day
-  ) {
-    return null;
-  }
-
-  return `${year}-${month}-${day}`;
+function toThailandDateOnly(value: Date | null): string | null {
+  if (!value || Number.isNaN(value.getTime())) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(value);
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  return year && month && day ? `${year}-${month}-${day}` : null;
 }
 
-/* =========================================================
-   PRINTER CONSUMABLE CHECK
-========================================================= */
-
-function isPrinterConsumable(
-  name: string,
-  code: string
-): boolean {
-  const normalizedName =
-    normalizeSearchText(
-      name
-    );
-
-  const normalizedCode =
-    normalizeSearchText(
-      code
-    );
-
-  const searchText =
-    `${normalizedCode} ${normalizedName}`;
-
+function isPrinterConsumable(name: string, code: string): boolean {
+  const searchText = `${normalizeSearchText(code)} ${normalizeSearchText(name)}`;
   const keywords = [
-    "หมึก",
-    "น้ำหมึก",
-    "ตลับหมึก",
-    "หมึกพิมพ์",
-    "หมึกเครื่องพิมพ์",
-
-    "โทนเนอร์",
-    "ตลับโทนเนอร์",
-
-    "ดรัม",
-    "ชุดดรัม",
-    "ตลับดรัม",
-
-    "ink",
-    "inkjet",
-    "ink cartridge",
-
-    "toner",
-    "toner cartridge",
-
-    "cartridge",
-
-    "drum",
-    "drum unit",
+    "หมึก", "น้ำหมึก", "ตลับหมึก", "หมึกพิมพ์", "หมึกเครื่องพิมพ์",
+    "โทนเนอร์", "ตลับโทนเนอร์", "ดรัม", "ชุดดรัม", "ตลับดรัม",
+    "ink", "inkjet", "ink cartridge", "toner", "toner cartridge",
+    "cartridge", "drum", "drum unit",
   ];
-
-  if (
-    keywords.some(
-      (keyword) =>
-        searchText.includes(
-          keyword
-        )
-    )
-  ) {
-    return true;
-  }
-
-  /* CANON */
-
-  if (
-    /\bcli[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bpgi[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bpg[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bcl[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* HP / CANON LASER */
-
-  if (
-    /\b(?:cf|ce|cc|q)[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bw[\s-]?\d{4,}[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* BROTHER */
-
-  if (
-    /\btn[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bdr[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\blc[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* SAMSUNG */
-
-  if (
-    /\bmlt[\s-]?[a-z0-9-]+\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* EPSON */
-
-  if (
-    /\bt[a-z0-9]{3,}\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bc13[a-z0-9-]+\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* RICOH / FUJI / XEROX */
-
-  if (
-    /\bsp[\s-]?\d{3,}[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    /\bct[\s-]?\d{3,}[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  /* KYOCERA */
-
-  if (
-    /\btk[\s-]?\d+[a-z]*\b/i.test(
-      searchText
-    )
-  ) {
-    return true;
-  }
-
-  return false;
+  if (keywords.some((keyword) => searchText.includes(keyword))) return true;
+  return [
+    /\bcli[\s-]?\d+[a-z]*\b/i,
+    /\bpgi[\s-]?\d+[a-z]*\b/i,
+    /\bpg[\s-]?\d+[a-z]*\b/i,
+    /\bcl[\s-]?\d+[a-z]*\b/i,
+    /\b(?:cf|ce|cc|q)[\s-]?\d+[a-z]*\b/i,
+    /\bw[\s-]?\d{4,}[a-z]*\b/i,
+    /\btn[\s-]?\d+[a-z]*\b/i,
+    /\bdr[\s-]?\d+[a-z]*\b/i,
+    /\blc[\s-]?\d+[a-z]*\b/i,
+    /\bmlt[\s-]?[a-z0-9-]+\b/i,
+    /\bt[a-z0-9]{3,}\b/i,
+    /\bc13[a-z0-9-]+\b/i,
+    /\bsp[\s-]?\d{3,}[a-z]*\b/i,
+    /\bct[\s-]?\d{3,}[a-z]*\b/i,
+    /\btk[\s-]?\d+[a-z]*\b/i,
+  ].some((pattern) => pattern.test(searchText));
 }
 
-/* =========================================================
-   PAGE
-========================================================= */
+function currentThailandMonth(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit",
+  }).formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  return `${year}-${month}`;
+}
 
-export default async function ComputerLotLabelsPdfPage() {
-  /* =======================================================
-     CURRENT RECEIVE ITEMS
+type PageProps = {
+  searchParams?: Promise<{ month?: string }> | { month?: string };
+};
 
-     จำนวนป้ายต้องอิง:
-     ReceiveItem.balance > 0
+export default async function ComputerLotLabelsPdfPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const requestedMonth = params?.month;
+  const selectedMonth = requestedMonth && /^\d{4}-(0[1-9]|1[0-2])$/.test(requestedMonth)
+    ? requestedMonth
+    : currentThailandMonth();
 
-     ไม่ใช้ qty เดิม
-     ไม่ใช้ Material.balance เพื่อกระจายล็อต
-  ======================================================= */
+  // Read all materials independently from lots so headings do not disappear
+  // when there are no receipts in the selected month.
+  const materials = (await prisma.material.findMany({
+    where: { category: { in: ["COMPUTER", "PRINTING"] } },
+    select: { id: true, code: true, name: true },
+    orderBy: { code: "asc" },
+  }))
+    .filter((item) => isPrinterConsumable(item.name, item.code))
+    .map((item) => ({ materialId: item.id, code: item.code, name: item.name }));
 
-  const receiveItems =
-    await prisma.receiveItem.findMany({
-      where: {
-        balance: {
-          gt: 0,
-        },
+  const allowedIds = new Set(materials.map((item) => item.materialId));
 
-        material: {
-          category: {
-            in: [
-              "COMPUTER",
-              "PRINTING",
-            ],
-          },
-        },
-      },
+  // Preserve existing stock logic: ReceiveItem.balance, not original qty.
+  const receiveItems = await prisma.receiveItem.findMany({
+    where: {
+      balance: { gt: 0 },
+      material: { category: { in: ["COMPUTER", "PRINTING"] } },
+    },
+    select: {
+      id: true, receiveId: true, materialId: true, balance: true,
+      manufacture: true, expiry: true,
+      material: { select: { code: true, name: true, unit: true } },
+      receive: { select: { receiveDate: true, documentNo: true } },
+    },
+    orderBy: [{ materialId: "asc" }, { receiveId: "asc" }, { id: "asc" }],
+  });
 
-      select: {
-        id: true,
+  const lots: LotLabel[] = receiveItems
+    .filter((item) => {
+      if (!allowedIds.has(item.materialId)) return false;
+      const received = toThailandDateOnly(item.receive?.receiveDate ?? null);
+      return received?.slice(0, 7) === selectedMonth;
+    })
+    .map((item) => ({
+      receiveItemId: item.id,
+      receiveId: item.receiveId,
+      materialId: item.materialId,
+      code: item.material.code,
+      name: item.material.name,
+      unit: item.material.unit,
+      balance: Math.max(0, Math.floor(Number(item.balance ?? 0))),
+      manufacture: toThailandDateOnly(item.manufacture),
+      expiry: toThailandDateOnly(item.expiry),
+      receiveDate: toThailandDateOnly(item.receive?.receiveDate ?? null),
+      documentNo: item.receive?.documentNo ?? "",
+    }));
 
-        receiveId:
-          true,
-
-        materialId:
-          true,
-
-        balance:
-          true,
-
-        manufacture:
-          true,
-
-        expiry:
-          true,
-
-        material: {
-          select: {
-            code:
-              true,
-
-            name:
-              true,
-
-            unit:
-              true,
-          },
-        },
-
-        receive: {
-          select: {
-            receiveDate:
-              true,
-
-            documentNo:
-              true,
-          },
-        },
-      },
-
-      orderBy: [
-        {
-          materialId:
-            "asc",
-        },
-
-        {
-          receiveId:
-            "asc",
-        },
-
-        {
-          id:
-            "asc",
-        },
-      ],
-    });
-
-  /* =======================================================
-     FILTER
-  ======================================================= */
-
-  const printerConsumables =
-    receiveItems.filter(
-      (item) =>
-        isPrinterConsumable(
-          item.material.name,
-          item.material.code
-        )
-    );
-
-  /* =======================================================
-     SERIALIZE
-
-     ไม่รวมล็อตตรงนี้
-
-     ส่ง ReceiveItem ปัจจุบันทุกตัว
-     ไปให้ ComputerLotLabelsPdf.tsx
-     เป็นผู้รวม logical lot
-  ======================================================= */
-
-  const lots:
-    LotLabel[] =
-    printerConsumables.map(
-      (item) => ({
-        receiveItemId:
-          item.id,
-
-        receiveId:
-          item.receiveId,
-
-        materialId:
-          item.materialId,
-
-        code:
-          item.material.code,
-
-        name:
-          item.material.name,
-
-        unit:
-          item.material.unit,
-
-        balance:
-          Math.max(
-            0,
-            Math.floor(
-              Number(
-                item.balance ??
-                  0
-              )
-            )
-          ),
-
-        manufacture:
-          toThailandDateOnly(
-            item.manufacture
-          ),
-
-        expiry:
-          toThailandDateOnly(
-            item.expiry
-          ),
-
-        receiveDate:
-          toThailandDateOnly(
-            item.receive
-              ?.receiveDate ??
-              null
-          ),
-
-        documentNo:
-          item.receive
-            ?.documentNo ??
-          "",
-      })
-    );
-
-  return (
-    <ComputerLotLabelsPdf
-      lots={lots}
-    />
-  );
+  return <ComputerLotLabelsPdf lots={lots} materials={materials} />;
 }
