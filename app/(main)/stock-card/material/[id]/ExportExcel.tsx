@@ -1,734 +1,167 @@
 "use client";
 
-import * as XLSX from "xlsx";
-
+import ExcelJS from "exceljs";
 import AppButton from "@/components/AppButton";
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type Material = {
   code?: string | null;
   name?: string | null;
   category?: string | null;
   unit?: string | null;
-
-  vendor?: {
-    name?: string | null;
-  } | null;
-
-  latestPrice?: number;
+  vendor?: { name?: string | null } | null;
+  latestPrice?: number | null;
 };
 
 type StockRow = {
   date: Date | string;
-
   documentNo?: string | null;
-
   owner?: string | null;
-
   unitPrice: number;
-
   receiveQty: number;
-
   issueQty: number;
-
   balance: number;
-
   manufacture?: Date | string | null;
-
   expiry?: Date | string | null;
-
   type?: string;
 };
 
-type Props = {
-  material: Material;
+type Props = { material: Material; rows: StockRow[]; fiscalYear: number };
 
-  rows: StockRow[];
-
-  fiscalYear: number;
+const categoryName: Record<string, string> = {
+  OFFICE: "วัสดุสำนักงาน",
+  COMPUTER: "วัสดุคอมพิวเตอร์",
+  ELECTRIC: "วัสดุไฟฟ้าและวิทยุ",
+  HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
+  VEHICLE: "วัสดุยานพาหนะ",
+  PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
 
-/* =========================================================
-   CATEGORY
-========================================================= */
+const thaiShortMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const FONT = "TH Sarabun PSK";
+const HEADERS = ["วันที่", "เลขที่เอกสาร", "ผู้จำหน่าย / หน่วยงาน", "ราคาล่าสุด", "รับเข้า", "เบิกจ่าย", "คงเหลือ", "วันผลิต", "วันหมดอายุ"];
+const PAGE_SIZE = 13;
+const WIDTHS = [13, 19, 30, 15, 11, 11, 11, 14, 14];
+const BLACK: ExcelJS.Border = { style: "thin", color: { argb: "FF000000" } };
+const TABLE_BORDER: Partial<ExcelJS.Borders> = { top: BLACK, bottom: BLACK, left: BLACK, right: BLACK };
 
-const categoryName: Record<
-  string,
-  string
-> = {
-  OFFICE:
-    "วัสดุสำนักงาน",
-
-  COMPUTER:
-    "วัสดุคอมพิวเตอร์",
-
-  ELECTRIC:
-    "วัสดุไฟฟ้าและวิทยุ",
-
-  HOUSEHOLD:
-    "วัสดุงานบ้านและงานครัว",
-
-  VEHICLE:
-    "วัสดุยานพาหนะ",
-
-  PRINTING:
-    "วัสดุสื่อสิ่งพิมพ์",
-};
-
-/* =========================================================
-   THAILAND DATE PARTS
-========================================================= */
-
-function getThailandDateParts(
-  value: Date
-) {
-  const formatter =
-    new Intl.DateTimeFormat(
-      "en-US",
-      {
-        timeZone:
-          "Asia/Bangkok",
-
-        year:
-          "numeric",
-
-        month:
-          "2-digit",
-
-        day:
-          "2-digit",
-      }
-    );
-
-  const parts =
-    formatter.formatToParts(
-      value
-    );
-
-  const year =
-    Number(
-      parts.find(
-        (part) =>
-          part.type ===
-          "year"
-      )?.value
-    );
-
-  const month =
-    Number(
-      parts.find(
-        (part) =>
-          part.type ===
-          "month"
-      )?.value
-    );
-
-  const day =
-    Number(
-      parts.find(
-        (part) =>
-          part.type ===
-          "day"
-      )?.value
-    );
-
-  return {
-    year,
-    month,
-    day,
-  };
+function formatThaiDate(value: Date | string | null | undefined): string {
+  if (!value) return "-";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? 0);
+  return `${String(get("day")).padStart(2, "0")} ${thaiShortMonths[get("month") - 1]} ${String(get("year") + 543).slice(-2)}`;
 }
 
-/* =========================================================
-   DATE
-
-   Excel แสดงเป็น ค.ศ.
-
-   ตัวอย่าง:
-   01/10/2026
-
-   แต่ยึดวันตาม Asia/Bangkok
-========================================================= */
-
-function formatDateAD(
-  date:
-    | Date
-    | string
-    | null
-    | undefined
-) {
-  if (!date) {
-    return "-";
-  }
-
-  const d =
-    date instanceof Date
-      ? date
-      : new Date(
-          date
-        );
-
-  if (
-    Number.isNaN(
-      d.getTime()
-    )
-  ) {
-    return "-";
-  }
-
-  const parts =
-    getThailandDateParts(
-      d
-    );
-
-  return `${String(
-    parts.day
-  ).padStart(
-    2,
-    "0"
-  )}/${String(
-    parts.month
-  ).padStart(
-    2,
-    "0"
-  )}/${parts.year}`;
+function safeNumber(value: unknown): number {
+  const result = Number(value ?? 0);
+  return Number.isFinite(result) ? result : 0;
 }
 
-/* =========================================================
-   SAFE FILE NAME
-========================================================= */
-
-function createSafeFileName(
-  value: string
-) {
-  return value
-    .replace(
-      /[\\/:*?"<>|]/g,
-      "-"
-    )
-    .replace(
-      /\s+/g,
-      " "
-    )
-    .trim();
+function safeFileName(value: string): string {
+  return value.replace(/[\\/:*?"<>|]/g, "-").replace(/\s+/g, " ").trim();
 }
 
-/* =========================================================
-   COMPONENT
-========================================================= */
+function setText(cell: ExcelJS.Cell, value: string | number, options?: { size?: number; bold?: boolean; align?: ExcelJS.Alignment["horizontal"]; wrap?: boolean }) {
+  cell.value = value;
+  cell.font = { name: FONT, size: options?.size ?? 16, bold: options?.bold ?? false, color: { argb: "FF000000" } };
+  cell.alignment = { horizontal: options?.align ?? "left", vertical: "middle", wrapText: options?.wrap ?? false, indent: 0 };
+}
 
-export default function ExportExcel({
-  material,
-  rows,
-  fiscalYear,
-}: Props) {
-  /* =======================================================
-     EXPORT EXCEL
-  ======================================================= */
+function infoLine(sheet: ExcelJS.Worksheet, row: number, from: number, to: number, text: string) {
+  sheet.mergeCells(row, from, row, to);
+  setText(sheet.getCell(row, from), text, { size: 16 });
+}
 
-  function handleExport() {
-    /* =====================================================
-       MATERIAL INFORMATION
-
-       เพิ่มปีงบประมาณ
-    ===================================================== */
-
-    const materialInformation = [
-      [
-        "บัญชีพัสดุ",
-      ],
-
-      [
-        `ปีงบประมาณ ${fiscalYear}`,
-      ],
-
-      [],
-
-      [
-        "รหัสพัสดุ",
-        material.code ||
-          "-",
-      ],
-
-      [
-        "รายการพัสดุ",
-        material.name ||
-          "-",
-      ],
-
-      [
-        "หมวดหมู่",
-
-        material.category
-          ? categoryName[
-              material.category
-            ] ??
-            material.category
-          : "-",
-      ],
-
-      [
-        "หน่วย",
-        material.unit ||
-          "-",
-      ],
-
-      [
-        "ผู้จำหน่ายล่าสุด",
-
-        material.vendor
-          ?.name ||
-          "-",
-      ],
-
-      [
-        "ราคาล่าสุด",
-
-        Number(
-          material.latestPrice ??
-            0
-        ),
-      ],
-
-      [],
-    ];
-
-    /* =====================================================
-       TABLE HEADER
-    ===================================================== */
-
-    const tableHeader = [
-      [
-        "วันที่",
-        "เลขที่เอกสาร",
-        "ผู้จำหน่าย / หน่วยงาน",
-        "ราคาล่าสุด",
-        "รับเข้า",
-        "เบิกจ่าย",
-        "คงเหลือ",
-        "วันผลิต",
-        "วันหมดอายุ",
-      ],
-    ];
-
-    /* =====================================================
-       TABLE DATA
-
-       stockRows จาก page.tsx:
-       - มีเฉพาะ FY ที่เลือก
-       - แถวแรกอาจเป็น OPENING_BALANCE
-       - receiveQty ของยอดยก = ยอดต้นปี
-       - balance = ยอดต้นปี
-    ===================================================== */
-
-    const tableRows =
-      rows.map(
-        (
-          row
-        ) => [
-          formatDateAD(
-            row.date
-          ),
-
-          row.documentNo ||
-            "-",
-
-          row.owner ||
-            "-",
-
-          Number(
-            row.unitPrice ??
-              0
-          ),
-
-          Number(
-            row.receiveQty ??
-              0
-          ),
-
-          Number(
-            row.issueQty ??
-              0
-          ),
-
-          Number(
-            row.balance ??
-              0
-          ),
-
-          formatDateAD(
-            row.manufacture
-          ),
-
-          formatDateAD(
-            row.expiry
-          ),
-        ]
-      );
-
-    /* =====================================================
-       WORKSHEET
-    ===================================================== */
-
-    const worksheet =
-      XLSX.utils.aoa_to_sheet([
-        ...materialInformation,
-
-        ...tableHeader,
-
-        ...tableRows,
-      ]);
-
-    /* =====================================================
-       MERGE TITLE
-
-       Row 0:
-       บัญชีพัสดุ
-
-       Row 1:
-       ปีงบประมาณ
-    ===================================================== */
-
-    worksheet[
-      "!merges"
-    ] = [
-      {
-        s: {
-          r: 0,
-          c: 0,
+export default function ExportExcel({ material, rows, fiscalYear }: Props) {
+  async function handleExport() {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Stock Card";
+      workbook.created = new Date();
+      const sheet = workbook.addWorksheet(`บัญชีพัสดุ ${fiscalYear}`, {
+        views: [{ state: "normal", showGridLines: false }],
+        pageSetup: {
+          paperSize: 9, orientation: "landscape", fitToPage: true,
+          fitToWidth: 1, fitToHeight: 0, horizontalCentered: true,
+          margins: { left: 0.35, right: 0.35, top: 0.35, bottom: 0.35, header: 0.1, footer: 0.1 },
         },
-
-        e: {
-          r: 0,
-          c: 8,
-        },
-      },
-
-      {
-        s: {
-          r: 1,
-          c: 0,
-        },
-
-        e: {
-          r: 1,
-          c: 8,
-        },
-      },
-    ];
-
-    /* =====================================================
-       COLUMN WIDTH
-    ===================================================== */
-
-    worksheet[
-      "!cols"
-    ] = [
-      {
-        wch:
-          16,
-      },
-
-      {
-        wch:
-          22,
-      },
-
-      {
-        wch:
-          36,
-      },
-
-      {
-        wch:
-          16,
-      },
-
-      {
-        wch:
-          12,
-      },
-
-      {
-        wch:
-          12,
-      },
-
-      {
-        wch:
-          12,
-      },
-
-      {
-        wch:
-          16,
-      },
-
-      {
-        wch:
-          16,
-      },
-    ];
-
-    /* =====================================================
-       ROW HEIGHTS
-    ===================================================== */
-
-    worksheet[
-      "!rows"
-    ] = [
-      {
-        hpt:
-          28,
-      },
-
-      {
-        hpt:
-          24,
-      },
-
-      {
-        hpt:
-          8,
-      },
-    ];
-
-    /* =====================================================
-       NUMBER FORMAT
-
-       โครงใหม่:
-
-       row 0 = title
-       row 1 = fiscal year
-       row 2 = blank
-
-       row 3 = code
-       row 4 = name
-       row 5 = category
-       row 6 = unit
-       row 7 = vendor
-       row 8 = latest price
-       row 9 = blank
-
-       row 10 = table header
-       row 11 = first data row
-    ===================================================== */
-
-    const firstDataRow =
-      11;
-
-    rows.forEach(
-      (
-        row,
-        index
-      ) => {
-        const excelRow =
-          firstDataRow +
-          index;
-
-        /* ===============================================
-           PRICE
-        =============================================== */
-
-        const priceCell =
-          worksheet[
-            XLSX.utils.encode_cell({
-              r:
-                excelRow,
-
-              c:
-                3,
-            })
-          ];
-
-        if (
-          priceCell
-        ) {
-          priceCell.z =
-            "#,##0.00";
-        }
-
-        /* ===============================================
-           RECEIVE / ISSUE / BALANCE
-        =============================================== */
-
-        for (
-          let column =
-            4;
-
-          column <=
-          6;
-
-          column++
-        ) {
-          const cell =
-            worksheet[
-              XLSX.utils.encode_cell({
-                r:
-                  excelRow,
-
-                c:
-                  column,
-              })
-            ];
-
-          if (
-            cell
-          ) {
-            cell.z =
-              "#,##0";
-          }
-        }
-
-        /* ===============================================
-           OPENING BALANCE
-
-           Excel CE/SheetJS community edition
-           ไม่รับประกัน style ฟอนต์/สีเหมือน xlsx-style
-
-           ดังนั้นยังรักษาค่าข้อมูลจริงไว้เป็นหลัก
-
-           documentNo จะเป็น:
-           "ยอดยกเข้าระบบ"
-        =============================================== */
-
-        if (
-          row.type ===
-            "OPENING_BALANCE" ||
-          row.documentNo ===
-            "ยอดยกเข้าระบบ"
-        ) {
-          const documentCell =
-            worksheet[
-              XLSX.utils.encode_cell({
-                r:
-                  excelRow,
-
-                c:
-                  1,
-              })
-            ];
-
-          if (
-            documentCell
-          ) {
-            documentCell.v =
-              "ยอดยกเข้าระบบ";
-          }
+      });
+      WIDTHS.forEach((width, index) => { sheet.getColumn(index + 1).width = width; });
+      sheet.properties.defaultRowHeight = 23;
+      const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+      for (let page = 0; page < pages; page++) {
+        const base = page * 23;
+        if (page > 0) sheet.getRow(base + 1).addPageBreak();
+        sheet.mergeCells(base + 1, 1, base + 1, 9);
+        setText(sheet.getCell(base + 1, 1), "บัญชีพัสดุ", { size: 26, bold: true, align: "center" });
+        sheet.getRow(base + 1).height = 35;
+        sheet.mergeCells(base + 2, 1, base + 2, 9);
+        setText(sheet.getCell(base + 2, 1), `ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`, { size: 17, align: "center" });
+        sheet.getRow(base + 2).height = 25;
+        infoLine(sheet, base + 3, 5, 9, "ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย");
+        infoLine(sheet, base + 4, 5, 9, "หน่วยงาน  สำนักอนามัยการเจริญพันธุ์");
+        sheet.getRow(base + 3).height = 23;
+        sheet.getRow(base + 4).height = 23;
+        infoLine(sheet, base + 5, 1, 4, `รหัสพัสดุ : ${material.code || "-"}`);
+        infoLine(sheet, base + 5, 5, 9, `รายการพัสดุ : ${material.name || "-"}`);
+        infoLine(sheet, base + 6, 1, 4, `หมวดหมู่ : ${categoryName[material.category ?? ""] ?? material.category ?? "-"}`);
+        infoLine(sheet, base + 6, 5, 9, `หน่วย : ${material.unit || "-"}`);
+        infoLine(sheet, base + 7, 1, 4, `ผู้จำหน่าย : ${material.vendor?.name ?? "-"}`);
+        infoLine(sheet, base + 7, 5, 9, `ราคาล่าสุด : ${material.latestPrice == null ? "-" : safeNumber(material.latestPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
+        for (let r = base + 5; r <= base + 7; r++) sheet.getRow(r).height = 27;
+        sheet.getRow(base + 8).height = 12;
+        const headerRow = base + 9;
+        HEADERS.forEach((header, col) => {
+          const cell = sheet.getCell(headerRow, col + 1);
+          setText(cell, header, { size: 16, bold: true, align: "center", wrap: true });
+          cell.border = TABLE_BORDER;
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFFFFF" } };
+        });
+        sheet.getRow(headerRow).height = 30;
+        const pageRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+        for (let i = 0; i < PAGE_SIZE; i++) {
+          const source = pageRows[i];
+          const rowNo = base + 10 + i;
+          const values: (string | number)[] = source ? [
+            formatThaiDate(source.date), source.documentNo || "-", source.owner || "-",
+            safeNumber(source.unitPrice),
+            safeNumber(source.receiveQty) > 0 ? safeNumber(source.receiveQty) : "-",
+            safeNumber(source.issueQty) > 0 ? safeNumber(source.issueQty) : "-",
+            source.balance == null ? "-" : safeNumber(source.balance),
+            formatThaiDate(source.manufacture), formatThaiDate(source.expiry),
+          ] : ["", "", "", "", "", "", "", "", ""];
+          values.forEach((value, index) => {
+            const cell = sheet.getCell(rowNo, index + 1);
+            setText(cell, value, { size: 16, align: index === 2 ? "left" : index === 3 ? "right" : "center", wrap: index === 2 });
+            cell.border = TABLE_BORDER;
+            if (typeof value === "number") cell.numFmt = index === 3 ? "#,##0.00" : "#,##0";
+          });
+          sheet.getRow(rowNo).height = 29;
         }
       }
-    );
-
-    /* =====================================================
-       LATEST PRICE FORMAT
-
-       ราคาล่าสุดอยู่ B9
-       เพราะเพิ่มแถว FY เข้ามา
-    ===================================================== */
-
-    const latestPriceCell =
-      worksheet[
-        "B9"
-      ];
-
-    if (
-      latestPriceCell
-    ) {
-      latestPriceCell.z =
-        "#,##0.00";
+      sheet.pageSetup.printArea = `A1:I${pages * 23}`;
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${safeFileName(`บัญชีพัสดุ_${material.code || "material"}_${material.name || "stock-card"}_ปีงบประมาณ_${fiscalYear}`)}.xlsx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error("ไม่สามารถสร้าง Excel ได้:", error);
+      alert("ไม่สามารถสร้างไฟล์ Excel ได้ กรุณาลองใหม่อีกครั้ง");
     }
-
-    /* =====================================================
-       AUTO FILTER
-
-       ตารางเริ่ม row 10
-       Excel row = 11
-    ===================================================== */
-
-    const lastTableRow =
-      firstDataRow +
-      Math.max(
-        rows.length -
-          1,
-        0
-      );
-
-    worksheet[
-      "!autofilter"
-    ] = {
-      ref:
-        rows.length >
-        0
-          ? `A11:I${
-              lastTableRow +
-              1
-            }`
-          : "A11:I11",
-    };
-
-    /* =====================================================
-       WORKBOOK
-    ===================================================== */
-
-    const workbook =
-      XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-      workbook,
-      worksheet,
-      `บัญชีพัสดุ ${fiscalYear}`
-    );
-
-    /* =====================================================
-       FILE NAME
-    ===================================================== */
-
-    const materialCode =
-      material.code ||
-      "material";
-
-    const materialName =
-      material.name ||
-      "stock-card";
-
-    const fileName =
-      createSafeFileName(
-        `บัญชีพัสดุ_${materialCode}_${materialName}_ปีงบประมาณ_${fiscalYear}`
-      );
-
-    /* =====================================================
-       DOWNLOAD
-    ===================================================== */
-
-    XLSX.writeFile(
-      workbook,
-      `${fileName}.xlsx`
-    );
   }
-
-  /* =========================================================
-     UI
-  ========================================================= */
 
   return (
-    <AppButton
-      type="button"
-      variant="success"
-      size="md"
-      onClick={
-        handleExport
-      }
-      icon={
-        <span
-          aria-hidden="true"
-        >
-          📊
-        </span>
-      }
-    >
+    <AppButton type="button" variant="success" size="md" onClick={handleExport}
+      icon={<span aria-hidden="true">📊</span>}>
       ส่งออก Excel
     </AppButton>
   );
