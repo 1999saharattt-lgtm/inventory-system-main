@@ -1,3 +1,4 @@
+
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
@@ -76,11 +77,6 @@ export default function MaterialsPage() {
               variant="primary"
               size="md"
               target="_blank"
-              icon={
-                <span aria-hidden="true">
-                  📱
-                </span>
-              }
             >
               QR Code รวม
             </AppButton>
@@ -94,11 +90,6 @@ export default function MaterialsPage() {
               variant="primary"
               size="md"
               target="_blank"
-              icon={
-                <span aria-hidden="true">
-                  🏷️
-                </span>
-              }
             >
               ป้ายล็อตหมึก
             </AppButton>
@@ -112,11 +103,6 @@ export default function MaterialsPage() {
               variant="primary"
               size="md"
               target="_blank"
-              icon={
-                <span aria-hidden="true">
-                  📋
-                </span>
-              }
             >
               รวมรายการพัสดุ
             </AppButton>
