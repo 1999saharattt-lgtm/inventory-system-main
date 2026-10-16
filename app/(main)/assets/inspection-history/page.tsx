@@ -4,6 +4,7 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
+import DeleteAssetInspectionButton from "./DeleteAssetInspectionButton";
 
 /* =========================================================
    THAI DATE
@@ -861,27 +862,12 @@ export default async function InspectionHistoryPage({
                               แก้ไข
                             </AppButton>
 
-                            {/* =============================
-                                DELETE
-
-                                ยังไม่เชื่อม Server Action
-                                เพื่อคง Logic เดิม
-                            ============================= */}
-
-                            <AppButton
-                              type="button"
-                              variant="danger"
-                              size="sm"
-                              icon={
-                                <span
-                                  aria-hidden="true"
-                                >
-                                  🗑️
-                                </span>
-                              }
-                            >
-                              ลบ
-                            </AppButton>
+                            {/* DELETE: ลบเฉพาะกลุ่มงานและปีงบประมาณนี้ */}
+                            <DeleteAssetInspectionButton
+                              departmentId={item.departmentId}
+                              departmentName={item.departmentName}
+                              year={item.year}
+                            />
                           </div>
                         </td>
                       </tr>
