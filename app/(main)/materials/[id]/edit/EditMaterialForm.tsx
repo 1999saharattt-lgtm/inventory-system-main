@@ -2754,7 +2754,7 @@ export default function EditMaterialForm({
 
               z-40
 
-              lg:col-span-2
+              
 
             "
 
