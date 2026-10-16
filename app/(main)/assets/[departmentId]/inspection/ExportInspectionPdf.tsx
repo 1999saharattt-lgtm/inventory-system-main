@@ -96,7 +96,7 @@ type Props = {
   officers?: Officer[];
 };
 
-const ROWS_PER_PAGE = 15;
+const ROWS_PER_PAGE = 9;
 
 const INSPECTION_FISCAL_YEAR =
   "2569";
@@ -144,38 +144,15 @@ const SIGNATURE_GAP = 10;
 const SIGNATURE_MIN_START_Y = 170;
 
 /* =========================================================
-   COLUMN WIDTH
+   COLUMN WIDTH — A4 landscape, fixed font size in every cell
    ========================================================= */
-
-/*
- * ลดคอลัมน์ "รายการ" จาก 38 mm เหลือ 28 mm
- * แล้วนำพื้นที่ไปเพิ่มให้ 3 ส่วนหัวที่มีข้อความยาว:
- *
- * - ยอดคงเหลือตามบัญชี ณ วันที่...
- * - รายการเคลื่อนไหวระหว่าง ปีงบประมาณ...
- * - ยอดคงเหลือตามบัญชี ณ วันที่...
- *
- * รวมทุกคอลัมน์ยังเท่ากับ TABLE_WIDTH = 285 mm
- */
 const COLUMN_WIDTHS = {
-  order: 6.5,
-  gfmis: 18,
-  assetNo: 22.5,
-  responsible: 34,
-  item: 28,
-  unit: 9.5,
-  accountStart: 22.5,
-  receive: 12,
-  issue: 12,
-  accountEnd: 22.5,
-  counted: 15.5,
-  correct: 11.5,
-  incorrect: 11.5,
-  inUse: 10,
-  damaged: 9.5,
-  deteriorated: 10.5,
-  unusable: 13,
-  remark: 16,
+  order: 6, gfmis: 17, assetNo: 19, location: 24,
+  responsible: 18, category: 14, item: 26, brandModel: 16,
+  unit: 9, accountStart: 15, receive: 8, issue: 8,
+  accountEnd: 15, counted: 12, correct: 9, incorrect: 11,
+  inUse: 10, damaged: 9, deteriorated: 11, unusable: 13,
+  remark: 15,
 } as const;
 
 /* =========================================================
@@ -640,7 +617,9 @@ export default function ExportInspectionPdf({
      ======================================================= */
 
   function drawDocumentHeader(
-    doc: jsPDF
+    doc: jsPDF,
+    pageNumber: number,
+    totalPages: number
   ) {
     const center =
       PAGE_WIDTH / 2;
@@ -655,6 +634,9 @@ export default function ExportInspectionPdf({
       0,
       0
     );
+
+    doc.setFontSize(12);
+    doc.text(`แผ่นที่ ${pageNumber}`, PAGE_WIDTH - MARGIN_X, 9, { align: "right" });
 
     doc.setFontSize(18);
 
@@ -928,7 +910,7 @@ export default function ExportInspectionPdf({
         }
 
         drawDocumentHeader(
-          doc
+          doc, pageIndex + 1, totalPages
         );
 
         const startIndex =
@@ -986,14 +968,11 @@ export default function ExportInspectionPdf({
                   department
                 );
 
-              const assetName =
-                [
-                  asset.name,
-                  asset.brand,
-                  asset.model,
-                ]
-                  .filter(Boolean)
-                  .join(" ");
+              const assetName = asset.name || "-";
+              const officerName = asset.officer
+                ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+                : "-";
+              const brandModel = [asset.brand, asset.model].filter(Boolean).join(" / ") || "-";
 
               return [
                 String(
@@ -1009,8 +988,10 @@ export default function ExportInspectionPdf({
                   : "-",
 
                 responsibleName,
-
+                officerName,
+                "-", // หมวด/ชนิด: รอเพิ่มข้อมูลในภายหลัง
                 assetName,
+                brandModel,
 
                 getCategoryUnit(
                   asset.category
@@ -1066,7 +1047,7 @@ export default function ExportInspectionPdf({
           ROWS_PER_PAGE
         ) {
           body.push(
-            Array(18).fill(
+            Array(21).fill(
               ""
             )
           );
@@ -1110,110 +1091,24 @@ export default function ExportInspectionPdf({
 
           head: [
             [
-              {
-                content:
-                  "ลำดับ",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "รหัส GFMIS",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "รหัสครุภัณฑ์",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "ผู้รับผิดชอบ",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "รายการครุภัณฑ์",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "หน่วย",
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  accountStartHeaderLines.join(
-                    "\n"
-                  ),
-
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  movementHeaderLines.join(
-                    "\n"
-                  ),
-
-                colSpan: 2,
-              },
-
-              {
-                content:
-                  accountEndHeaderLines.join(
-                    "\n"
-                  ),
-
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "จำนวนที่ตรวจนับได้",
-
-                rowSpan: 2,
-              },
-
-              {
-                content:
-                  "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี",
-
-                colSpan: 2,
-              },
-
-              {
-                content:
-                  "สภาพครุภัณฑ์ที่ตรวจนับ",
-
-                colSpan: 4,
-              },
-
-              {
-                content:
-                  "หมายเหตุ",
-
-                rowSpan: 2,
-              },
+              { content: "ลำดับ", rowSpan: 2 },
+              { content: "รหัส GFMIS", rowSpan: 2 },
+              { content: "รหัสครุภัณฑ์", rowSpan: 2 },
+              { content: "สถานที่ใช้งาน", rowSpan: 2 },
+              { content: "ผู้รับผิดชอบ", rowSpan: 2 },
+              { content: "หมวด/ชนิด", rowSpan: 2 },
+              { content: "ชื่อเรียก/คุณลักษณะครุภัณฑ์", rowSpan: 2 },
+              { content: "ยี่ห้อ/รุ่น", rowSpan: 2 },
+              { content: "หน่วยนับ", rowSpan: 2 },
+              { content: accountStartHeaderLines.join("\n"), rowSpan: 2 },
+              { content: movementHeaderLines.join("\n"), colSpan: 2 },
+              { content: accountEndHeaderLines.join("\n"), rowSpan: 2 },
+              { content: "จำนวนที่ตรวจนับได้", rowSpan: 2 },
+              { content: "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี", colSpan: 2 },
+              { content: "สภาพครุภัณฑ์ที่ตรวจนับ", colSpan: 4 },
+              { content: "หมายเหตุ", rowSpan: 2 },
             ],
-
-            [
-              "รับ",
-              "จ่าย",
-
-              "ถูกต้อง",
-              "ไม่ถูกต้อง",
-
-              "ใช้งานปกติ",
-              "ชำรุด",
-              "เสื่อมสภาพ",
-              "ไม่จำเป็นต้องใช้",
-            ],
+            ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ใช้งานปกติ", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
           ],
 
           body,
@@ -1246,7 +1141,7 @@ export default function ExportInspectionPdf({
               0.6,
 
             minCellHeight:
-              7.1,
+              9,
 
             halign:
               "center",
@@ -1265,7 +1160,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: 8,
+            fontSize: 8.5,
 
             fillColor: [
               255,
@@ -1329,7 +1224,7 @@ export default function ExportInspectionPdf({
               0.6,
 
             minCellHeight:
-              7.1,
+              9,
 
             halign:
               "center",
@@ -1338,583 +1233,34 @@ export default function ExportInspectionPdf({
               "middle",
           },
 
-          /* =================================================
-             COLUMN WIDTH
-
-             รวม = 285 mm
-
-             รายการ:
-             38 → 28 mm
-
-             พื้นที่ที่ลดลงถูกเพิ่มให้:
-             - ยอดคงเหลือต้นงวด
-             - รับ / จ่าย
-             - ยอดคงเหลือปลายงวด
-
-             และรอบนี้:
-             - เพิ่มช่อง "จำนวนที่ตรวจนับได้" จาก 13.5 → 15.5 mm
-             - ลดกลุ่ม "ผลการตรวจนับถูกต้อง..." ลงรวม 2 mm
-             ================================================= */
-
+          // Uniform 8.5pt font throughout: wrap long text rather than shrinking it.
           columnStyles: {
-            0: {
-              cellWidth:
-                COLUMN_WIDTHS.order,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            1: {
-              cellWidth:
-                COLUMN_WIDTHS.gfmis,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            2: {
-              cellWidth:
-                COLUMN_WIDTHS.assetNo,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            3: {
-              cellWidth:
-                COLUMN_WIDTHS.responsible,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-
-              overflow:
-                "hidden",
-
-              cellPadding:
-                0.25,
-            },
-
-            4: {
-              cellWidth:
-                COLUMN_WIDTHS.item,
-
-              halign:
-                "left",
-
-              valign:
-                "middle",
-
-              overflow:
-                "hidden",
-
-              cellPadding: {
-                top: 0.3,
-                right: 0.3,
-                bottom: 0.3,
-                left: 1.2,
-              },
-            },
-
-            5: {
-              cellWidth:
-                COLUMN_WIDTHS.unit,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            6: {
-              cellWidth:
-                COLUMN_WIDTHS.accountStart,
-            },
-
-            7: {
-              cellWidth:
-                COLUMN_WIDTHS.receive,
-            },
-
-            8: {
-              cellWidth:
-                COLUMN_WIDTHS.issue,
-            },
-
-            9: {
-              cellWidth:
-                COLUMN_WIDTHS.accountEnd,
-            },
-
-            10: {
-              cellWidth:
-                COLUMN_WIDTHS.counted,
-            },
-
-            11: {
-              cellWidth:
-                COLUMN_WIDTHS.correct,
-            },
-
-            12: {
-              cellWidth:
-                COLUMN_WIDTHS.incorrect,
-            },
-
-            13: {
-              cellWidth:
-                COLUMN_WIDTHS.inUse,
-            },
-
-            14: {
-              cellWidth:
-                COLUMN_WIDTHS.damaged,
-            },
-
-            15: {
-              cellWidth:
-                COLUMN_WIDTHS.deteriorated,
-            },
-
-            16: {
-              cellWidth:
-                COLUMN_WIDTHS.unusable,
-            },
-
-            17: {
-              cellWidth:
-                COLUMN_WIDTHS.remark,
-            },
+            0: { cellWidth: COLUMN_WIDTHS.order },
+            1: { cellWidth: COLUMN_WIDTHS.gfmis },
+            2: { cellWidth: COLUMN_WIDTHS.assetNo },
+            3: { cellWidth: COLUMN_WIDTHS.location },
+            4: { cellWidth: COLUMN_WIDTHS.responsible },
+            5: { cellWidth: COLUMN_WIDTHS.category },
+            6: { cellWidth: COLUMN_WIDTHS.item, halign: "left" },
+            7: { cellWidth: COLUMN_WIDTHS.brandModel },
+            8: { cellWidth: COLUMN_WIDTHS.unit },
+            9: { cellWidth: COLUMN_WIDTHS.accountStart },
+            10: { cellWidth: COLUMN_WIDTHS.receive },
+            11: { cellWidth: COLUMN_WIDTHS.issue },
+            12: { cellWidth: COLUMN_WIDTHS.accountEnd },
+            13: { cellWidth: COLUMN_WIDTHS.counted },
+            14: { cellWidth: COLUMN_WIDTHS.correct },
+            15: { cellWidth: COLUMN_WIDTHS.incorrect },
+            16: { cellWidth: COLUMN_WIDTHS.inUse },
+            17: { cellWidth: COLUMN_WIDTHS.damaged },
+            18: { cellWidth: COLUMN_WIDTHS.deteriorated },
+            19: { cellWidth: COLUMN_WIDTHS.unusable },
+            20: { cellWidth: COLUMN_WIDTHS.remark },
           },
 
-          didParseCell: (
-            data
-          ) => {
-            /* =============================================
-               หัวตาราง 3 ส่วนที่ต้องการพื้นที่มากขึ้น
-
-               บังคับให้คงเพียง 2 บรรทัดตามที่กำหนด
-               และลด font เฉพาะเมื่อจำเป็น
-               ============================================= */
-
-            if (
-              data.section ===
-                "head" &&
-              data.row.index ===
-                0 &&
-              data.column.index ===
-                6
-            ) {
-              data.cell.text =
-                accountStartHeaderLines;
-
-              data.cell.styles.fontSize =
-                getMultiLineFontSize(
-                  doc,
-                  accountStartHeaderLines,
-                  COLUMN_WIDTHS.accountStart,
-                  8,
-                  5.5,
-                  0.9
-                );
-
-              data.cell.styles.cellPadding =
-                0.25;
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-            }
-
-            if (
-              data.section ===
-                "head" &&
-              data.row.index ===
-                0 &&
-              data.column.index ===
-                7
-            ) {
-              const movementWidth =
-                COLUMN_WIDTHS.receive +
-                COLUMN_WIDTHS.issue;
-
-              data.cell.text =
-                movementHeaderLines;
-
-              data.cell.styles.fontSize =
-                getMultiLineFontSize(
-                  doc,
-                  movementHeaderLines,
-                  movementWidth,
-                  8,
-                  5.5,
-                  0.9
-                );
-
-              data.cell.styles.cellPadding =
-                0.25;
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-            }
-
-            if (
-              data.section ===
-                "head" &&
-              data.row.index ===
-                0 &&
-              data.column.index ===
-                9
-            ) {
-              data.cell.text =
-                accountEndHeaderLines;
-
-              data.cell.styles.fontSize =
-                getMultiLineFontSize(
-                  doc,
-                  accountEndHeaderLines,
-                  COLUMN_WIDTHS.accountEnd,
-                  8,
-                  5.5,
-                  0.9
-                );
-
-              data.cell.styles.cellPadding =
-                0.25;
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-            }
-
-            /* =============================================
-               จำนวนที่ตรวจนับได้
-
-               บังคับให้อยู่บรรทัดเดียว
-               และลดขนาดตัวอักษรอัตโนมัติให้พอดีกับช่อง
-               ============================================= */
-
-            if (
-              data.section ===
-                "head" &&
-              data.row.index ===
-                0 &&
-              data.column.index ===
-                10
-            ) {
-              const countedHeaderText =
-                "จำนวนที่ตรวจนับได้";
-
-              data.cell.text =
-                [
-                  countedHeaderText,
-                ];
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  countedHeaderText,
-                  COLUMN_WIDTHS.counted,
-                  8,
-                  4.5,
-                  0.6
-                );
-
-              data.cell.styles.cellPadding =
-                0.2;
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.overflow =
-                "hidden";
-            }
-
-            /* =============================================
-               GFMIS
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                1
-            ) {
-              const text =
-                String(
-                  data.cell.raw ??
-                    ""
-                )
-                  .replace(
-                    /\s+/g,
-                    " "
-                  )
-                  .trim();
-
-              data.cell.text =
-                [text];
-
-              data.cell.styles.overflow =
-                "hidden";
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  text,
-                  COLUMN_WIDTHS.gfmis,
-                  8.5,
-                  5,
-                  0.8
-                );
-            }
-
-            /* =============================================
-               รหัสครุภัณฑ์
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                2
-            ) {
-              const text =
-                String(
-                  data.cell.raw ??
-                    ""
-                )
-                  .replace(
-                    /\s+/g,
-                    " "
-                  )
-                  .trim();
-
-              data.cell.text =
-                [text];
-
-              data.cell.styles.overflow =
-                "hidden";
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  text,
-                  COLUMN_WIDTHS.assetNo,
-                  8.5,
-                  5,
-                  0.8
-                );
-            }
-
-            /* =============================================
-               ผู้รับผิดชอบ
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                3
-            ) {
-              const text =
-                String(
-                  data.cell.raw ??
-                    ""
-                )
-                  .replace(
-                    /\s+/g,
-                    " "
-                  )
-                  .trim();
-
-              data.cell.text =
-                [text];
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.overflow =
-                "hidden";
-
-              data.cell.styles.cellPadding =
-                0.25;
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  text,
-                  COLUMN_WIDTHS.responsible,
-                  8.5,
-                  4.5,
-                  0.8
-                );
-            }
-
-            /* =============================================
-               รายการครุภัณฑ์
-
-               ลดความกว้างเหลือ 28 mm
-               แต่ยังคงเป็นบรรทัดเดียว
-               และลด font ตามความยาวจริง
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                4
-            ) {
-              const text =
-                String(
-                  data.cell.raw ??
-                    ""
-                )
-                  .replace(
-                    /\s+/g,
-                    " "
-                  )
-                  .trim();
-
-              data.cell.text =
-                [text];
-
-              data.cell.styles.halign =
-                "left";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.overflow =
-                "hidden";
-
-              data.cell.styles.cellPadding =
-                {
-                  top: 0.3,
-                  right: 0.3,
-                  bottom: 0.3,
-                  left: 1.2,
-                };
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  text,
-                  COLUMN_WIDTHS.item,
-                  8.5,
-                  4,
-                  1.7
-                );
-            }
-
-            /* =============================================
-               หมายเหตุ
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                17
-            ) {
-              const text =
-                String(
-                  data.cell.raw ??
-                    ""
-                )
-                  .replace(
-                    /\s+/g,
-                    " "
-                  )
-                  .trim();
-
-              data.cell.text =
-                [text];
-
-              data.cell.styles.overflow =
-                "hidden";
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-
-              data.cell.styles.fontSize =
-                getSingleLineFontSize(
-                  doc,
-                  text,
-                  COLUMN_WIDTHS.remark,
-                  8.5,
-                  4.5,
-                  0.8
-                );
-            }
-
-            /* =============================================
-               ช่องผลตรวจ / สภาพครุภัณฑ์
-
-               ไม่พึ่ง glyph ✓ ของฟอนต์
-               เพราะบางเครื่องอาจไม่แสดงเครื่องหมาย
-
-               ถ้าค่าที่บันทึกไว้ตรงกับช่องนั้น
-               จะวาดเครื่องหมายถูกด้วยเส้น Vector
-               ใน didDrawCell ด้านล่าง
-               ============================================= */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index >=
-                11 &&
-              data.column.index <=
-                16
-            ) {
-              data.cell.text =
-                [""];
-
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
+          didParseCell: (data) => {
+            if (data.section === "body" && data.column.index >= 14 && data.column.index <= 19) {
+              data.cell.text = [""];
             }
           },
 
@@ -1943,9 +1289,9 @@ export default function ExportInspectionPdf({
               data.section !==
                 "body" ||
               data.column.index <
-                11 ||
+                14 ||
               data.column.index >
-                16
+                19
             ) {
               return;
             }
@@ -1976,7 +1322,7 @@ export default function ExportInspectionPdf({
             );
 
             doc.setLineWidth(
-              0.45
+              0.65
             );
 
             doc.line(
