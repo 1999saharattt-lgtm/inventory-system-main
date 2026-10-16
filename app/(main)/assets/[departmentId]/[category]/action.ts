@@ -77,6 +77,16 @@ export async function updateAsset(
         officerId: true,
         status: true,
         responsibleName: true,
+        brand: true,
+        model: true,
+        serialNumber: true,
+        purchaseDate: true,
+        price: true,
+        location: true,
+        remark: true,
+        quantity: true,
+        unit: true,
+
       },
     });
 
@@ -116,13 +126,18 @@ export async function updateAsset(
     formData.get("brand") ?? ""
   ).trim();
 
-  const model = String(
-    formData.get("model") ?? ""
-  ).trim();
+  const model = formData.has("model")
+    ? String(formData.get("model") ?? "").trim()
+    : asset.model ?? "";
 
-  const serialNumber = String(
-    formData.get("serialNumber") ?? ""
-  ).trim();
+  const combinedBrand = [asset.brand, asset.model].filter(Boolean).join(" / ");
+  const brandChanged = !formData.has("model") && brand !== combinedBrand;
+  const finalBrand = brandChanged ? brand : (formData.has("model") ? brand : asset.brand ?? "");
+  const finalModel = brandChanged ? "" : model;
+
+  const serialNumber = formData.has("serialNumber")
+    ? String(formData.get("serialNumber") ?? "").trim()
+    : asset.serialNumber ?? "";
 
   const governmentAssetNo = String(
     formData.get("governmentAssetNo") ?? ""
@@ -169,25 +184,44 @@ export async function updateAsset(
     formData.get("officerId") ?? ""
   ).trim();
 
-  const purchaseDateValue = String(
-    formData.get("purchaseDate") ?? ""
-  ).trim();
+  const purchaseDateValue = formData.has("purchaseDate")
+    ? String(formData.get("purchaseDate") ?? "").trim()
+    : asset.purchaseDate?.toISOString().slice(0, 10) ?? "";
 
-  const priceValue = String(
-    formData.get("price") ?? ""
-  ).trim();
+  const priceValue = formData.has("price")
+    ? String(formData.get("price") ?? "").trim()
+    : asset.price?.toString() ?? "";
 
-  const location = String(
-    formData.get("location") ?? ""
-  ).trim();
+  const location = formData.has("location")
+    ? String(formData.get("location") ?? "").trim()
+    : asset.location ?? "";
 
   const statusFromForm = String(
     formData.get("status") ?? ""
   ).trim();
 
-  const remark = String(
-    formData.get("remark") ?? ""
-  ).trim();
+  const remark = String(formData.get("remark") ?? "").trim();
+  const categoryType = String(formData.get("categoryType") ?? "").trim();
+  const previousCategoryLine = (asset.remark ?? "").split("\n")[0] ?? "";
+  const previousCategoryType = previousCategoryLine.startsWith("หมวด/ชนิด: ")
+    ? previousCategoryLine.slice("หมวด/ชนิด: ".length)
+    : "";
+  const resolvedCategoryType = formData.has("categoryType")
+    ? categoryType
+    : previousCategoryType;
+  const resolvedRemark = formData.has("categoryType")
+    ? [resolvedCategoryType ? `หมวด/ชนิด: ${resolvedCategoryType}` : "", remark]
+        .filter(Boolean).join("\n")
+    : remark;
+
+  const quantityValue = String(formData.get("quantity") ?? asset.quantity).trim();
+  const quantity = Number(quantityValue);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new Error("จำนวนครุภัณฑ์ต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป");
+  }
+  const unit = formData.has("unit")
+    ? String(formData.get("unit") ?? "").trim()
+    : asset.unit ?? "";
 
   /* =======================================================
      ตรวจสอบข้อมูลพื้นฐาน
@@ -674,10 +708,10 @@ export async function updateAsset(
           assetCategory,
 
         brand:
-          brand || null,
+          finalBrand || null,
 
         model:
-          model || null,
+          finalModel || null,
 
         serialNumber:
           serialNumber || null,
@@ -730,7 +764,10 @@ export async function updateAsset(
           location || null,
 
         remark:
-          remark || null,
+          resolvedRemark || null,
+
+        quantity,
+        unit: unit || null,
       },
 
       select: {
