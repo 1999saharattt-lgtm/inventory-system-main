@@ -1664,42 +1664,6 @@ export default function IssueForm({
       </div>
 
       {/* =====================================================
-          FORM TITLE
-      ===================================================== */}
-
-      <div
-        className="
-          border-b
-          border-slate-200
-          pb-5
-          text-center
-        "
-      >
-        <div
-          className="
-            text-2xl
-            font-black
-            tracking-tight
-            !text-slate-900
-          "
-        >
-          พอ.101
-        </div>
-
-        <h2
-          className="
-            mt-1
-            text-2xl
-            font-black
-            tracking-tight
-            !text-slate-900
-          "
-        >
-          ใบเบิกพัสดุ
-        </h2>
-      </div>
-
-      {/* =====================================================
           DOCUMENT INFORMATION
       ===================================================== */}
 
@@ -1707,6 +1671,7 @@ export default function IssueForm({
         className="
           relative
           z-[5000]
+          !mt-3
 
           overflow-visible
 
