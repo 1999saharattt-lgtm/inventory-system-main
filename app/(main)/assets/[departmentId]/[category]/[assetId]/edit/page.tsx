@@ -347,7 +347,7 @@ export default async function EditAssetPage({
                 </span>
               }
             >
-              จำหน่าย
+              การจำหน่าย
             </AppButton>
 
             {/* ===============================================
@@ -441,7 +441,7 @@ export default async function EditAssetPage({
           >
             {/* NAME */}
 
-            <div className="min-w-0 sm:col-span-2">
+            <div className="min-w-0">
               <AppInfoCard>
                 <label
                   htmlFor="name"
@@ -471,7 +471,7 @@ export default async function EditAssetPage({
 
             {/* USAGE STATUS */}
 
-            <div className="min-w-0 sm:col-span-2">
+            <div className="min-w-0">
               <AppInfoCard>
                 <label htmlFor="status" className={labelClassName}>
                   สถานะการใช้งาน <span className="!text-red-500">*</span>
