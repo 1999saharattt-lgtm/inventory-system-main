@@ -2595,11 +2595,11 @@ export default function EditMaterialForm({
 
 
 
-          <div className="relative z-50">
+          <div className="relative z-20 focus-within:z-[300]">
 
             <AppInfoCard
 
-              className="!overflow-visible"
+              className="h-full !overflow-visible"
 
             >
 
@@ -2657,11 +2657,11 @@ export default function EditMaterialForm({
 
 
 
-          <div className="relative z-50">
+          <div className="relative z-20 focus-within:z-[300]">
 
             <AppInfoCard
 
-              className="!overflow-visible"
+              className="h-full !overflow-visible"
 
             >
 
@@ -2762,7 +2762,7 @@ export default function EditMaterialForm({
 
             <AppInfoCard
 
-              className="!overflow-visible"
+              className="h-full !overflow-visible"
 
             >
 
@@ -2824,25 +2824,7 @@ export default function EditMaterialForm({
 
 
 
-              <p
 
-                className="
-
-                  mt-2
-
-                  text-xs
-
-                  font-semibold
-
-                  !text-slate-500
-
-                "
-
-              >
-
-                สามารถพิมพ์แก้ไขชื่อรายการพัสดุได้โดยตรง หรือเลือกรายการเดิมจากเมนูด้านล่าง
-
-              </p>
 
             </AppInfoCard>
 
@@ -2854,7 +2836,7 @@ export default function EditMaterialForm({
 
 
 
-          <AppInfoCard>
+          <AppInfoCard className="h-full">
 
             <label
 
