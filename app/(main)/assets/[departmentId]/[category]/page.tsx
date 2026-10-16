@@ -9,7 +9,7 @@ import AssetCategorySearch from "./AssetCategorySearch";
 export const dynamic = "force-dynamic";
 /* =========================================================
    TYPES
-\========================================================= */
+========================================================= */
 type Props = {
   params: Promise<{
     departmentId: string;
@@ -23,7 +23,7 @@ type Props = {
 };
 /* =========================================================
    CATEGORY
-\========================================================= */
+========================================================= */
 const categoryName: Record<string, string> = {
   DESK: "โต๊ะ",
   CHAIR: "เก้าอี้",
@@ -52,7 +52,7 @@ const categoryIcon: Record<string, string> = {
 };
 /* =========================================================
    CATEGORY UNIT
-\========================================================= */
+========================================================= */
 const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
@@ -68,10 +68,10 @@ const categoryUnit: Record<string, string> = {
 };
 /* =========================================================
    STATUS
-\========================================================= */
+========================================================= */
 /* =========================================================
    SOURCE ORDER
-\========================================================= */
+========================================================= */
 function getSourceOrder(
   remark: string | null
 ): number | null {
@@ -97,7 +97,7 @@ function getSourceOrder(
 }
 /* =========================================================
    UNIT FROM REMARK
-\========================================================= */
+========================================================= */
 function getUnitFromRemark(
   remark: string | null
 ) {
@@ -126,7 +126,7 @@ function getUnitFromRemark(
 }
 /* =========================================================
    ASSET UNIT
-\========================================================= */
+========================================================= */
 function getAssetUnit(
   unit: string | null,
   remark: string | null,
@@ -154,7 +154,7 @@ function getAssetUnit(
 }
 /* =========================================================
    RESPONSIBLE NAME
-\========================================================= */
+========================================================= */
 function getResponsibleName(
   asset: {
     responsibleName: string | null;
@@ -223,10 +223,10 @@ function getResponsibleName(
 }
 /* =========================================================
    STATUS
-\========================================================= */
+========================================================= */
 /* =========================================================
    PAGE
-\========================================================= */
+========================================================= */
 export default async function AssetCategoryPage({
   params,
   searchParams,
@@ -654,7 +654,7 @@ export default async function AssetCategoryPage({
           <table
             className="
               w-full
-              min-w-[1690px]
+              min-w-0
               table-fixed
               border-collapse
               bg-white
@@ -665,16 +665,16 @@ export default async function AssetCategoryPage({
                 COLUMN WIDTHS
             ================================================= */}
                           <colgroup>
-                <col className="w-[60px]" />
-                <col className="w-[160px]" />
-                <col className="w-[175px]" />
-                <col className="w-[245px]" />
-                <col className="w-[210px]" />
-                <col className="w-[150px]" />
-                <col className="w-[270px]" />
-                <col className="w-[150px]" />
-                <col className="w-[90px]" />
-                <col className="w-[180px]" />
+                <col style={{ width: "4%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "5%" }} />
+                <col style={{ width: "9%" }} />
               </colgroup>
             {/* =================================================
                 HEADER
@@ -701,19 +701,19 @@ export default async function AssetCategoryPage({
                         tableTitle
                       }
                       className="
-                        overflow-hidden
-                        whitespace-nowrap
+                        whitespace-normal
+                        break-words
                         border
                         border-black
                         bg-gradient-to-r
                         from-slate-800
                         to-slate-700
-                        px-2
-                        py-4
+                        px-1
+                        py-3
                         text-center
-                        text-sm
+                        text-xs
                         font-extrabold
-                        leading-none
+                        leading-snug
                         !text-white
                       "
                     >
@@ -778,8 +778,8 @@ export default async function AssetCategoryPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-2
-                            py-3.5
+                            px-1
+                            py-2.5
                             text-center
                             font-semibold
                             tabular-nums
@@ -803,12 +803,12 @@ export default async function AssetCategoryPage({
                           }
                           className="
                             overflow-hidden
-                            text-ellipsis
-                            whitespace-nowrap
+                            break-all
+                            whitespace-normal
                             border
                             border-black
-                            px-2
-                            py-3.5
+                            px-1
+                            py-2.5
                             text-center
                             font-semibold
                             !text-slate-700
@@ -827,12 +827,12 @@ export default async function AssetCategoryPage({
                           }
                           className="
                             overflow-hidden
-                            text-ellipsis
-                            whitespace-nowrap
+                            break-all
+                            whitespace-normal
                             border
                             border-black
-                            px-2
-                            py-3.5
+                            px-1
+                            py-2.5
                             text-center
                             font-semibold
                             !text-slate-700
@@ -842,34 +842,34 @@ export default async function AssetCategoryPage({
                             "-"}
                         </td>
                                                 {/* สถานที่ใช้งาน: ใช้ข้อมูลผู้รับผิดชอบเดิมจากทะเบียน */}
-                        <td title={responsible} className="border border-black px-3 py-3.5 text-center font-semibold !text-slate-700 break-words">
+                        <td title={responsible} className="border border-black px-3 py-2.5 text-center font-semibold !text-slate-700 break-words">
                           {responsible}
                         </td>
 
                         {/* ผู้รับผิดชอบ: ชื่อบุคคลในระบบ */}
-                        <td className="border border-black px-3 py-3.5 text-center font-semibold !text-slate-700 break-words">
+                        <td className="border border-black px-3 py-2.5 text-center font-semibold !text-slate-700 break-words">
                           {asset.officer
                             ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() || "-"
                             : "-"}
                         </td>
 
                         {/* หมวด/ชนิด: ประเภทครุภัณฑ์ในทะเบียน */}
-                        <td className="border border-black px-2 py-3.5 text-center font-semibold !text-slate-700 break-words">
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
                           {categoryName[asset.category] ?? asset.category}
                         </td>
 
                         {/* ชื่อเรียก/คุณลักษณะครุภัณฑ์ */}
-                        <td title={asset.name} className="border border-black px-3 py-3.5 font-semibold !text-slate-700 break-words">
+                        <td title={asset.name} className="border border-black px-3 py-2.5 font-semibold !text-slate-700 break-words">
                           {asset.name || "-"}
                         </td>
 
                         {/* ยี่ห้อ/รุ่น */}
-                        <td className="border border-black px-2 py-3.5 text-center font-semibold !text-slate-700 break-words">
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
                           {[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}
                         </td>
 
                         {/* หน่วยนับ */}
-                        <td className="border border-black px-2 py-3.5 text-center font-semibold !text-slate-700">
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700">
                           {unit}
                         </td>
 
@@ -887,7 +887,7 @@ export default async function AssetCategoryPage({
                             whitespace-nowrap
                             border
                             border-black
-                            px-2
+                            px-1
                             py-2.5
                             text-center
                           "
@@ -899,8 +899,9 @@ export default async function AssetCategoryPage({
                                 w-full
                                 min-w-0
                                 items-center
+                                flex-col
                                 justify-center
-                                gap-2
+                                gap-1
                               "
                             >
                               {/* =============================
