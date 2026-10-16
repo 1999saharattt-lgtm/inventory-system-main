@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -7,6 +8,7 @@ import {
 
 import {
   useRouter,
+  useSearchParams,
 } from "next/navigation";
 
 import AppSearchInput from "@/components/AppSearchInput";
@@ -31,11 +33,44 @@ export default function AssetCategorySearch({
   pathname,
 }: AssetCategorySearchProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [
     search,
     setSearch,
   ] = useState(initialValue);
+
+  /* =======================================================
+     URL
+     รักษาปีงบประมาณที่เลือกไว้
+  ======================================================= */
+
+  function buildSearchUrl(keyword: string) {
+    const params = new URLSearchParams();
+
+    const fiscalYear =
+      searchParams.get("fiscalYear");
+
+    if (fiscalYear) {
+      params.set(
+        "fiscalYear",
+        fiscalYear
+      );
+    }
+
+    if (keyword) {
+      params.set(
+        "q",
+        keyword
+      );
+    }
+
+    const queryString = params.toString();
+
+    return queryString
+      ? `${pathname}?${queryString}`
+      : pathname;
+  }
 
   /* =======================================================
      SEARCH
@@ -49,15 +84,8 @@ export default function AssetCategorySearch({
     const keyword =
       search.trim();
 
-    if (!keyword) {
-      router.push(pathname);
-      return;
-    }
-
     router.push(
-      `${pathname}?q=${encodeURIComponent(
-        keyword
-      )}`
+      buildSearchUrl(keyword)
     );
   }
 
@@ -68,7 +96,9 @@ export default function AssetCategorySearch({
   function handleClear() {
     setSearch("");
 
-    router.push(pathname);
+    router.push(
+      buildSearchUrl("")
+    );
   }
 
   /* =======================================================
