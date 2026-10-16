@@ -5,10 +5,7 @@ import type {
   FormEvent,
 } from "react";
 
-import {
-  Search,
-  X,
-} from "lucide-react";
+import { X } from "lucide-react";
 
 import AppButton from "@/components/AppButton";
 
@@ -319,10 +316,9 @@ export default function AppSearchInput({
                 size="md"
                 disabled={disabled}
                 icon={
-                  <Search
-                    size={17}
-                    strokeWidth={2.5}
-                  />
+                  <span aria-hidden="true">
+                    🔎
+                  </span>
                 }
                 className="
                   flex-1
