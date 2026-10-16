@@ -1,8 +1,8 @@
+
 import { prisma } from "@/lib/prisma";
 import { requireLogin } from "@/lib/auth";
 
 import AppPage from "@/components/AppPage";
-import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 
@@ -13,11 +13,58 @@ import AppCard from "@/components/AppCard";
 const HIDDEN_DEPARTMENT_NAME =
   "ผู้บริหารสำนักอนามัยการเจริญพันธุ์";
 
+const BASE_FISCAL_YEAR = 2569;
+const MAX_FISCAL_YEAR = 3000;
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type AssetsPageProps = {
+  searchParams: Promise<{
+    fiscalYear?: string | string[];
+  }>;
+};
+
+/* =========================================================
+   THAILAND DATE
+========================================================= */
+
+function getCurrentFiscalYearThai(
+  value: Date = new Date()
+) {
+  const formatter = new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "Asia/Bangkok",
+      year: "numeric",
+      month: "2-digit",
+    }
+  );
+
+  const parts = formatter.formatToParts(value);
+
+  const year = Number(
+    parts.find((part) => part.type === "year")?.value
+  );
+
+  const month = Number(
+    parts.find((part) => part.type === "month")?.value
+  );
+
+  const fiscalYearGregorian =
+    month >= 10 ? year + 1 : year;
+
+  return fiscalYearGregorian + 543;
+}
+
 /* =========================================================
    PAGE
 ========================================================= */
 
-export default async function AssetsPage() {
+export default async function AssetsPage({
+  searchParams,
+}: AssetsPageProps) {
   /* =======================================================
      USER
   ======================================================= */
@@ -25,8 +72,50 @@ export default async function AssetsPage() {
   const user = await requireLogin();
 
   /* =======================================================
-     DEPARTMENTS
+     FISCAL YEAR
+  ======================================================= */
 
+  const currentFiscalYear =
+    getCurrentFiscalYearThai();
+
+  const params = await searchParams;
+
+  const fiscalYearParam = Array.isArray(
+    params.fiscalYear
+  )
+    ? params.fiscalYear[0]
+    : params.fiscalYear;
+
+  const requestedFiscalYear = Number(
+    fiscalYearParam
+  );
+
+  const selectedFiscalYear =
+    fiscalYearParam !== undefined &&
+    Number.isInteger(requestedFiscalYear) &&
+    requestedFiscalYear >= BASE_FISCAL_YEAR &&
+    requestedFiscalYear <= MAX_FISCAL_YEAR
+      ? requestedFiscalYear
+      : currentFiscalYear;
+
+  const highestFiscalYear = Math.max(
+    currentFiscalYear,
+    selectedFiscalYear,
+    BASE_FISCAL_YEAR
+  );
+
+  const availableFiscalYears: number[] = [];
+
+  for (
+    let fiscalYear = highestFiscalYear;
+    fiscalYear >= BASE_FISCAL_YEAR;
+    fiscalYear--
+  ) {
+    availableFiscalYears.push(fiscalYear);
+  }
+
+  /* =======================================================
+     DEPARTMENTS
      โหลดข้อมูลกลุ่มงานตามเดิมทั้งหมด
   ======================================================= */
 
@@ -39,13 +128,7 @@ export default async function AssetsPage() {
 
   /* =======================================================
      DISPLAY DEPARTMENTS
-
-     ซ่อนเฉพาะการ์ด
-     "ผู้บริหารสำนักอนามัยการเจริญพันธุ์"
-
-     ไม่แก้ชื่อในฐานข้อมูล
-     ไม่แก้ Query
-     ไม่กระทบกลุ่มงานอื่น
+     ซ่อนเฉพาะการ์ดผู้บริหาร
   ======================================================= */
 
   const displayDepartments =
@@ -62,29 +145,28 @@ export default async function AssetsPage() {
   return (
     <AppPage>
       {/* =====================================================
-          HEADER
+          MAIN HEADER CARD
       ===================================================== */}
 
-      <AppPageHeader
-        icon="🗄️"
+      <AppCard
+        icon={
+          <span aria-hidden="true">
+            🗄️
+          </span>
+        }
         title="ทะเบียนคุมครุภัณฑ์"
         subtitle="เลือกกลุ่มงานเพื่อดูข้อมูลและทะเบียนครุภัณฑ์"
         actions={
           <>
             {/* ===============================================
                 INSPECTION HISTORY
-                สีเขียวกรมอนามัย
+                ไม่มีอิโมจิ
             =============================================== */}
 
             <AppButton
               href="/assets/inspection-history"
               variant="primary"
               size="md"
-              icon={
-                <span aria-hidden="true">
-                  📋
-                </span>
-              }
             >
               ประวัติการตรวจสอบครุภัณฑ์ประจำปี
             </AppButton>
@@ -92,7 +174,7 @@ export default async function AssetsPage() {
             {/* ===============================================
                 ANNUAL INSPECTION
                 ADMIN ONLY
-                สีเขียวกรมอนามัย
+                ไม่มีอิโมจิ
             =============================================== */}
 
             {user.role === "ADMIN" && (
@@ -100,18 +182,126 @@ export default async function AssetsPage() {
                 href="/assets/1/inspection"
                 variant="primary"
                 size="md"
-                icon={
-                  <span aria-hidden="true">
-                    🔎
-                  </span>
-                }
               >
                 ตรวจสอบรายการครุภัณฑ์ประจำปี
               </AppButton>
             )}
           </>
         }
-      />
+        className="
+          w-full
+          min-w-0
+          !overflow-visible
+        "
+      >
+        {/* ===================================================
+            FISCAL YEAR SELECT
+            รูปแบบเดียวกับหน้า STOCK CARD
+        =================================================== */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            sm:max-w-[300px]
+          "
+        >
+          <label
+            htmlFor="fiscalYear"
+            className="
+              mb-2
+              block
+              text-sm
+              font-extrabold
+              !text-slate-700
+            "
+          >
+            ปีงบประมาณ
+          </label>
+
+          <div
+            className="
+              relative
+              w-full
+            "
+          >
+            <form
+              id="assets-fiscal-year-form"
+              action="/assets"
+              method="get"
+            >
+              <select
+                id="fiscalYear"
+                name="fiscalYear"
+                defaultValue={String(
+                  selectedFiscalYear
+                )}
+                className="
+                  h-[50px]
+                  w-full
+                  cursor-pointer
+                  appearance-none
+                  rounded-[14px]
+                  border
+                  border-slate-300
+                  bg-white
+                  px-4
+                  pr-11
+                  text-base
+                  font-extrabold
+                  !text-slate-900
+                  shadow-sm
+                  outline-none
+                  transition-all
+                  duration-200
+                  hover:border-slate-400
+                  focus:border-emerald-500
+                  focus:ring-4
+                  focus:ring-emerald-100/70
+                "
+              >
+                {availableFiscalYears.map(
+                  (fiscalYear) => (
+                    <option
+                      key={fiscalYear}
+                      value={fiscalYear}
+                    >
+                      ปีงบประมาณ {fiscalYear}
+                    </option>
+                  )
+                )}
+              </select>
+            </form>
+
+            {/* SELECT ARROW */}
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                inset-y-0
+                right-4
+                flex
+                items-center
+                !text-slate-500
+              "
+            >
+              <svg
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="h-5 w-5"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.51a.75.75 0 0 1-1.08 0l-4.25-4.51a.75.75 0 0 1 .02-1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </AppCard>
 
       {/* =====================================================
           DEPARTMENT GRID
@@ -125,7 +315,6 @@ export default async function AssetsPage() {
             min-w-0
             grid-cols-1
             gap-4
-
             md:grid-cols-2
             xl:grid-cols-3
           "
@@ -144,9 +333,7 @@ export default async function AssetsPage() {
                   text-center
                 "
               >
-                {/* ===========================================
-                    ICON
-                =========================================== */}
+                {/* ICON */}
 
                 <div
                   className="
@@ -181,9 +368,7 @@ export default async function AssetsPage() {
                   </div>
                 </div>
 
-                {/* ===========================================
-                    INFORMATION
-                =========================================== */}
+                {/* INFORMATION */}
 
                 <div
                   className="
@@ -221,9 +406,7 @@ export default async function AssetsPage() {
                   </p>
                 </div>
 
-                {/* ===========================================
-                    ACTION
-                =========================================== */}
+                {/* ACTION */}
 
                 <div
                   className="
@@ -263,9 +446,7 @@ export default async function AssetsPage() {
             text-center
           "
         >
-          {/* ===============================================
-              ICON
-          =============================================== */}
+          {/* ICON */}
 
           <div
             className="
@@ -300,9 +481,7 @@ export default async function AssetsPage() {
             </div>
           </div>
 
-          {/* ===============================================
-              INFORMATION
-          =============================================== */}
+          {/* INFORMATION */}
 
           <div
             className="
