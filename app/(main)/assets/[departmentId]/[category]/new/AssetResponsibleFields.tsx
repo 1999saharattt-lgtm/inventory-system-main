@@ -600,7 +600,11 @@ export default function AssetResponsibleFields({
       // ใช้เจ้าหน้าที่ของ Section ที่เลือก
       // ===================================================
 
-      return selectedSection.officers;
+      const allInSection = [
+        ...selectedSection.officers,
+        ...officers.filter((officer) => officer.sectionId === selectedSection.id),
+      ];
+      return Array.from(new Map(allInSection.map((officer) => [officer.id, officer])).values());
     }, [
       officers,
       sections,
@@ -663,7 +667,7 @@ export default function AssetResponsibleFields({
         {
           value: "",
           label:
-            "-- ยังไม่ได้ระบุผู้ครอบครอง --",
+            "-- ยังไม่ได้ระบุผู้รับผิดชอบ --",
         },
 
         ...filteredOfficers.map(
@@ -755,14 +759,13 @@ export default function AssetResponsibleFields({
   return (
     <div
       className="
-        mt-4
         grid
         w-full
         min-w-0
         grid-cols-1
         gap-4
         overflow-visible
-        lg:grid-cols-2
+        sm:grid-cols-2
       "
     >
       {/* ===================================================
@@ -863,7 +866,7 @@ export default function AssetResponsibleFields({
             labelClassName
           }
         >
-          ผู้ครอบครอง
+          {sections.length > 0 && sectionId ? "ผู้รับผิดชอบ" : "ผู้ครอบครอง"}
         </label>
 
         <SearchableSelect
@@ -877,7 +880,7 @@ export default function AssetResponsibleFields({
             sections.length > 0 &&
             !sectionId
               ? "กรุณาเลือกกลุ่มงานก่อน"
-              : "เลือกผู้ครอบครอง"
+              : "เลือกผู้รับผิดชอบ"
           }
           searchPlaceholder="พิมพ์ชื่อหรือตำแหน่งเพื่อค้นหา..."
           emptyText="ไม่พบเจ้าหน้าที่"
@@ -953,7 +956,7 @@ export default function AssetResponsibleFields({
             !text-slate-500
           "
         >
-          ตำแหน่งจะแสดงตามผู้ครอบครองที่เลือก
+          ตำแหน่งจะแสดงตามผู้รับผิดชอบที่เลือก
         </p>
       </div>
     </div>

@@ -26,6 +26,7 @@ type Props = {
     departmentId: string;
     category: string;
   }>;
+  searchParams?: Promise<{ fiscalYear?: string | string[] }>;
 };
 
 /* =========================================================
@@ -102,6 +103,7 @@ function normalizeText(
 
 export default async function NewAssetPage({
   params,
+  searchParams,
 }: Props) {
   /* =======================================================
      AUTH
@@ -117,6 +119,14 @@ export default async function NewAssetPage({
     departmentId,
     category,
   } = await params;
+
+  const query = await searchParams;
+  const yearValue = Array.isArray(query?.fiscalYear)
+    ? query.fiscalYear[0]
+    : query?.fiscalYear;
+  const fiscalYearSuffix = yearValue && /^\d{4}$/.test(yearValue)
+    ? `?fiscalYear=${yearValue}`
+    : "";
 
   const departmentIdNumber =
     Number(departmentId);
@@ -203,7 +213,7 @@ export default async function NewAssetPage({
   ======================================================= */
 
   const backHref =
-    `/assets/${department.id}/${assetCategory.toLowerCase()}`;
+    `/assets/${department.id}/${assetCategory.toLowerCase()}${fiscalYearSuffix}`;
 
   /* =======================================================
      CREATE ASSET
@@ -237,22 +247,9 @@ export default async function NewAssetPage({
         )
       );
 
-    const model =
-      normalizeText(
-        String(
-          formData.get("model") ??
-            ""
-        )
-      );
+    const model = "";
 
-    const serialNumber =
-      normalizeText(
-        String(
-          formData.get(
-            "serialNumber"
-          ) ?? ""
-        )
-      );
+    const serialNumber = "";
 
     const governmentAssetNo =
       normalizeText(
@@ -316,7 +313,7 @@ export default async function NewAssetPage({
 
     if (!name) {
       throw new Error(
-        "กรุณาระบุชื่อครุภัณฑ์"
+        "กรุณาระบุชื่อเรียก/คุณลักษณะครุภัณฑ์"
       );
     }
 
@@ -460,7 +457,7 @@ export default async function NewAssetPage({
         officerId <= 0)
     ) {
       throw new Error(
-        "ผู้ครอบครองไม่ถูกต้อง"
+        "ผู้รับผิดชอบไม่ถูกต้อง"
       );
     }
 
@@ -519,7 +516,7 @@ export default async function NewAssetPage({
 
       if (!officer) {
         throw new Error(
-          "ผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+          "ผู้รับผิดชอบไม่อยู่ในหน่วยงานที่เลือก"
         );
       }
 
@@ -543,12 +540,14 @@ export default async function NewAssetPage({
             !officerSectionExists
           ) {
             throw new Error(
-              "กลุ่มงานของผู้ครอบครองไม่อยู่ในหน่วยงานที่เลือก"
+              "กลุ่มงานของผู้รับผิดชอบไม่อยู่ในหน่วยงานที่เลือก"
             );
           }
 
-          sectionId =
-            officer.sectionId;
+          if (selectedSectionId !== null && officer.sectionId !== selectedSectionId) {
+            throw new Error("ผู้รับผิดชอบไม่อยู่ในกลุ่มงานที่เลือก");
+          }
+          sectionId = officer.sectionId;
         }
       } else {
         sectionId = null;
@@ -774,7 +773,7 @@ export default async function NewAssetPage({
               FORM HEADER
           ================================================= */}
 
-          <div className="mb-6">
+          <div className="mb-4">
             <h2
               className="
                 text-lg
@@ -807,12 +806,12 @@ export default async function NewAssetPage({
               grid-cols-1
               gap-4
 
-              lg:grid-cols-2
+              sm:grid-cols-2
             "
           >
             {/* NAME */}
 
-            <div className="lg:col-span-2">
+            <div className="min-w-0">
               <AppInfoCard>
                 <label
                   htmlFor="name"
@@ -820,7 +819,7 @@ export default async function NewAssetPage({
                     labelClassName
                   }
                 >
-                  รายการครุภัณฑ์{" "}
+                  ชื่อเรียก/คุณลักษณะครุภัณฑ์{" "}
                   <span className="!text-red-500">
                     *
                   </span>
@@ -848,67 +847,20 @@ export default async function NewAssetPage({
                   labelClassName
                 }
               >
-                ยี่ห้อ
+                ยี่ห้อ/รุ่น
               </label>
 
               <input
                 id="brand"
                 name="brand"
                 type="text"
-                placeholder="กรอกยี่ห้อ"
+                placeholder="กรอกยี่ห้อ/รุ่น"
                 className={
                   inputClassName
                 }
               />
             </AppInfoCard>
 
-            {/* MODEL */}
-
-            <AppInfoCard>
-              <label
-                htmlFor="model"
-                className={
-                  labelClassName
-                }
-              >
-                รุ่น
-              </label>
-
-              <input
-                id="model"
-                name="model"
-                type="text"
-                placeholder="กรอกรุ่น"
-                className={
-                  inputClassName
-                }
-              />
-            </AppInfoCard>
-
-            {/* SERIAL NUMBER */}
-
-            <div className="lg:col-span-2">
-              <AppInfoCard>
-                <label
-                  htmlFor="serialNumber"
-                  className={
-                    labelClassName
-                  }
-                >
-                  Serial Number
-                </label>
-
-                <input
-                  id="serialNumber"
-                  name="serialNumber"
-                  type="text"
-                  placeholder="กรอก Serial Number"
-                  className={
-                    inputClassName
-                  }
-                />
-              </AppInfoCard>
-            </div>
 
             {/* QUANTITY */}
 
@@ -928,9 +880,9 @@ export default async function NewAssetPage({
               <input
                 id="quantity"
                 name="quantity"
-                type="number"
-                min={1}
-                step={1}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]+"
                 required
                 defaultValue={1}
                 className={
@@ -976,7 +928,7 @@ export default async function NewAssetPage({
               mt-6
               border-t
               border-slate-200
-              pt-6
+              pt-5
             "
           >
             <div className="mb-4">
@@ -1010,7 +962,7 @@ export default async function NewAssetPage({
                 grid-cols-1
                 gap-4
 
-                lg:grid-cols-2
+                sm:grid-cols-2
               "
             >
               {/* GFMIS */}
@@ -1070,7 +1022,7 @@ export default async function NewAssetPage({
               mt-6
               border-t
               border-slate-200
-              pt-6
+              pt-5
             "
           >
             <div className="mb-4">
@@ -1083,7 +1035,7 @@ export default async function NewAssetPage({
                   sm:text-lg
                 "
               >
-                ผู้รับผิดชอบ
+                ผู้ครอบครอง
               </h3>
 
               <p
@@ -1094,7 +1046,7 @@ export default async function NewAssetPage({
                   !text-slate-500
                 "
               >
-                ระบุกลุ่มงานและผู้ครอบครองครุภัณฑ์
+                เลือกกลุ่มงานและผู้รับผิดชอบครุภัณฑ์
               </p>
             </div>
 
@@ -1129,7 +1081,7 @@ export default async function NewAssetPage({
               mt-6
               border-t
               border-slate-200
-              pt-6
+              pt-5
             "
           >
             <div className="mb-4">
@@ -1144,33 +1096,15 @@ export default async function NewAssetPage({
               >
                 หมายเหตุ
               </h3>
-
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  font-semibold
-                  !text-slate-500
-                "
-              >
-                ระบุรายละเอียดเพิ่มเติมเกี่ยวกับครุภัณฑ์
-              </p>
             </div>
 
             <AppInfoCard>
-              <label
-                htmlFor="remark"
-                className={
-                  labelClassName
-                }
-              >
-                รายละเอียดเพิ่มเติม
-              </label>
 
               <textarea
                 id="remark"
                 name="remark"
-                rows={4}
+                aria-label="หมายเหตุ"
+                rows={3}
                 placeholder="กรอกหมายเหตุเพิ่มเติม"
                 className="
                   w-full
