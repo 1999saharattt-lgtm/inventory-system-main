@@ -29,6 +29,8 @@ type AssetEditInput = {
   governmentAssetNo?: string | null;
   officeAssetNo?: string | null;
   location?: string | null;
+  responsibleName?: string | null;
+  category?: string;
   officerId?: number | null;
   name?: string;
   brand?: string | null;
@@ -694,6 +696,8 @@ export async function POST(
               ...(edit.governmentAssetNo !== undefined ? { governmentAssetNo: edit.governmentAssetNo?.trim() || null } : {}),
               ...(edit.officeAssetNo !== undefined ? { officeAssetNo: edit.officeAssetNo?.trim() || null } : {}),
               ...(edit.location !== undefined ? { location: edit.location?.trim() || null } : {}),
+              ...(edit.responsibleName !== undefined ? { responsibleName: edit.responsibleName?.trim() || null, location: edit.responsibleName?.trim() || null } : {}),
+              ...(edit.category !== undefined ? { category: edit.category as never } : {}),
               ...(edit.officerId !== undefined ? { officerId: edit.officerId } : {}),
               ...(edit.name !== undefined ? { name: edit.name.trim() } : {}),
               ...(edit.brand !== undefined ? { brand: edit.brand?.trim() || null } : {}),

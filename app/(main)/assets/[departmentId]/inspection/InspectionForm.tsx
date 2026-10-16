@@ -1903,6 +1903,36 @@ export default function InspectionForm({
       )
   );
 
+  const [assetEdits, setAssetEdits] = useState<Record<number, {
+    governmentAssetNo: string; officeAssetNo: string; responsibleName: string;
+    officerId: number | null; category: string; name: string;
+    brand: string; model: string; unit: string;
+  }>>({});
+
+  const editAsset = (asset: Asset, patch: Partial<{
+    governmentAssetNo: string; officeAssetNo: string; responsibleName: string;
+    officerId: number | null; category: string; name: string;
+    brand: string; model: string; unit: string;
+  }>) => {
+    if (readOnly) return;
+    setAssetEdits(previous => ({
+      ...previous,
+      [asset.id]: {
+        governmentAssetNo: asset.governmentAssetNo ?? "",
+        officeAssetNo: asset.officeAssetNo ?? "",
+        responsibleName: asset.responsibleName ?? "",
+        officerId: asset.officerId,
+        category: asset.category,
+        name: asset.name,
+        brand: asset.brand ?? "",
+        model: asset.model ?? "",
+        unit: asset.unit ?? getAssetUnit(asset),
+        ...previous[asset.id],
+        ...patch,
+      },
+    }));
+  };
+
   const [
     rows,
     setRows,
@@ -2509,6 +2539,7 @@ export default function InspectionForm({
                     ),
 
                   rows,
+                  assetEdits: Object.entries(assetEdits).map(([assetId, edit]) => ({ assetId: Number(assetId), ...edit })),
                 }
               ),
           }
@@ -3389,45 +3420,31 @@ export default function InspectionForm({
                           }
                         </td>
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {asset.governmentAssetNo?.trim()
-                            ? asset.governmentAssetNo
-                            : "-"}
+                        <td className="border border-black px-2 py-2.5 text-center">{displayOrder}</td>
+                        {(["governmentAssetNo", "officeAssetNo", "responsibleName"] as const).map(field => (
+                          <td key={field} className="border border-black px-1 py-1.5">
+                            <input disabled={readOnly} aria-label={field} className="w-full min-w-[150px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={assetEdits[asset.id]?.[field] ?? (field === "responsibleName" ? responsibleName : asset[field] ?? "")} onChange={event => editAsset(asset, { [field]: event.target.value })} />
+                          </td>
+                        ))}
+                        <td className="border border-black px-1 py-1.5">
+                          <input list={`asset-officers-${asset.id}`} disabled={readOnly} aria-label="ผู้รับผิดชอบ" className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={(() => { const id = assetEdits[asset.id]?.officerId ?? asset.officerId; const person = officers.find(o => o.id === id); return person ? `${person.firstName} ${person.lastName} — ${person.department?.name ?? ""}${person.section?.name ? " / " + person.section.name : ""}` : ""; })()} onChange={event => { const person = officers.find(o => `${o.firstName} ${o.lastName} — ${o.department?.name ?? ""}${o.section?.name ? " / " + o.section.name : ""}` === event.target.value); if (person) editAsset(asset, { officerId: person.id }); else if (!event.target.value) editAsset(asset, { officerId: null }); }} placeholder="ค้นหาชื่อหรือกลุ่มงาน" />
+                          <datalist id={`asset-officers-${asset.id}`}>
+                            {officers.map(o => <option key={o.id} value={`${o.firstName} ${o.lastName} — ${o.department?.name ?? ""}${o.section?.name ? " / " + o.section.name : ""}`} />)}
+                          </datalist>
                         </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {asset.officeAssetNo?.trim()
-                            ? asset.officeAssetNo
-                            : "-"}
+                        <td className="border border-black px-1 py-1.5">
+                          <input disabled={readOnly} aria-label="หมวด/ชนิด" className="w-full min-w-[130px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.category ?? asset.category} onChange={event => editAsset(asset, { category: event.target.value })} />
                         </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {responsibleName}
+                        <td className="border border-black px-1 py-1.5">
+                          <input disabled={readOnly} aria-label="ชื่อเรียก/คุณลักษณะครุภัณฑ์" className="w-full min-w-[220px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.name ?? asset.name} onChange={event => editAsset(asset, { name: event.target.value })} />
                         </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {asset.officer
-                            ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() || "-"
-                            : "-"}
+                        <td className="border border-black px-1 py-1.5">
+                          <div className="flex min-w-[230px] gap-1">
+                            {(["brand", "model"] as const).map(field => <input key={field} disabled={readOnly} aria-label={field === "brand" ? "ยี่ห้อ" : "รุ่น"} placeholder={field === "brand" ? "ยี่ห้อ" : "รุ่น"} className="w-1/2 min-w-0 rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.[field] ?? asset[field] ?? ""} onChange={event => editAsset(asset, { [field]: event.target.value })} />)}
+                          </div>
                         </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {"-"}
-                        </td>
-
-                        <td className="whitespace-nowrap border border-black px-3 py-2.5 font-semibold">
-                          {asset.name}
-                        </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {[asset.brand, asset.model]
-                            .map((value) => value?.trim())
-                            .filter(Boolean)
-                            .join(" / ") || "-"}
-                        </td>
-
-                        <td className="border border-black px-2 py-2.5 text-center">
-                          {assetUnit}
+                        <td className="border border-black px-1 py-1.5">
+                          <input disabled={readOnly} aria-label="หน่วยนับ" className="w-full min-w-[85px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.unit ?? assetUnit} onChange={event => editAsset(asset, { unit: event.target.value })} />
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
