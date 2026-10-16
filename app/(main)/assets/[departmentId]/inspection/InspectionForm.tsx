@@ -1915,9 +1915,9 @@ export default function InspectionForm({
     brand: string; model: string; unit: string;
   }>) => {
     if (readOnly) return;
-    setAssetEdits(previous => ({
-      ...previous,
-      [asset.id]: {
+    setAssetEdits(previous => {
+      const existing = previous[asset.id];
+      const initial = {
         governmentAssetNo: asset.governmentAssetNo ?? "",
         officeAssetNo: asset.officeAssetNo ?? "",
         responsibleName: asset.responsibleName ?? "",
@@ -1927,10 +1927,15 @@ export default function InspectionForm({
         brand: asset.brand ?? "",
         model: asset.model ?? "",
         unit: asset.unit ?? getAssetUnit(asset),
-        ...previous[asset.id],
-        ...patch,
-      },
-    }));
+      };
+
+      return {
+        ...previous,
+        [asset.id]: existing
+          ? { ...existing, ...patch }
+          : { ...initial, ...patch },
+      };
+    });
   };
 
   const [
