@@ -107,11 +107,11 @@ const cellClassName = [
 
 const tableHeaders = [
   "ลำดับ",
-  "ปีงบประมาณ",
+  "ประจำปีงบประมาณ",
   "วันที่เริ่มตรวจสอบ",
   "วันที่ตรวจสอบแล้วเสร็จ",
   "จำนวนรายการ",
-  "จำนวนคณะกรรมการตรวจสอบ",
+  "คณะกรรมการตรวจสอบ",
   "รายละเอียดข้อมูล",
   "จัดการ",
 ];
@@ -278,6 +278,11 @@ export default async function StockCardInspectionHistoryPage({
                             href={`${detailHref}/edit`}
                             variant="primary"
                             size="sm"
+                            icon={
+                              <span aria-hidden="true">
+                                ✏️
+                              </span>
+                            }
                           >
                             แก้ไข
                           </AppButton>
