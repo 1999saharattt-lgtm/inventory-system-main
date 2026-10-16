@@ -24,7 +24,20 @@ type InspectionRowInput = {
   remark: string;
 };
 
+type AssetEditInput = {
+  assetId: number;
+  governmentAssetNo?: string | null;
+  officeAssetNo?: string | null;
+  location?: string | null;
+  officerId?: number | null;
+  name?: string;
+  brand?: string | null;
+  model?: string | null;
+  unit?: string | null;
+};
+
 type InspectionRequestBody = {
+  assetEdits?: AssetEditInput[];
   departmentId: number;
   inspectionStartDate: string;
   inspectionEndDate: string;
@@ -630,6 +643,25 @@ export async function POST(
        ปีงบประมาณ / ไตรมาส
        ===================================================== */
 
+    const assetEdits = body.assetEdits ?? [];
+    if (!Array.isArray(assetEdits) || assetEdits.some((edit) => !assetIds.includes(Number(edit.assetId))) ||
+        new Set(assetEdits.map((edit) => edit.assetId)).size !== assetEdits.length) {
+      return NextResponse.json({ success: false, message: "รายการแก้ไขครุภัณฑ์ไม่ถูกต้อง" }, { status: 400 });
+    }
+    const editOfficerIds = assetEdits.filter((edit) => edit.officerId != null).map((edit) => Number(edit.officerId));
+    if (editOfficerIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      return NextResponse.json({ success: false, message: "รหัสผู้รับผิดชอบไม่ถูกต้อง" }, { status: 400 });
+    }
+    if (editOfficerIds.length) {
+      const existing = await prisma.officer.findMany({ where: { id: { in: editOfficerIds } }, select: { id: true } });
+      if (existing.length !== new Set(editOfficerIds).size) {
+        return NextResponse.json({ success: false, message: "ไม่พบผู้รับผิดชอบในระบบ" }, { status: 400 });
+      }
+    }
+    if (assetEdits.some((edit) => edit.name !== undefined && (typeof edit.name !== "string" || !edit.name.trim()))) {
+      return NextResponse.json({ success: false, message: "ชื่อครุภัณฑ์ต้องไม่ว่าง" }, { status: 400 });
+    }
+
     const fiscalYear =
       getFiscalYear(
         inspectionStartDate
@@ -655,6 +687,21 @@ export async function POST(
 
     await prisma.$transaction(
       async (tx) => {
+        for (const edit of assetEdits) {
+          await tx.asset.update({
+            where: { id: Number(edit.assetId) },
+            data: {
+              ...(edit.governmentAssetNo !== undefined ? { governmentAssetNo: edit.governmentAssetNo?.trim() || null } : {}),
+              ...(edit.officeAssetNo !== undefined ? { officeAssetNo: edit.officeAssetNo?.trim() || null } : {}),
+              ...(edit.location !== undefined ? { location: edit.location?.trim() || null } : {}),
+              ...(edit.officerId !== undefined ? { officerId: edit.officerId } : {}),
+              ...(edit.name !== undefined ? { name: edit.name.trim() } : {}),
+              ...(edit.brand !== undefined ? { brand: edit.brand?.trim() || null } : {}),
+              ...(edit.model !== undefined ? { model: edit.model?.trim() || null } : {}),
+              ...(edit.unit !== undefined ? { unit: edit.unit?.trim() || null } : {}),
+            },
+          });
+        }
         for (
           const row of
           body.rows
