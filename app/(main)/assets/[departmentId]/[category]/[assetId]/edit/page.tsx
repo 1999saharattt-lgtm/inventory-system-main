@@ -391,7 +391,6 @@ export default async function EditAssetPage({
         "
       >
         <input type="hidden" name="category" value={asset.category} />
-        <input type="hidden" name="status" value={asset.status} />
         <input type="hidden" name="responsibleName" value={asset.responsibleName ?? ""} />
         <AppCard
           className="
@@ -467,6 +466,34 @@ export default async function EditAssetPage({
                     inputClassName
                   }
                 />
+              </AppInfoCard>
+            </div>
+
+            {/* USAGE STATUS */}
+
+            <div className="min-w-0 sm:col-span-2">
+              <AppInfoCard>
+                <label htmlFor="status" className={labelClassName}>
+                  สถานะการใช้งาน <span className="!text-red-500">*</span>
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  required
+                  defaultValue={asset.status}
+                  className={inputClassName}
+                >
+                  <option value="IN_USE">ใช้งานปกติ</option>
+                  <option value="DAMAGED">ชำรุด</option>
+                  <option value="DETERIORATED">เสื่อมสภาพ</option>
+                  <option value="UNNECESSARY">ไม่จำเป็นต้องใช้งาน</option>
+                  {asset.status === "WAITING_DISPOSAL" && (
+                    <option value="WAITING_DISPOSAL">รอจำหน่าย (สถานะเดิม)</option>
+                  )}
+                  {asset.status === "DISPOSED" && (
+                    <option value="DISPOSED">จำหน่ายแล้ว (สถานะเดิม)</option>
+                  )}
+                </select>
               </AppInfoCard>
             </div>
 

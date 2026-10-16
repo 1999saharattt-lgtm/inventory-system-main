@@ -32,6 +32,8 @@ const validCategories = [
 const validStatuses = [
   "IN_USE",
   "DAMAGED",
+  "DETERIORATED",
+  "UNNECESSARY",
   "WAITING_DISPOSAL",
   "DISPOSED",
 ] as const;

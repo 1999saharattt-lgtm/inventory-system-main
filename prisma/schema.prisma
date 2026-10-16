@@ -76,6 +76,8 @@ enum AssetCategory {
 enum AssetStatus {
   IN_USE
   DAMAGED
+  DETERIORATED
+  UNNECESSARY
   WAITING_DISPOSAL
   DISPOSED
 }
