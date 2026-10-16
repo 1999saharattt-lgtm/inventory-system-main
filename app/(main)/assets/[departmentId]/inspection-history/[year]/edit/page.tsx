@@ -12,6 +12,9 @@ type PageProps = {
     departmentId: string;
     year: string;
   }>;
+  searchParams?: Promise<{
+    fiscalYear?: string | string[];
+  }>;
 };
 
 /* =========================================================
@@ -254,6 +257,7 @@ function getMovementFiscalYear(
 
 export default async function InspectionHistoryEditPage({
   params,
+  searchParams,
 }: PageProps) {
   /* =======================================================
      PARAMS
@@ -265,6 +269,19 @@ export default async function InspectionHistoryEditPage({
 
     year,
   } = await params;
+
+  const resolvedSearchParams = searchParams
+    ? await searchParams
+    : {};
+
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYearValue = Array.isArray(rawFiscalYear)
+    ? rawFiscalYear[0]
+    : rawFiscalYear;
+  const selectedFiscalYear = fiscalYearValue?.trim() ?? "";
+  const fiscalYearQuery = /^\d{4}$/.test(selectedFiscalYear)
+    ? `?fiscalYear=${encodeURIComponent(selectedFiscalYear)}`
+    : "";
 
   const departmentId =
     Number(
@@ -535,7 +552,7 @@ export default async function InspectionHistoryEditPage({
   ======================================================= */
 
   const historyHref =
-    "/assets/inspection-history";
+    `/assets/inspection-history${fiscalYearQuery}`;
 
   /* =========================================================
      UI
