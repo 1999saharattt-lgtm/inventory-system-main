@@ -485,6 +485,9 @@ type PageProps = {
     departmentId: string;
     year: string;
   }>;
+  searchParams?: Promise<{
+    fiscalYear?: string | string[];
+  }>;
 };
 
 /* =========================================================
@@ -493,6 +496,7 @@ type PageProps = {
 
 export default async function InspectionHistoryDetailPage({
   params,
+  searchParams,
 }: PageProps) {
   /* =======================================================
      PARAMS
@@ -505,6 +509,12 @@ export default async function InspectionHistoryDetailPage({
     year:
       yearParam,
   } = await params;
+
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYearParam = Array.isArray(rawFiscalYear)
+    ? rawFiscalYear[0]
+    : rawFiscalYear;
 
   const departmentId =
     Number(
@@ -548,6 +558,14 @@ export default async function InspectionHistoryDetailPage({
   const christianYear =
     buddhistYear -
     543;
+
+  // ปีในเส้นทางเป็นปีของประวัติที่กำลังเปิดอยู่
+  // คงปีที่เลือกจากหน้าหลักไว้สำหรับการย้อนกลับ
+  const selectedFiscalYear =
+    fiscalYearParam && /^\d{4}$/.test(fiscalYearParam)
+      ? Number(fiscalYearParam)
+      : buddhistYear;
+  const fiscalYearQuery = `?fiscalYear=${selectedFiscalYear}`;
 
   /* =======================================================
      DEPARTMENT
@@ -806,7 +824,7 @@ export default async function InspectionHistoryDetailPage({
         subtitle={`${department.name} • ประจำปีงบประมาณ พ.ศ. ${displayFiscalYear}`}
         actions={
           <AppButton
-            href="/assets/inspection-history"
+            href={`/assets/inspection-history${fiscalYearQuery}`}
             variant="back"
             size="md"
           >
