@@ -18,6 +18,9 @@ type Props = {
   params: Promise<{
     departmentId: string;
   }>;
+  searchParams: Promise<{
+    fiscalYear?: string | string[];
+  }>;
 };
 
 /* =========================================================
@@ -96,6 +99,7 @@ const categoryOrder = [
 
 export default async function DepartmentAssetsPage({
   params,
+  searchParams,
 }: Props) {
   /* =======================================================
      AUTH
@@ -120,6 +124,43 @@ export default async function DepartmentAssetsPage({
   ) {
     notFound();
   }
+
+  /* =======================================================
+     FISCAL YEAR
+     รับปีจากหน้า /assets โดยไม่กรองทะเบียนครุภัณฑ์
+  ======================================================= */
+
+  const { fiscalYear: fiscalYearParam } = await searchParams;
+  const rawFiscalYear = Array.isArray(fiscalYearParam)
+    ? fiscalYearParam[0]
+    : fiscalYearParam;
+
+  const bangkokParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Bangkok",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(new Date());
+
+  const currentYear = Number(
+    bangkokParts.find((part) => part.type === "year")?.value
+  );
+  const currentMonth = Number(
+    bangkokParts.find((part) => part.type === "month")?.value
+  );
+  const currentFiscalYear =
+    currentYear + 543 + (currentMonth >= 10 ? 1 : 0);
+
+  const parsedFiscalYear = Number(rawFiscalYear);
+  const selectedFiscalYear =
+    rawFiscalYear &&
+    /^\d{4}$/.test(rawFiscalYear) &&
+    Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2569 &&
+    parsedFiscalYear <= 3000
+      ? parsedFiscalYear
+      : currentFiscalYear;
+
+  const fiscalYearQuery = `?fiscalYear=${selectedFiscalYear}`;
 
   /* =======================================================
      DEPARTMENT
@@ -218,7 +259,7 @@ export default async function DepartmentAssetsPage({
             =============================================== */}
 
             <AppButton
-              href={`/assets/${department.id}/all`}
+              href={`/assets/${department.id}/all${fiscalYearQuery}`}
               variant="primary"
               size="md"
               icon={
@@ -237,7 +278,7 @@ export default async function DepartmentAssetsPage({
             =============================================== */}
 
             <AppButton
-              href="/assets"
+              href={`/assets${fiscalYearQuery}`}
               variant="back"
               size="md"
               icon={
@@ -395,7 +436,7 @@ export default async function DepartmentAssetsPage({
                     "
                   >
                     <AppButton
-                      href={`/assets/${department.id}/${category.toLowerCase()}`}
+                      href={`/assets/${department.id}/${category.toLowerCase()}${fiscalYearQuery}`}
                       variant="primary"
                       size="md"
                     >
