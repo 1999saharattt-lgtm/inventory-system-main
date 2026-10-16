@@ -154,7 +154,7 @@ export default async function AssetsPage({
             🗄️
           </span>
         }
-        title="ทะเบียนคุมครุภัณฑ์"
+        title="ทะเบียนคุมบัญชีครุภัณฑ์"
         subtitle="เลือกกลุ่มงานเพื่อดูข้อมูลและทะเบียนครุภัณฑ์"
         actions={
           <>
