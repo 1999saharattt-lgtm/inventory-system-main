@@ -410,3 +410,39 @@ svg {
     transform: none;
   }
 }
+
+/* =====================================
+   Compact mobile UI — only small screens
+   Keeps desktop styles and component behavior unchanged.
+===================================== */
+@media (max-width: 639px) {
+  body { font-size: 15px; line-height: 1.35; }
+
+  /* Tailwind typography utilities commonly used in page content. */
+  main .text-base { font-size: 0.875rem; }
+  main .text-lg { font-size: 1rem; }
+  main .text-xl { font-size: 1.125rem; }
+  main .text-2xl { font-size: 1.25rem; }
+  main .text-3xl { font-size: 1.5rem; }
+  main .text-4xl { font-size: 1.875rem; }
+
+  /* More compact cards and content sections without changing their layout. */
+  main .card { border-radius: 12px; }
+  main .p-8 { padding: 1rem; }
+  main .p-6 { padding: 0.875rem; }
+  main .p-5 { padding: 0.75rem; }
+  main .px-8 { padding-left: 1rem; padding-right: 1rem; }
+  main .px-6 { padding-left: 0.875rem; padding-right: 0.875rem; }
+  main .py-8 { padding-top: 1rem; padding-bottom: 1rem; }
+  main .py-6 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+  main .gap-8 { gap: 1rem; }
+  main .gap-6 { gap: 0.875rem; }
+
+  main table { font-size: 14px; }
+  main th { font-size: 14px; padding: 7px 9px; }
+  main td { font-size: 14px; padding: 7px 9px; }
+
+  /* Keep inputs at 16px to prevent automatic zoom on iPhone. */
+  main input, main select, main textarea { font-size: 16px; }
+  main button { font-size: 15px; }
+}

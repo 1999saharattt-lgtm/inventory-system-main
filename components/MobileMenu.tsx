@@ -104,6 +104,23 @@ const menus: MenuGroup[] = [
   },
 
   {
+    title: "ทะเบียนคุมพัสดุ",
+    emoji: "📒",
+    items: [
+      {
+        name: "ทะเบียนคุมบัญชีพัสดุ",
+        href: "/stock-card",
+        emoji: "📋",
+      },
+      {
+        name: "ทะเบียนคุมบัญชีครุภัณฑ์",
+        href: "/assets",
+        emoji: "🖥️",
+      },
+    ],
+  },
+
+  {
     title:
       "หน่วยงาน",
 
@@ -1173,55 +1190,44 @@ export default function MobileMenu({
             )}
 
           {/* =================================================
-              4. STOCK CARD
+              4. INVENTORY REGISTERS (MOBILE DROPDOWN)
           ================================================= */}
 
-          <Link
-            href="/stock-card"
-            prefetch
-            title="บัญชีคุมพัสดุ"
-            aria-label="บัญชีคุมพัสดุ"
-            onClick={() =>
-              setSelectedGroup(
-                null
-              )
-            }
-            className={
-              iconButtonClass()
-            }
-          >
-            <span
-              aria-hidden="true"
-              className="
-                text-[24px]
-                leading-none
-              "
-            >
-              📒
-            </span>
+          {visibleMenus
+            .filter((group) => group.title === "ทะเบียนคุมพัสดุ")
+            .map((group) => {
+              const active = isGroupActive(group);
+              const open = selectedGroup === group.title;
 
-            {isActive(
-              "/stock-card"
-            ) && (
-              <span
-                aria-hidden="true"
-                className="
-                  absolute
-                  -bottom-0.5
-                  left-1/2
+              return (
+                <button
+                  key={group.title}
+                  ref={(element) => {
+                    triggerRefs.current[group.title] = element;
+                  }}
+                  type="button"
+                  title={group.title}
+                  aria-label={group.title}
+                  aria-expanded={open}
+                  onClick={() => toggleGroup(group.title)}
+                  className={iconButtonClass()}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="text-[24px] leading-none"
+                  >
+                    📒
+                  </span>
 
-                  h-[3px]
-                  w-5
-
-                  -translate-x-1/2
-
-                  rounded-full
-
-                  bg-emerald-500
-                "
-              />
-            )}
-          </Link>
+                  {(active || open) && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -bottom-0.5 left-1/2 h-[3px] w-5 -translate-x-1/2 rounded-full bg-emerald-500"
+                    />
+                  )}
+                </button>
+              );
+            })}
 
           {/* =================================================
               5. DEPARTMENT
