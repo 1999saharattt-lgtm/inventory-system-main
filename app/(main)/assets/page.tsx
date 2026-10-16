@@ -5,6 +5,7 @@ import { requireLogin } from "@/lib/auth";
 import AppPage from "@/components/AppPage";
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
+import AssetsFiscalYearSelect from "./AssetsFiscalYearSelect";
 
 /* =========================================================
    CONSTANTS
@@ -164,7 +165,7 @@ export default async function AssetsPage({
             =============================================== */}
 
             <AppButton
-              href="/assets/inspection-history"
+              href={`/assets/inspection-history?fiscalYear=${selectedFiscalYear}`}
               variant="primary"
               size="md"
             >
@@ -179,7 +180,7 @@ export default async function AssetsPage({
 
             {user.role === "ADMIN" && (
               <AppButton
-                href="/assets/1/inspection"
+                href={`/assets/1/inspection?fiscalYear=${selectedFiscalYear}`}
                 variant="primary"
                 size="md"
               >
@@ -225,53 +226,10 @@ export default async function AssetsPage({
               w-full
             "
           >
-            <form
-              id="assets-fiscal-year-form"
-              action="/assets"
-              method="get"
-            >
-              <select
-                id="fiscalYear"
-                name="fiscalYear"
-                defaultValue={String(
-                  selectedFiscalYear
-                )}
-                className="
-                  h-[50px]
-                  w-full
-                  cursor-pointer
-                  appearance-none
-                  rounded-[14px]
-                  border
-                  border-slate-300
-                  bg-white
-                  px-4
-                  pr-11
-                  text-base
-                  font-extrabold
-                  !text-slate-900
-                  shadow-sm
-                  outline-none
-                  transition-all
-                  duration-200
-                  hover:border-slate-400
-                  focus:border-emerald-500
-                  focus:ring-4
-                  focus:ring-emerald-100/70
-                "
-              >
-                {availableFiscalYears.map(
-                  (fiscalYear) => (
-                    <option
-                      key={fiscalYear}
-                      value={fiscalYear}
-                    >
-                      ปีงบประมาณ {fiscalYear}
-                    </option>
-                  )
-                )}
-              </select>
-            </form>
+            <AssetsFiscalYearSelect
+              selectedFiscalYear={selectedFiscalYear}
+              availableFiscalYears={availableFiscalYears}
+            />
 
             {/* SELECT ARROW */}
 
@@ -418,7 +376,7 @@ export default async function AssetsPage({
                   "
                 >
                   <AppButton
-                    href={`/assets/${department.id}`}
+                    href={`/assets/${department.id}?fiscalYear=${selectedFiscalYear}`}
                     variant="primary"
                     size="md"
                   >
