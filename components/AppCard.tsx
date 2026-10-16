@@ -1,6 +1,5 @@
-import type {
-  ReactNode,
-} from "react";
+
+import type { ReactNode } from "react";
 
 /* =========================================================
    TYPES
@@ -47,13 +46,9 @@ export default function AppCard({
 
   padding = true,
 }: AppCardProps) {
-  const hasHeader =
-    Boolean(
-      title ||
-        subtitle ||
-        icon ||
-        actions
-    );
+  const hasHeader = Boolean(
+    title || subtitle || icon || actions
+  );
 
   return (
     <section
@@ -248,12 +243,12 @@ export default function AppCard({
                   className="
                     break-words
 
-                    text-lg
+                    text-[18px]
                     font-black
                     tracking-tight
                     !text-slate-900
 
-                    sm:text-xl
+                    sm:text-[20px]
                   "
                 >
                   {title}
@@ -267,10 +262,12 @@ export default function AppCard({
 
                     break-words
 
-                    text-sm
+                    text-[12px]
                     font-semibold
                     leading-relaxed
                     !text-slate-500
+
+                    sm:text-[13px]
                   "
                 >
                   {subtitle}

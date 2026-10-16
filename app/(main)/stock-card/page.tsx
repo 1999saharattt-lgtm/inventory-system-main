@@ -1504,7 +1504,7 @@ export default function StockCardHome() {
 
 
 
-          - รายการบัญชีพัสดุ
+          - ทะเบียนคุมบัญชีพัสดุ
 
 
 
