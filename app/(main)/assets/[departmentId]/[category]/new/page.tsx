@@ -239,6 +239,10 @@ export default async function NewAssetPage({
         )
       );
 
+    const categoryType = normalizeText(
+      String(formData.get("categoryType") ?? "")
+    );
+
     const brand =
       normalizeText(
         String(
@@ -655,7 +659,9 @@ export default async function NewAssetPage({
         status: "IN_USE",
 
         remark:
-          remark || null,
+          [categoryType ? `หมวด/ชนิด: ${categoryType}` : "", remark]
+            .filter(Boolean)
+            .join("\n") || null,
       },
     });
 
@@ -811,7 +817,7 @@ export default async function NewAssetPage({
           >
             {/* NAME */}
 
-            <div className="min-w-0">
+            <div className="min-w-0 sm:col-span-2">
               <AppInfoCard>
                 <label
                   htmlFor="name"
@@ -837,6 +843,21 @@ export default async function NewAssetPage({
                 />
               </AppInfoCard>
             </div>
+
+            {/* CATEGORY / TYPE */}
+
+            <AppInfoCard>
+              <label htmlFor="categoryType" className={labelClassName}>
+                หมวด/ชนิด
+              </label>
+              <input
+                id="categoryType"
+                name="categoryType"
+                type="text"
+                placeholder="กรอกหมวด/ชนิด"
+                className={inputClassName}
+              />
+            </AppInfoCard>
 
             {/* BRAND */}
 
@@ -1019,6 +1040,9 @@ export default async function NewAssetPage({
 
           <div
             className="
+              relative
+              z-30
+              !overflow-visible
               mt-6
               border-t
               border-slate-200
@@ -1078,6 +1102,8 @@ export default async function NewAssetPage({
 
           <div
             className="
+              relative
+              z-0
               mt-6
               border-t
               border-slate-200

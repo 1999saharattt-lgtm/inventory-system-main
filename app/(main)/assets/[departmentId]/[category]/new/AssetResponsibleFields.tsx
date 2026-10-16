@@ -813,7 +813,7 @@ export default function AssetResponsibleFields({
         <div
           className="
             relative
-            z-50
+            z-[120]
             min-w-0
           "
         >
@@ -856,7 +856,7 @@ export default function AssetResponsibleFields({
       <div
         className="
           relative
-          z-40
+          z-[110]
           min-w-0
         "
       >
