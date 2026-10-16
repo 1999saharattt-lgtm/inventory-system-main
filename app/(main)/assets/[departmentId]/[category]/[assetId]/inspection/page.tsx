@@ -10,6 +10,10 @@ type Props = {
     category: string;
     assetId: string;
   }>;
+  searchParams?: Promise<{
+    fiscalYear?: string | string[];
+    from?: string | string[];
+  }>;
 };
 
 const categoryName: Record<string, string> = {
@@ -78,12 +82,31 @@ function formatThaiDate(date: Date | string | null) {
 
 export default async function AssetInspectionPage({
   params,
+  searchParams,
 }: Props) {
   const {
     departmentId,
     category,
     assetId,
   } = await params;
+
+  const query = searchParams ? await searchParams : {};
+  const rawFiscalYear = Array.isArray(query.fiscalYear)
+    ? query.fiscalYear[0]
+    : query.fiscalYear;
+  const parsedFiscalYear = Number(rawFiscalYear);
+  const fiscalYear =
+    rawFiscalYear && Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2500 && parsedFiscalYear <= 3000
+      ? parsedFiscalYear
+      : null;
+
+  const rawFrom = Array.isArray(query.from) ? query.from[0] : query.from;
+  const fromAll = rawFrom === "all";
+  const returnParams = new URLSearchParams();
+  if (fiscalYear !== null) returnParams.set("fiscalYear", String(fiscalYear));
+  if (fromAll) returnParams.set("from", "all");
+  const returnQuery = returnParams.toString();
 
   const departmentIdNumber = Number(departmentId);
   const assetIdNumber = Number(assetId);
@@ -106,6 +129,7 @@ export default async function AssetInspectionPage({
       section: true,
       officer: true,
       inspections: {
+        ...(fiscalYear !== null ? { where: { year: fiscalYear } } : {}),
         orderBy: [
           {
             year: "desc",
@@ -189,12 +213,12 @@ export default async function AssetInspectionPage({
               sm:text-base
             "
           >
-            ตรวจสอบและติดตามประวัติการตรวจครุภัณฑ์รายไตรมาส
+            ตรวจสอบและติดตามประวัติการตรวจครุภัณฑ์รายไตรมาส{fiscalYear !== null ? ` • ปีงบประมาณ ${fiscalYear}` : ""}
           </p>
         </div>
 
         <Link
-          href={`/assets/${departmentId}/${category}/${asset.id}`}
+          href={`/assets/${departmentId}/${category}/${asset.id}${returnQuery ? `?${returnQuery}` : ""}`}
           className="
             w-full
             rounded-xl
