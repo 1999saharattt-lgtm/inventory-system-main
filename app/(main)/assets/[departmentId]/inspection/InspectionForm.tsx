@@ -3108,7 +3108,7 @@ export default function InspectionForm({
             }
             className="
               w-max
-              min-w-[2900px]
+              min-w-[3400px]
 
               table-auto
               border-collapse
@@ -3140,26 +3140,22 @@ export default function InspectionForm({
                   รหัสครุภัณฑ์
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
-                >
-                  ผู้รับผิดชอบ
-                </th>
-
-                <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
-                >
-                  รายการครุภัณฑ์
-                </th>
-
-                <th
-                  rowSpan={2}
-                  className="border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
-                >
-                  หน่วย
-                </th>
+                {[
+                  "สถานที่ใช้งาน",
+                  "ผู้รับผิดชอบ",
+                  "หมวด/ชนิด",
+                  "ชื่อเรียก/คุณลักษณะครุภัณฑ์",
+                  "ยี่ห้อ/รุ่น",
+                  "หน่วยนับ",
+                ].map((heading) => (
+                  <th
+                    key={heading}
+                    rowSpan={2}
+                    className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
+                  >
+                    {heading}
+                  </th>
+                ))}
 
                 <th
                   rowSpan={2}
@@ -3276,7 +3272,7 @@ export default function InspectionForm({
               0 ? (
                 <tr>
                   <td
-                    colSpan={18}
+                    colSpan={21}
                     className="
                       border
                       border-black
@@ -3406,21 +3402,30 @@ export default function InspectionForm({
                         </td>
 
                         <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {
-                            responsibleName
-                          }
+                          {asset.location?.trim() || "-"}
+                        </td>
+
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
+                          {responsibleName}
+                        </td>
+
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
+                          {asset.category?.trim() || "-"}
                         </td>
 
                         <td className="whitespace-nowrap border border-black px-3 py-2.5 font-semibold">
-                          {
-                            asset.name
-                          }
+                          {asset.name}
+                        </td>
+
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
+                          {[asset.brand, asset.model]
+                            .map((value) => value?.trim())
+                            .filter(Boolean)
+                            .join(" / ") || "-"}
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
-                          {
-                            assetUnit
-                          }
+                          {assetUnit}
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
