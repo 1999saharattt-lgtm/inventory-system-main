@@ -3402,15 +3402,17 @@ export default function InspectionForm({
                         </td>
 
                         <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {asset.location?.trim() || "-"}
-                        </td>
-
-                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
                           {responsibleName}
                         </td>
 
                         <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
-                          {asset.category?.trim() || "-"}
+                          {asset.officer
+                            ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() || "-"
+                            : "-"}
+                        </td>
+
+                        <td className="whitespace-nowrap border border-black px-2 py-2.5 text-center">
+                          {"-"}
                         </td>
 
                         <td className="whitespace-nowrap border border-black px-3 py-2.5 font-semibold">
