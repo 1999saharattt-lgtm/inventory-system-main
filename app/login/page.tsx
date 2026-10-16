@@ -140,7 +140,9 @@ export default function LoginPage() {
             relative
 
             flex
-            min-h-[300px]
+            min-h-0
+            w-full
+            flex-col
             items-center
             justify-center
 
@@ -151,8 +153,8 @@ export default function LoginPage() {
             via-emerald-900
             to-green-800
 
-            px-6
-            py-9
+            px-4
+            py-8
 
             text-center
 
@@ -258,16 +260,22 @@ export default function LoginPage() {
               mx-auto
               w-full
               max-w-xl
+              min-w-0
+              flex-col
+              items-center
+              justify-center
+              text-center
             "
           >
             {/* LOGO */}
 
-            <div className="flex w-full justify-center">
+            <div className="mx-auto flex w-full items-center justify-center">
               <div
                 className="
                   relative
 
                   flex
+                  mx-auto
                   h-28
                   w-28
                   items-center
@@ -312,12 +320,13 @@ export default function LoginPage() {
 
             {/* SYSTEM NAME */}
 
-            <div className="mt-6 sm:mt-7">
+            <div className="mx-auto mt-6 w-full text-center sm:mt-7">
               <h1
                 className="
                   text-2xl
                   font-black
                   leading-tight
+                  text-center
                   tracking-tight
                   !text-white
 
@@ -332,6 +341,7 @@ export default function LoginPage() {
               <p
                 className="
                   mt-4
+                  text-center
 
                   text-base
                   font-bold
@@ -347,6 +357,7 @@ export default function LoginPage() {
               <p
                 className="
                   mt-1
+                  text-center
 
                   text-xs
                   font-semibold
@@ -382,6 +393,7 @@ export default function LoginPage() {
 
             <p
               className="
+                text-center
                 text-xs
                 font-semibold
                 leading-relaxed
@@ -410,8 +422,10 @@ export default function LoginPage() {
 
             bg-white/78
 
-            px-5
-            py-9
+            w-full
+            min-w-0
+            px-4
+            py-8
 
             backdrop-blur-2xl
 

@@ -489,6 +489,8 @@ export default function Sidebar({
 
         hidden
         w-full
+        min-w-0
+        max-w-full
 
         overflow-visible
 
@@ -522,6 +524,7 @@ export default function Sidebar({
           min-h-[68px]
 
           w-full
+          min-w-0
           max-w-[1920px]
 
           items-center
@@ -1079,7 +1082,7 @@ export default function Sidebar({
 
                       mt-3
 
-                      w-[320px]
+                      w-[min(320px,calc(100vw-32px))]
 
                       -translate-x-1/2
 

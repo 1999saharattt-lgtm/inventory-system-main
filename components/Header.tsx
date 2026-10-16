@@ -35,6 +35,8 @@ export default async function Header() {
         z-[5000]
 
         w-full
+        min-w-0
+        max-w-full
 
         px-2
         pt-2
@@ -55,6 +57,7 @@ export default async function Header() {
           relative
           mx-auto
           w-full
+          min-w-0
           max-w-[1920px]
 
           overflow-hidden
@@ -170,6 +173,8 @@ export default async function Header() {
             px-3
             py-2
 
+            max-w-full
+
             sm:min-h-[82px]
             sm:gap-4
             sm:px-4
@@ -250,6 +255,7 @@ export default async function Header() {
                 <h1
                   className="
                     min-w-0
+                    break-words
 
                     text-[12px]
                     font-black
@@ -537,6 +543,7 @@ export default async function Header() {
           mt-1
 
           w-full
+          min-w-0
           max-w-[1920px]
 
           bg-transparent

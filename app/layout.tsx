@@ -33,7 +33,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className="bg-gray-100 text-black">
+      <body className="min-h-screen w-full min-w-0 bg-gray-100 text-black">
         {children}
       </body>
     </html>

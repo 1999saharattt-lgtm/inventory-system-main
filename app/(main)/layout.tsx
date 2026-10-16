@@ -15,14 +15,15 @@ export default async function MainLayout({
         relative
         isolate
         min-h-screen
+        w-full
+        min-w-0
+        max-w-full
+        overflow-x-clip
         bg-slate-100
         text-slate-900
       "
     >
-      {/* ===================================================
-          PREMIUM AMBIENT BACKGROUND
-      =================================================== */}
-
+      {/* PREMIUM AMBIENT BACKGROUND */}
       <div
         aria-hidden="true"
         className="
@@ -30,15 +31,11 @@ export default async function MainLayout({
           fixed
           inset-0
           -z-30
-
           bg-[radial-gradient(circle_at_8%_4%,rgba(59,130,246,0.18),transparent_27%),radial-gradient(circle_at_92%_12%,rgba(16,185,129,0.12),transparent_25%),radial-gradient(circle_at_50%_100%,rgba(14,165,233,0.08),transparent_35%),linear-gradient(to_bottom,#f8fafc_0%,#f1f5f9_45%,#eef2f7_100%)]
         "
       />
 
-      {/* ===================================================
-          LEFT BLUE GLOW
-      =================================================== */}
-
+      {/* LEFT BLUE GLOW */}
       <div
         aria-hidden="true"
         className="
@@ -47,22 +44,15 @@ export default async function MainLayout({
           -left-32
           top-24
           -z-20
-
           h-[420px]
           w-[420px]
-
           rounded-full
-
           bg-blue-400/15
-
           blur-[110px]
         "
       />
 
-      {/* ===================================================
-          RIGHT GREEN GLOW
-      =================================================== */}
-
+      {/* RIGHT GREEN GLOW */}
       <div
         aria-hidden="true"
         className="
@@ -71,22 +61,15 @@ export default async function MainLayout({
           -right-32
           top-56
           -z-20
-
           h-[480px]
           w-[480px]
-
           rounded-full
-
           bg-emerald-300/10
-
           blur-[120px]
         "
       />
 
-      {/* ===================================================
-          CENTER CYAN GLOW
-      =================================================== */}
-
+      {/* CENTER CYAN GLOW */}
       <div
         aria-hidden="true"
         className="
@@ -95,26 +78,16 @@ export default async function MainLayout({
           left-1/2
           top-[420px]
           -z-20
-
           h-[420px]
           w-[700px]
-
           -translate-x-1/2
-
           rounded-full
-
           bg-cyan-300/[0.06]
-
           blur-[130px]
         "
       />
 
-      {/* ===================================================
-          FIXED HEADER + SIDEBAR
-
-          ส่วนนี้จะไม่เลื่อนตามหน้า
-      =================================================== */}
-
+      {/* FIXED HEADER + SIDEBAR */}
       <div
         className="
           fixed
@@ -122,73 +95,41 @@ export default async function MainLayout({
           top-0
           z-[100]
           w-full
+          min-w-0
+          max-w-full
         "
       >
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <div
-          className="
-            relative
-            z-[110]
-            w-full
-          "
-        >
+        <div className="relative z-[110] w-full min-w-0 max-w-full">
           <Header />
         </div>
 
-        {/* =================================================
-            SIDEBAR
-        ================================================= */}
-
-        <div
-          className="
-            relative
-            z-[100]
-            w-full
-          "
-        >
+        <div className="relative z-[100] w-full min-w-0 max-w-full">
           <Sidebar role={user.role} />
         </div>
       </div>
 
-      {/* ===================================================
-          CONTENT
-
-          สำคัญ:
-          ต้องชดเชยความสูง Header + Sidebar
-
-          จากหน้าตาระบบปัจจุบันประมาณ 176px
-      =================================================== */}
-
+      {/* CONTENT: preserve the original 176px header/sidebar clearance */}
       <main
         className="
           relative
           z-10
-
           min-h-screen
+          w-full
           min-w-0
-
-          overflow-x-hidden
-
+          max-w-full
           bg-transparent
-
           pt-[176px]
         "
       >
-        {/* =================================================
-            PAGE SPACING
-        ================================================= */}
-
         <div
           className="
+            w-full
+            min-w-0
+            max-w-full
             px-2
             py-3
-
             sm:px-3
             sm:py-4
-
             lg:px-4
             lg:py-5
           "
@@ -196,11 +137,9 @@ export default async function MainLayout({
           <div
             className="
               mx-auto
-
               w-full
               min-w-0
               max-w-[1920px]
-
               transition-[opacity,transform]
               duration-300
               ease-out
