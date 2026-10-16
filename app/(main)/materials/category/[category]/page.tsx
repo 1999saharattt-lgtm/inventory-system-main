@@ -1168,7 +1168,7 @@ export default async function CategoryPage({
           <table
             className="
               w-full
-              min-w-[1100px]
+              min-w-[1260px]
 
               border-collapse
 
@@ -1193,6 +1193,7 @@ export default async function CategoryPage({
                   "คงเหลือ",
                   "หน่วย",
                   "ราคาล่าสุด",
+                  "มูลค่าคงคลัง",
                   "วันผลิต",
                   "วันหมดอายุ",
                   "จัดการ",
@@ -1266,6 +1267,10 @@ export default async function CategoryPage({
                         material.id
                       ) ??
                       0;
+
+                    const inventoryValue =
+                      safeNumber(currentBalance) *
+                      safeNumber(material.latestPrice);
 
                     return (
                       <tr
@@ -1421,6 +1426,38 @@ export default async function CategoryPage({
                         </td>
 
                         {/* ===================================
+                            INVENTORY VALUE
+                            คงเหลือ × ราคาล่าสุด
+                        =================================== */}
+
+                        <td
+                          className="
+                            min-w-[145px]
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            text-right
+                            font-extrabold
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          {inventoryValue.toLocaleString(
+                            "th-TH",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }
+                          )}
+                        </td>
+
+                        {/* ===================================
                             MANUFACTURE
                         =================================== */}
 
@@ -1530,7 +1567,7 @@ export default async function CategoryPage({
                 <tr>
                   <td
                     colSpan={
-                      8
+                      9
                     }
                     className="
                       border
