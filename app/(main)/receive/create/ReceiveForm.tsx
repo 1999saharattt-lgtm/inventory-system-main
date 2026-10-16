@@ -1972,156 +1972,39 @@ export default function ReceiveForm({
       "
     >
       {/* =====================================================
-          DOCUMENT INFORMATION
+          TOP DOCUMENT NUMBER — SAME LAYOUT AS ISSUE
       ===================================================== */}
 
-      <AppCard
-        className="
-          relative
-          z-[5000]
-
-          overflow-visible
-
-          p-4
-
-          sm:p-5
-        "
-      >
-        <div
-          className="
-            mb-5
-            flex
-            items-center
-            gap-3
-          "
-        >
-          <div
-            className="
-              flex
-              h-11
-              w-11
-              shrink-0
-              items-center
-              justify-center
-
-              rounded-[15px]
-
-              bg-blue-50/90
-
-              text-xl
-
-              shadow-sm
-
-              ring-1
-              ring-blue-100/80
-            "
+      <div className="flex w-full justify-end">
+        <div className="w-full max-w-[220px]">
+          <label
+            htmlFor="documentNo"
+            className="mb-1.5 block text-xs font-extrabold !text-slate-600"
           >
-            🧾
-          </div>
+            เลขที่เอกสาร
+          </label>
 
-          <div className="min-w-0">
-            <h2
-              className="
-                text-lg
-                font-black
-                tracking-tight
-                !text-slate-900
-
-                sm:text-xl
-              "
-            >
-              ข้อมูลการรับเข้า
-            </h2>
-
-            <p
-              className="
-                mt-0.5
-                text-sm
-                font-semibold
-                !text-slate-500
-              "
-            >
-              ระบุวันที่ เอกสาร และผู้จำหน่าย
-            </p>
-          </div>
-        </div>
-
-        <div
-          className="
-            grid
-            min-w-0
-            gap-4
-
-            md:grid-cols-2
-          "
-        >
-          {/* วันที่รับเข้า */}
-
-          <AppInfoCard
+          <input
+            id="documentNo"
+            type="text"
+            name="documentNo"
+            value={displayedDocumentNo}
+            readOnly={!isOpeningBalance}
+            onChange={(event) => setDocumentValue(event.target.value)}
             className="
-              relative
-              z-[7000]
-              overflow-visible
+              h-9 w-full rounded-[11px] border border-slate-200
+              bg-white px-3 text-sm font-extrabold !text-slate-900
+              shadow-sm outline-none transition-all
+              focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70
+              read-only:bg-slate-50
             "
-          >
-            <label
-              htmlFor="receiveDate"
-              className={labelClass}
-            >
-              วันที่รับเข้า
-            </label>
-
-            <IOSDatePicker
-              id="receiveDate"
-              name="receiveDate"
-              value={receiveDate}
-              required
-              align="left"
-              onChange={
-                setReceiveDate
-              }
-            />
-          </AppInfoCard>
-
-          {/* เลขที่เอกสาร */}
-
-          <AppInfoCard
-            className="
-              relative
-              z-20
-              overflow-visible
-            "
-          >
-            <label
-              htmlFor="documentNo"
-              className={labelClass}
-            >
-              เลขที่เอกสาร
-            </label>
-
-            <input
-              id="documentNo"
-              type="text"
-              name="documentNo"
-              value={displayedDocumentNo}
-              readOnly={
-                !isOpeningBalance
-              }
-              onChange={(event) =>
-                setDocumentValue(
-                  event.target.value
-                )
-              }
-              className={
-                controlClass
-              }
-            />
+          />
 
             {/* ยอดยกเข้าระบบ */}
 
             <label
               className="
-                mt-4
+                mt-2
 
                 flex
                 w-fit
@@ -2132,7 +2015,7 @@ export default function ReceiveForm({
 
                 items-center
 
-                text-sm
+                text-xs
                 font-extrabold
                 !text-slate-700
               "
@@ -2165,10 +2048,10 @@ export default function ReceiveForm({
                 aria-hidden="true"
                 className={`
                   flex
-                  h-[22px]
-                  w-[22px]
-                  min-h-[22px]
-                  min-w-[22px]
+                  h-[20px]
+                  w-[20px]
+                  min-h-[20px]
+                  min-w-[20px]
                   shrink-0
 
                   items-center
@@ -2178,7 +2061,7 @@ export default function ReceiveForm({
 
                   border-2
 
-                  text-[13px]
+                  text-[12px]
                   font-black
                   leading-none
 
@@ -2199,50 +2082,80 @@ export default function ReceiveForm({
 
               <span
                 className="
-                  ml-3
+                  ml-2
                   block
                   whitespace-nowrap
-                  leading-[22px]
+                  leading-[20px]
                 "
               >
                 ยอดยกเข้าระบบ
               </span>
             </label>
-          </AppInfoCard>
+        </div>
+      </div>
 
-          {/* ผู้จำหน่าย */}
+      {/* =====================================================
+          DOCUMENT INFORMATION
+      ===================================================== */}
 
-          <AppInfoCard
+      <AppCard
+        className="
+          relative z-[5000] overflow-visible
+          p-4 sm:p-5
+        "
+      >
+        <div className="mb-5 flex items-center gap-3">
+          <div
             className="
-              relative
-              z-[4000]
-
-              overflow-visible
-
-              md:col-span-2
+              flex h-11 w-11 shrink-0 items-center justify-center
+              rounded-[15px] bg-blue-50/90 text-xl shadow-sm
+              ring-1 ring-blue-100/80
             "
           >
-            <label
-              htmlFor="vendorId"
-              className={labelClass}
-            >
+            🧾
+          </div>
+
+          <div className="min-w-0">
+            <h2 className="text-lg font-black tracking-tight !text-slate-900 sm:text-xl">
+              ข้อมูลการรับเข้า
+            </h2>
+            <p className="mt-0.5 text-sm font-semibold !text-slate-500">
+              ระบุวันที่รับเข้าและผู้จำหน่าย
+            </p>
+          </div>
+        </div>
+
+        <div className="grid min-w-0 gap-4 md:grid-cols-2">
+          {/* วันที่รับเข้า */}
+          <AppInfoCard className="relative z-[7000] overflow-visible">
+            <label htmlFor="receiveDate" className={labelClass}>
+              วันที่รับเข้า
+            </label>
+            <IOSDatePicker
+              id="receiveDate"
+              name="receiveDate"
+              value={receiveDate}
+              required
+              align="left"
+              onChange={setReceiveDate}
+            />
+          </AppInfoCard>
+
+          {/* ผู้จำหน่าย — ย้ายมาแทนช่องเลขที่เอกสารเดิม */}
+          <AppInfoCard className="relative z-[6000] overflow-visible">
+            <label htmlFor="vendorId" className={labelClass}>
               ผู้จำหน่าย
             </label>
-
             <SearchableDropdown
               id="vendorId"
               name="vendorId"
               value={vendorId}
-              options={
-                vendorOptions
-              }
+              options={vendorOptions}
               placeholder="-- เลือกผู้จำหน่าย --"
               searchPlaceholder="พิมพ์ค้นหาผู้จำหน่าย..."
               emptyText="ไม่พบผู้จำหน่าย"
               required
-              onChange={
-                setVendorId
-              }
+              onChange={setVendorId}
             />
           </AppInfoCard>
         </div>
