@@ -37,9 +37,9 @@ const categoryName: Record<string, string> = {
 };
 
 const thaiShortMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-const FONT = "TH Sarabun PSK";
+const FONT = "TH Sarabun New";
 const HEADERS = ["วันที่", "เลขที่เอกสาร", "ผู้จำหน่าย / หน่วยงาน", "ราคาล่าสุด", "รับเข้า", "เบิกจ่าย", "คงเหลือ", "วันผลิต", "วันหมดอายุ"];
-const PAGE_SIZE = 13;
+const PAGE_SIZE = 10;
 const WIDTHS = [13, 19, 30, 15, 11, 11, 11, 14, 14];
 const BLACK: ExcelJS.Border = { style: "thin", color: { argb: "FF000000" } };
 const TABLE_BORDER: Partial<ExcelJS.Borders> = { top: BLACK, bottom: BLACK, left: BLACK, right: BLACK };
@@ -70,9 +70,9 @@ function setText(cell: ExcelJS.Cell, value: string | number, options?: { size?: 
   cell.alignment = { horizontal: options?.align ?? "left", vertical: "middle", wrapText: options?.wrap ?? false, indent: 0 };
 }
 
-function infoLine(sheet: ExcelJS.Worksheet, row: number, from: number, to: number, text: string) {
+function infoLine(sheet: ExcelJS.Worksheet, row: number, from: number, to: number, text: string, align: ExcelJS.Alignment["horizontal"] = "left") {
   sheet.mergeCells(row, from, row, to);
-  setText(sheet.getCell(row, from), text, { size: 16 });
+  setText(sheet.getCell(row, from), text, { size: 16, align });
 }
 
 export default function ExportExcel({ material, rows, fiscalYear }: Props) {
@@ -93,26 +93,27 @@ export default function ExportExcel({ material, rows, fiscalYear }: Props) {
       sheet.properties.defaultRowHeight = 23;
       const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
       for (let page = 0; page < pages; page++) {
-        const base = page * 23;
-        if (page > 0) sheet.getRow(base + 1).addPageBreak();
+        const base = page * 20;
+        if (page > 0) sheet.getRow(base).addPageBreak();
         sheet.mergeCells(base + 1, 1, base + 1, 9);
-        setText(sheet.getCell(base + 1, 1), "บัญชีพัสดุ", { size: 26, bold: true, align: "center" });
+        setText(sheet.getCell(base + 1, 1), "บัญชีพัสดุ", { size: 16, bold: true, align: "center" });
         sheet.getRow(base + 1).height = 35;
         sheet.mergeCells(base + 2, 1, base + 2, 9);
-        setText(sheet.getCell(base + 2, 1), `ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`, { size: 17, align: "center" });
+        setText(sheet.getCell(base + 2, 1), `ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`, { size: 16, align: "center" });
         sheet.getRow(base + 2).height = 25;
-        infoLine(sheet, base + 3, 5, 9, "ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย");
-        infoLine(sheet, base + 4, 5, 9, "หน่วยงาน  สำนักอนามัยการเจริญพันธุ์");
+        infoLine(sheet, base + 3, 5, 9, "ส่วนราชการ  กระทรวงสาธารณสุข  กรมอนามัย", "center");
+        infoLine(sheet, base + 4, 5, 9, "หน่วยงาน  สำนักอนามัยการเจริญพันธุ์", "center");
         sheet.getRow(base + 3).height = 23;
         sheet.getRow(base + 4).height = 23;
-        infoLine(sheet, base + 5, 1, 4, `รหัสพัสดุ : ${material.code || "-"}`);
-        infoLine(sheet, base + 5, 5, 9, `รายการพัสดุ : ${material.name || "-"}`);
-        infoLine(sheet, base + 6, 1, 4, `หมวดหมู่ : ${categoryName[material.category ?? ""] ?? material.category ?? "-"}`);
-        infoLine(sheet, base + 6, 5, 9, `หน่วย : ${material.unit || "-"}`);
-        infoLine(sheet, base + 7, 1, 4, `ผู้จำหน่าย : ${material.vendor?.name ?? "-"}`);
-        infoLine(sheet, base + 7, 5, 9, `ราคาล่าสุด : ${material.latestPrice == null ? "-" : safeNumber(material.latestPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
-        for (let r = base + 5; r <= base + 7; r++) sheet.getRow(r).height = 27;
-        sheet.getRow(base + 8).height = 12;
+        // เว้นแถวที่ 5 ของทุกหน้าให้โปร่งเหมือนตัวอย่าง
+        sheet.getRow(base + 5).height = 16;
+        infoLine(sheet, base + 6, 1, 4, `รหัสพัสดุ : ${material.code || "-"}`);
+        infoLine(sheet, base + 6, 5, 9, `รายการพัสดุ : ${material.name || "-"}`);
+        infoLine(sheet, base + 7, 1, 4, `หมวดหมู่ : ${categoryName[material.category ?? ""] ?? material.category ?? "-"}`);
+        infoLine(sheet, base + 7, 5, 9, `หน่วย : ${material.unit || "-"}`);
+        infoLine(sheet, base + 8, 1, 4, `ผู้จำหน่าย : ${material.vendor?.name ?? "-"}`);
+        infoLine(sheet, base + 8, 5, 9, `ราคาล่าสุด : ${material.latestPrice == null ? "-" : safeNumber(material.latestPrice).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`);
+        for (let r = base + 6; r <= base + 8; r++) sheet.getRow(r).height = 27;
         const headerRow = base + 9;
         HEADERS.forEach((header, col) => {
           const cell = sheet.getCell(headerRow, col + 1);
@@ -142,7 +143,7 @@ export default function ExportExcel({ material, rows, fiscalYear }: Props) {
           sheet.getRow(rowNo).height = 29;
         }
       }
-      sheet.pageSetup.printArea = `A1:I${pages * 23}`;
+      sheet.pageSetup.printArea = `A1:I${pages * 20}`;
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
