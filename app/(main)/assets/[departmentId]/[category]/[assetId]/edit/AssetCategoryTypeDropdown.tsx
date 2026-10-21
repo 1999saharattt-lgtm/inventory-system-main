@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   name: string;
@@ -12,6 +13,15 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
   const [value, setValue] = useState(initialValue);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({top:0,left:0,width:0});
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!open) return;
+    const update = () => { const r = containerRef.current?.getBoundingClientRect(); if(r) setPosition({top:r.bottom+8,left:r.left,width:r.width}); };
+    update(); window.addEventListener("resize",update); window.addEventListener("scroll",update,true);
+    return () => {window.removeEventListener("resize",update);window.removeEventListener("scroll",update,true);};
+  },[open]);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const choices = useMemo(() => Array.from(new Set([...options, ...(value ? [value] : [])])), [options, value]);
@@ -20,7 +30,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node) && !(event.target as Element).closest("[data-category-popover]")) {
         setOpen(false);
         setSearch("");
       }
@@ -54,8 +64,8 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
         </span>
         <span aria-hidden="true" className="shrink-0 text-slate-500">⌄</span>
       </button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-xl">
+      {open && mounted && createPortal(
+        <div data-category-popover="true" style={{position:"fixed",top:position.top,left:position.left,width:position.width,maxHeight:"min(350px, 55vh)"}} className="z-[99999] overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-2xl">
           <div className="border-b border-slate-100 p-2">
             <input
               ref={searchRef}
@@ -95,7 +105,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
               </button>
             )}
           </div>
-        </div>
+        </div>, document.body
       )}
       <p className="mt-2 text-xs font-medium text-slate-500">เลือกทั้งกลุ่มจากรายการ หรือพิมพ์ชื่อใหม่แล้วกดเพิ่ม</p>
     </div>
