@@ -1906,26 +1906,30 @@ export default function InspectionForm({
       )
   );
 
-  // แสดงชื่อกลุ่มทุกกลุ่ม และแสดงงานย่อยเฉพาะกลุ่มอำนวยการ
-  const locationOptions = useMemo(() => {
-    if (department.name !== "กลุ่มอำนวยการ") {
-      return [];
-    }
+  // สถานที่ใช้งานจริงแสดงเฉพาะชื่อกลุ่ม ไม่แบ่งงานย่อย
 
-    const sections = new Map<number, string>();
-    assets.forEach((asset) => {
-      if (asset.departmentId === department.id && asset.section) {
-        sections.set(asset.section.id, asset.section.name);
-      }
-    });
-    officers.forEach((officer) => {
-      if (officer.departmentId === department.id && officer.section) {
-        sections.set(officer.section.id, officer.section.name);
-      }
-    });
-    return Array.from(sections, ([id, name]) => ({ value: String(id), label: name }))
-      .sort((a, b) => a.label.localeCompare(b.label, "th"));
-  }, [assets, officers, department.id, department.name]);
+  const DEFAULT_ASSET_CATEGORIES = [
+    "เก้าอี้", "เก้าอี้สำนักงานพนักพิงสูง", "เก้าอี้สำหรับห้องประชุม",
+    "เครื่องปรับอากาศแบบติดผนัง", "เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+    "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย", "ชั้น",
+    "ตู้", "ตู้ใส่เอกสาร 2 บานเปิด", "ตู้เก็บเอกสารบานสไลด์", "ตู้เอกสาร",
+    "โต๊ะ", "โต๊ะทำงาน", "โต๊ะสำหรับวางคอมพิวเตอร์", "โต๊ะวางของอเนกประสงค์",
+    "เครื่องคอมพิวเตอร์โน๊ตบุ้ค", "เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ",
+    "เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    "เครื่องพิมพ์คอมพิวเตอร์", "เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1",
+    "เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+    "เครื่องสำรองไฟฟ้า", "เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+    "เครื่องเล่นเทปคาสเซ็ท", "รถเข็น",
+  ];
+  const [addedCategories, setAddedCategories] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [addingCategoryFor, setAddingCategoryFor] = useState<number | null>(null);
+  const categoryOptions = useMemo<SearchableOption[]>(() => {
+    const values = new Set([...DEFAULT_ASSET_CATEGORIES, ...addedCategories]);
+    // เก็บค่าหมวดเดิมที่ยังไม่อยู่ในรายการ เพื่อไม่ให้ข้อมูลเก่าหาย
+    assets.forEach((asset) => { if (asset.category) values.add(asset.category); });
+    return Array.from(values).map((value) => ({ value, label: value }));
+  }, [assets, addedCategories]);
 
   const [assetEdits, setAssetEdits] = useState<Record<number, {
     governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
@@ -3451,24 +3455,9 @@ export default function InspectionForm({
                           </td>
                         ))}
                         <td className="border border-black px-1 py-1.5">
-                          <select
-                            disabled={readOnly}
-                            aria-label="สถานที่ใช้งาน (กลุ่ม/งาน)"
-                            className="w-full min-w-[200px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900"
-                            value={(assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId) ?? ""}
-                            onChange={(event) => {
-                              const sectionId = event.target.value ? Number(event.target.value) : null;
-                              // เปลี่ยนเฉพาะงานภายในกลุ่มเดิม ไม่ล้างผู้รับผิดชอบ
-                              editAsset(asset, { sectionId });
-                            }}
-                          >
-                            <option value="">{department.name}</option>
-                            {locationOptions.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {`${department.name} / ${option.label}`}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="min-w-[200px] rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm text-slate-900">
+                            {department.name}
+                          </div>
                         </td>
                         <td className="border border-black px-1 py-1.5">
                           {(() => {
@@ -3513,7 +3502,54 @@ export default function InspectionForm({
                           })()}
                         </td>
                         <td className="border border-black px-1 py-1.5">
-                          <input disabled={readOnly} aria-label="หมวด/ชนิด" className="w-full min-w-[130px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.category ?? asset.category} onChange={event => editAsset(asset, { category: event.target.value })} />
+                          <div className="min-w-[220px] space-y-1">
+                            <SearchableDropdown
+                              id={`asset-category-${asset.id}`}
+                              value={assetEdits[asset.id]?.category ?? asset.category}
+                              options={categoryOptions}
+                              placeholder="เลือกหมวด/ชนิด"
+                              searchPlaceholder="พิมพ์ค้นหาหมวด/ชนิด..."
+                              emptyText="ไม่พบหมวด/ชนิด"
+                              disabled={readOnly}
+                              onChange={(category) => editAsset(asset, { category })}
+                            />
+                            {!readOnly && (
+                              addingCategoryFor === asset.id ? (
+                                <div className="flex gap-1">
+                                  <input
+                                    aria-label="ชื่อหมวด/ชนิดใหม่"
+                                    className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
+                                    placeholder="พิมพ์หมวด/ชนิดใหม่"
+                                    value={newCategory}
+                                    onChange={(event) => setNewCategory(event.target.value)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        const name = newCategory.trim();
+                                        if (name) {
+                                          setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
+                                          editAsset(asset, { category: name });
+                                          setNewCategory("");
+                                          setAddingCategoryFor(null);
+                                        }
+                                      }
+                                    }}
+                                  />
+                                  <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs text-white" onClick={() => {
+                                    const name = newCategory.trim();
+                                    if (!name) return;
+                                    setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
+                                    editAsset(asset, { category: name });
+                                    setNewCategory("");
+                                    setAddingCategoryFor(null);
+                                  }}>เพิ่ม</button>
+                                  <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => { setNewCategory(""); setAddingCategoryFor(null); }}>ยกเลิก</button>
+                                </div>
+                              ) : (
+                                <button type="button" className="text-xs font-semibold text-blue-700 hover:underline" onClick={() => { setAddingCategoryFor(asset.id); setNewCategory(""); }}>+ เพิ่มหมวด/ชนิดใหม่</button>
+                              )
+                            )}
+                          </div>
                         </td>
                         <td className="border border-black px-1 py-1.5">
                           <input disabled={readOnly} aria-label="ชื่อเรียก/คุณลักษณะครุภัณฑ์" className="w-full min-w-[220px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.name ?? asset.name} onChange={event => editAsset(asset, { name: event.target.value })} />
