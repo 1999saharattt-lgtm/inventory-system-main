@@ -87,6 +87,21 @@ const validCategories = [
 type AssetCategoryValue =
   (typeof validCategories)[number];
 
+
+// หนึ่งข้อความในรายการ = หนึ่งตัวเลือก (ไม่แยกตามเครื่องหมายจุลภาค)
+const STANDARD_TYPES: Record<string, string> = {
+  CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+  AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+  TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+  SHELF: "ชั้น",
+  CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+  DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+  COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+};
+const EXTRA_TYPES = ["เครื่องเล่นเทปคาสเซ็ท", "รถเข็น"];
+
 /* =========================================================
    NORMALIZE TEXT
 ========================================================= */
@@ -879,7 +894,7 @@ export default async function NewAssetPage({
             </div>
 
             {/* CATEGORY / TYPE */}
-            <div className="relative z-[80] min-w-0">
+            <div className="relative z-[100] min-w-0">
               <AppInfoCard className="!overflow-visible">
                 <label htmlFor="categoryType" className={labelClassName}>
                   หมวด/ชนิด
