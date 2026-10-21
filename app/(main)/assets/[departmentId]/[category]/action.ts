@@ -696,29 +696,6 @@ export async function updateAsset(
      ทั้งสอง Field แยกจากกัน
      ======================================================= */
 
-  // เพิ่มผู้ครอบครองใหม่ลงทะเบียน Officer เพื่อให้ค้นหาและเลือกซ้ำได้ในอนาคต
-  const newOfficerName = String(formData.get("newOfficerName") ?? "").trim().replace(/\s+/g," ");
-  const newOfficerPosition = String(formData.get("newOfficerPosition") ?? "").trim();
-  if (newOfficerName) {
-    if (newOfficerName.length > 200 || newOfficerPosition.length > 200) {
-      throw new Error("ชื่อหรือตำแหน่งผู้ครอบครองยาวเกินกำหนด");
-    }
-    if (officerId !== null) throw new Error("ไม่สามารถเลือกผู้ครอบครองเดิมพร้อมเพิ่มชื่อใหม่ได้");
-    const parts = newOfficerName.split(" ");
-    const firstName = parts.shift() || "";
-    const lastName = parts.join(" ");
-    const found = await prisma.officer.findFirst({where:{firstName,lastName,departmentId,sectionId},select:{id:true}});
-    if (found) {
-      officerId = found.id;
-    } else {
-      const created = await prisma.officer.create({
-        data:{firstName,lastName,position:newOfficerPosition,type:"OUTSOURCE",departmentId,sectionId},
-        select:{id:true}
-      });
-      officerId = created.id;
-    }
-  }
-
   const updatedAsset =
     await prisma.asset.update({
       where: {
@@ -840,7 +817,11 @@ export async function updateAsset(
   const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
     ? `?fiscalYear=${rawFiscalYear}`
     : "";
-  redirect(
-    `/assets/${updatedAsset.departmentId}/${updatedAsset.category.toLowerCase()}${fiscalYearQuery}`
-  );
+  // หมวดทั่วไป: กลับไปยังหน้ารายละเอียดของครุภัณฑ์รายการที่แก้ไข
+  // หมวดอื่น: กลับไปยังหน้ารายการของหมวดเดิมตามพฤติกรรมที่กำหนดไว้
+  const categoryPath = `/assets/${updatedAsset.departmentId}/${updatedAsset.category.toLowerCase()}`;
+  const destination = updatedAsset.category === "OTHER"
+    ? `${categoryPath}/${updatedAsset.id}`
+    : categoryPath;
+  redirect(`${destination}${fiscalYearQuery}`);
 }
