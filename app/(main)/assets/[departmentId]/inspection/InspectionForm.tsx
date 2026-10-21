@@ -1874,63 +1874,28 @@ export default function InspectionForm({
       today
   );
 
-  const [
-    accountStartDate,
-    setAccountStartDate,
-  ] = useState(
-    initialData?.accountStartDate ||
-      getOneYearBefore(
-        initialData?.inspectionStartDate ||
-          today
-      )
-  );
-
-  const [
-    accountEndDate,
-    setAccountEndDate,
-  ] = useState(
-    initialData?.accountEndDate ||
-      getOneDayBefore(
-        initialData?.inspectionEndDate ||
-          today
-      )
-  );
-
-  const [
-    movementFiscalYear,
-    setMovementFiscalYear,
-  ] = useState(
+  const [movementFiscalYear, setMovementFiscalYear] = useState(
     initialData?.movementFiscalYear ||
-      getFiscalYear(
-        initialData?.inspectionStartDate ||
-          today
-      )
+      getFiscalYear(initialData?.inspectionStartDate || today)
   );
+
+  // วันที่หัวตารางยึดปีงบประมาณที่เลือกเสมอ
+  const fiscalYearNumber = Number(movementFiscalYear);
+  const accountStartDate = Number.isFinite(fiscalYearNumber)
+    ? `${fiscalYearNumber - 544}-10-01`
+    : "";
+  const accountEndDate = Number.isFinite(fiscalYearNumber)
+    ? `${fiscalYearNumber - 543}-09-30`
+    : "";
 
   // ข้อมูลทะเบียนครุภัณฑ์อ่านจาก Asset โดยตรง ไม่แก้ไขจากแบบตรวจสอบ
-  const categoryLabels: Record<string, string> = {
-    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
-    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
-    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
-    SHELF: "ชั้น",
-    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
-    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
-    COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
-    MONITOR: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
-    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
-  };
-
   function displayCategoryDetail(asset: Asset): string {
+    // ใช้หมวด/ชนิดของรายการที่บันทึกจริง ไม่ใช้ชื่อกลุ่มการ์ดหรือเดาจากชื่อทรัพย์สิน
     const explicit = asset.categoryDetail?.trim();
-    if (explicit) return explicit;
+    if (explicit && explicit !== "-") return explicit;
     const remarkCategory = asset.remark?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]?.trim();
-    if (remarkCategory) return remarkCategory;
-    if (asset.category === "OTHER") {
-      const text = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
-      if (/เครื่องสำรองไฟ|\bUPS\b/i.test(text)) return "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS";
-      return "ทั่วไป";
-    }
-    return categoryLabels[asset.category] ?? asset.category;
+    if (remarkCategory && remarkCategory !== "-") return remarkCategory;
+    return asset.category === "OTHER" ? "ทั่วไป" : asset.category || "-";
   }
 
   const [
@@ -2778,6 +2743,27 @@ export default function InspectionForm({
             </div>
           )}
 
+        <div className="mt-5 max-w-xs">
+          <label htmlFor="movementFiscalYearSelect" className="mb-2 block text-sm font-extrabold !text-slate-700">
+            ปีงบประมาณที่ตรวจสอบ
+          </label>
+          <select
+            id="movementFiscalYearSelect"
+            value={movementFiscalYear}
+            disabled={readOnly}
+            onChange={(event) => setMovementFiscalYear(event.target.value)}
+            className="h-[52px] w-full rounded-[16px] border border-slate-300 bg-white px-4 text-base font-bold text-slate-900 shadow-sm"
+          >
+            {Array.from({ length: 15 }, (_, index) => 2565 + index)
+              .concat(Number(movementFiscalYear))
+              .filter((year, index, years) => years.indexOf(year) === index)
+              .sort((a, b) => a - b)
+              .map((year) => (
+                <option key={year} value={String(year)}>พ.ศ. {year}</option>
+              ))}
+          </select>
+        </div>
+
         {/* =================================================
             DATE
         ================================================= */}
@@ -2832,12 +2818,6 @@ export default function InspectionForm({
                 );
 
                 if (value) {
-                  setAccountStartDate(
-                    getOneYearBefore(
-                      value
-                    )
-                  );
-
                   setMovementFiscalYear(
                     getFiscalYear(
                       value
@@ -2885,13 +2865,6 @@ export default function InspectionForm({
                   value
                 );
 
-                if (value) {
-                  setAccountEndDate(
-                    getOneDayBefore(
-                      value
-                    )
-                  );
-                }
               }}
             />
           </div>
