@@ -14,6 +14,7 @@ import AppCard from "@/components/AppCard";
 import AppInfoCard from "@/components/AppInfoCard";
 
 import AssetResponsibleFields from "./AssetResponsibleFields";
+import AssetCategoryTypeDropdown from "./AssetCategoryTypeDropdown";
 
 export const dynamic =
   "force-dynamic";
@@ -307,6 +308,9 @@ export default async function NewAssetPage({
         ) ?? ""
       ).trim();
 
+    const categoryType = normalizeText(String(formData.get("categoryType") ?? ""));
+    const customOfficerName = normalizeText(String(formData.get("customOfficerName") ?? ""));
+
     const remark =
       normalizeText(
         String(
@@ -483,6 +487,10 @@ export default async function NewAssetPage({
        CHECK OFFICER
     ===================================================== */
 
+    if (officerId !== null && customOfficerName) {
+      throw new Error("กรุณาเลือกผู้ครอบครองจากรายการหรือพิมพ์ชื่อใหม่อย่างใดอย่างหนึ่ง");
+    }
+
     if (officerId !== null) {
       const officer =
         await prisma.officer.findFirst({
@@ -628,6 +636,7 @@ export default async function NewAssetPage({
 
         category:
           assetCategory,
+        categoryDetail: categoryType || defaultType || null,
 
         brand:
           brand || null,
@@ -869,6 +878,20 @@ export default async function NewAssetPage({
               </AppInfoCard>
             </div>
 
+            {/* CATEGORY / TYPE */}
+            <div className="relative z-[80] min-w-0">
+              <AppInfoCard className="!overflow-visible">
+                <label htmlFor="categoryType" className={labelClassName}>
+                  หมวด/ชนิด
+                </label>
+                <AssetCategoryTypeDropdown
+                  name="categoryType"
+                  initialValue={defaultType}
+                  options={typeOptions}
+                />
+              </AppInfoCard>
+            </div>
+
             {/* BRAND */}
 
             <AppInfoCard>
@@ -956,7 +979,7 @@ export default async function NewAssetPage({
 
           <div
             className="
-              mt-6
+              relative z-0 mt-6
               border-t
               border-slate-200
               pt-5
@@ -1050,7 +1073,7 @@ export default async function NewAssetPage({
 
           <div
             className="
-              mt-6
+              relative z-[50] !overflow-visible mt-6
               border-t
               border-slate-200
               pt-5
@@ -1109,7 +1132,7 @@ export default async function NewAssetPage({
 
           <div
             className="
-              mt-6
+              relative z-0 mt-6
               border-t
               border-slate-200
               pt-5
