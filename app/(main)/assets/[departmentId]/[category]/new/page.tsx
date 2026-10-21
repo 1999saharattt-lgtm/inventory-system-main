@@ -651,7 +651,7 @@ export default async function NewAssetPage({
 
         category:
           assetCategory,
-        categoryDetail: categoryType || defaultType || null,
+        categoryDetail: categoryType || null,
 
         brand:
           brand || null,
