@@ -42,11 +42,54 @@ const categoryName: Record<
   AIR_CONDITIONER:
     "เครื่องปรับอากาศ",
   TELEPHONE: "เครื่องโทรศัพท์",
-  CABINET: "ตู้และชั้นวาง",
+  CABINET: "ตู้",
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
-  OTHER: "ทั่วไป",
+  OTHER: "ชั้น",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+};
+
+/* =========================================================
+   CATEGORY / TYPE OPTIONS
+   แสดงชื่อชนิดภายในหมวด โดยไม่เปลี่ยน category ในฐานข้อมูล
+========================================================= */
+
+const categoryTypes: Record<string, string[]> = {
+  DESK: [
+    "โต๊ะ",
+    "โต๊ะทำงาน",
+    "โต๊ะสำหรับวางคอมพิวเตอร์",
+    "โต๊ะวางของอเนกประสงค์",
+  ],
+  CHAIR: [
+    "เก้าอี้",
+    "เก้าอี้สำนักงานพนักพิงสูง",
+    "เก้าอี้สำหรับห้องประชุม",
+  ],
+  AIR_CONDITIONER: [
+    "เครื่องปรับอากาศแบบติดผนัง",
+    "เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+  ],
+  TELEPHONE: [
+    "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+  ],
+  CABINET: [
+    "ตู้",
+    "ตู้ใส่เอกสาร 2 บานเปิด",
+    "ตู้เก็บเอกสารบานสไลด์",
+    "ตู้เอกสาร",
+  ],
+  COMPUTER: [
+    "เครื่องคอมพิวเตอร์โน๊ตบุ้ค",
+    "เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ",
+    "เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  ],
+  PRINTER: [
+    "เครื่องพิมพ์คอมพิวเตอร์",
+    "เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1",
+    "เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  ],
+  OTHER: ["ชั้น"],
 };
 
 /* =========================================================
@@ -403,6 +446,19 @@ export default async function DepartmentAssetsPage({
                         ]
                       }
                     </h2>
+
+                    {categoryTypes[category]?.length > 0 && (
+                      <div className="mt-3 flex flex-col gap-1.5 text-left">
+                        {categoryTypes[category].map((typeName) => (
+                          <div
+                            key={typeName}
+                            className="rounded-lg bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700"
+                          >
+                            {typeName}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <p
                       className="
