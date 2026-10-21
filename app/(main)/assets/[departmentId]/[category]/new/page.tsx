@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { AssetStatus } from "@prisma/client";
 import {
   notFound,
   redirect,
@@ -660,7 +661,7 @@ export default async function NewAssetPage({
 
         responsibleName,
 
-        status: assetStatus as "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY",
+        status: assetStatus as AssetStatus,
 
         remark:
           remark || null,
