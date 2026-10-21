@@ -1905,14 +1905,29 @@ export default function InspectionForm({
       )
   );
 
+  // ตัวเลือกสถานที่ใช้งานอ้างอิงกลุ่ม/งานที่มีอยู่ในรายการครุภัณฑ์
+  const locationOptions = useMemo(() => {
+    const sections = new Map<number, string>();
+    assets.forEach((asset) => {
+      if (asset.section) sections.set(asset.section.id, asset.section.name);
+    });
+    officers.forEach((officer) => {
+      if (officer.section && officer.department?.id === department.id) {
+        sections.set(officer.section.id, officer.section.name);
+      }
+    });
+    return Array.from(sections, ([id, name]) => ({ value: String(id), label: name }))
+      .sort((a, b) => a.label.localeCompare(b.label, "th"));
+  }, [assets, officers, department.id]);
+
   const [assetEdits, setAssetEdits] = useState<Record<number, {
-    governmentAssetNo: string; officeAssetNo: string; responsibleName: string;
+    governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
     officerId: number | null; category: string; name: string;
     brand: string; model: string; unit: string;
   }>>({});
 
   const editAsset = (asset: Asset, patch: Partial<{
-    governmentAssetNo: string; officeAssetNo: string; responsibleName: string;
+    governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
     officerId: number | null; category: string; name: string;
     brand: string; model: string; unit: string;
   }>) => {
@@ -1923,6 +1938,7 @@ export default function InspectionForm({
         governmentAssetNo: asset.governmentAssetNo ?? "",
         officeAssetNo: asset.officeAssetNo ?? "",
         responsibleName: asset.responsibleName ?? "",
+        sectionId: asset.sectionId,
         officerId: asset.officerId,
         category: asset.category,
         name: asset.name,
@@ -3422,21 +3438,39 @@ export default function InspectionForm({
                           }
                         </td>
 
-                        {(["governmentAssetNo", "officeAssetNo", "responsibleName"] as const).map(field => (
+                        {(["governmentAssetNo", "officeAssetNo"] as const).map(field => (
                           <td key={field} className="border border-black px-1 py-1.5">
-                            <input disabled={readOnly} aria-label={field} className="w-full min-w-[150px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={assetEdits[asset.id]?.[field] ?? (field === "responsibleName" ? responsibleName : asset[field] ?? "")} onChange={event => editAsset(asset, { [field]: event.target.value })} />
+                            <input disabled={readOnly} aria-label={field} className="w-full min-w-[150px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={assetEdits[asset.id]?.[field] ?? asset[field] ?? ""} onChange={event => editAsset(asset, { [field]: event.target.value })} />
                           </td>
                         ))}
+                        <td className="border border-black px-1 py-1.5">
+                          <select
+                            disabled={readOnly}
+                            aria-label="สถานที่ใช้งาน (กลุ่ม/งาน)"
+                            className="w-full min-w-[200px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900"
+                            value={assetEdits[asset.id]?.sectionId ?? asset.sectionId ?? ""}
+                            onChange={(event) => {
+                              const sectionId = event.target.value ? Number(event.target.value) : null;
+                              // เปลี่ยนกลุ่มแล้วล้างผู้รับผิดชอบเดิม เพื่อไม่ให้ค้างชื่อข้ามกลุ่ม
+                              editAsset(asset, { sectionId, officerId: null, responsibleName: "" });
+                            }}
+                          >
+                            <option value="">เลือกกลุ่ม/งาน</option>
+                            {locationOptions.map((option) => (
+                              <option key={option.value} value={option.value}>{option.label}</option>
+                            ))}
+                          </select>
+                        </td>
                         <td className="border border-black px-1 py-1.5">
                           {(() => {
                             // รายชื่อผู้รับผิดชอบต้องอยู่ในกลุ่มงานเดียวกับครุภัณฑ์
                             const eligibleOfficers = officers.filter(
                               (person) =>
-                                asset.sectionId !== null &&
-                                person.sectionId === asset.sectionId &&
+                                ((assetEdits[asset.id]?.sectionId ?? asset.sectionId) !== null) &&
+                                person.sectionId === (assetEdits[asset.id]?.sectionId ?? asset.sectionId) &&
                                 (person.departmentId === asset.departmentId ||
                                   person.department?.id === asset.departmentId ||
-                                  person.section?.id === asset.sectionId)
+                                  person.section?.id === (assetEdits[asset.id]?.sectionId ?? asset.sectionId))
                             );
                             const selectedId = assetEdits[asset.id] ? assetEdits[asset.id].officerId : asset.officerId;
                             const selectedPerson = eligibleOfficers.find((person) => person.id === selectedId);
@@ -3446,7 +3480,7 @@ export default function InspectionForm({
                               <>
                                 <input
                                   list={`asset-officers-${asset.id}`}
-                                  disabled={readOnly || asset.sectionId === null}
+                                  disabled={readOnly || (assetEdits[asset.id]?.sectionId ?? asset.sectionId) === null}
                                   aria-label="ผู้รับผิดชอบ"
                                   className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none"
                                   value={selectedPerson ? officerLabel(selectedPerson) : ""}
@@ -3454,10 +3488,10 @@ export default function InspectionForm({
                                     const person = eligibleOfficers.find(
                                       (item) => officerLabel(item) === event.target.value
                                     );
-                                    if (person) editAsset(asset, { officerId: person.id });
-                                    else if (!event.target.value) editAsset(asset, { officerId: null });
+                                    if (person) editAsset(asset, { officerId: person.id, responsibleName: `${person.firstName} ${person.lastName}`.trim() });
+                                    else if (!event.target.value) editAsset(asset, { officerId: null, responsibleName: "" });
                                   }}
-                                  placeholder={asset.sectionId === null ? "ยังไม่ได้ระบุกลุ่มงาน" : "ค้นหาผู้รับผิดชอบในกลุ่มงาน"}
+                                  placeholder={(assetEdits[asset.id]?.sectionId ?? asset.sectionId) === null ? "เลือกสถานที่ใช้งานก่อน" : "ค้นหาผู้รับผิดชอบในกลุ่มงาน"}
                                 />
                                 <datalist id={`asset-officers-${asset.id}`}>
                                   {eligibleOfficers.map((person) => (
