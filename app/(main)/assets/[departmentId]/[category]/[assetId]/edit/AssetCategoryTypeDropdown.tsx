@@ -57,7 +57,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
           setSearch("");
           setTimeout(() => searchRef.current?.focus(), 0);
         }}
-        className="flex min-h-[50px] w-full items-center justify-between gap-2 rounded-[14px] border border-slate-300 bg-white px-4 py-3 text-left text-base font-bold text-slate-900 shadow-sm outline-none transition-all hover:border-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+        className="flex min-h-[50px] w-full items-center justify-between gap-2 rounded-[14px] border border-slate-300 bg-white px-4 py-3 text-left text-base font-bold !text-slate-900 shadow-sm outline-none transition-all duration-200 hover:border-slate-400 hover:bg-slate-50 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
       >
         <span className={`min-w-0 flex-1 break-words ${value ? "text-slate-900" : "text-slate-400"}`}>
           {value || "เลือกหมวด/ชนิด หรือเพิ่มรายการใหม่"}
@@ -107,7 +107,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
           </div>
         </div>, document.body
       )}
-      <p className="mt-2 text-xs font-medium text-slate-500">เลือกทั้งกลุ่มจากรายการ หรือพิมพ์ชื่อใหม่แล้วกดเพิ่ม</p>
+      
     </div>
   );
 }

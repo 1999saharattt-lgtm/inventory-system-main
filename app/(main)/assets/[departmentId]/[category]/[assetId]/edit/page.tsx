@@ -557,16 +557,18 @@ export default async function EditAssetPage({
 
             {/* CATEGORY / TYPE */}
 
-            <AppInfoCard>
-              <label htmlFor="categoryType" className={labelClassName}>
-                หมวด/ชนิด
-              </label>
-              <AssetCategoryTypeDropdown
-                name="categoryType"
-                initialValue={existingCategoryType}
-                options={categoryTypeOptions}
-              />
-            </AppInfoCard>
+            <div className="min-w-0">
+              <AppInfoCard>
+                <label htmlFor="categoryType" className={labelClassName}>
+                  หมวด/ชนิด
+                </label>
+                <AssetCategoryTypeDropdown
+                  name="categoryType"
+                  initialValue={existingCategoryType}
+                  options={categoryTypeOptions}
+                />
+              </AppInfoCard>
+            </div>
 
             {/* BRAND */}
 
