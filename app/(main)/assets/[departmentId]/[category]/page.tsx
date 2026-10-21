@@ -31,10 +31,11 @@ const categoryName: Record<string, string> = {
   TELEPHONE: "เครื่องโทรศัพท์",
   CABINET: "ตู้",
   SHELF: "ชั้น",
-  COMPUTER: "คอมพิวเตอร์",
+  COMPUTER: "เครื่องคอมพิวเตอร์",
   MONITOR: "จอภาพ",
-  PRINTER: "เครื่องพิมพ์",
-  OTHER: "ชั้น",
+  PRINTER: "เครื่องพิมพ์คอมพิวเตอร์",
+  UPS: "เครื่องสำรองไฟฟ้า",
+  OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 const categoryIcon: Record<string, string> = {
@@ -47,6 +48,7 @@ const categoryIcon: Record<string, string> = {
   COMPUTER: "💻",
   MONITOR: "🖥️",
   PRINTER: "🖨️",
+  UPS: "🔋",
   OTHER: "📦",
   NO_SYSTEM: "📋",
 };
@@ -63,6 +65,7 @@ const categoryUnit: Record<string, string> = {
   COMPUTER: "เครื่อง",
   MONITOR: "เครื่อง",
   PRINTER: "เครื่อง",
+  UPS: "เครื่อง",
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 };
@@ -341,8 +344,15 @@ export default async function AssetCategoryPage({
       where: {
         departmentId:
           departmentIdForAction,
-        category:
-          assetCategory as any,
+        ...(assetCategory === "UPS"
+          ? { category: "OTHER" as any }
+          : assetCategory === "COMPUTER"
+            ? { category: { in: ["COMPUTER", "MONITOR"] as any } }
+            : assetCategory === "OTHER"
+              ? { category: "OTHER" as any }
+              : assetCategory === "SHELF"
+                ? { category: { in: ["SHELF", "OTHER"] as any } }
+                : { category: assetCategory as any }),
         ...(search
           ? {
               OR: [
@@ -454,8 +464,18 @@ export default async function AssetCategoryPage({
   /* =======================================================
      SORT
   ======================================================= */
+  const belongsToPage = (asset: (typeof assetsFromDatabase)[number]) => {
+    const detail = (asset.categoryDetail ?? "").trim();
+    const label = detail || asset.name;
+    const isUps = /เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(label);
+    const isShelf = detail === "ชั้น";
+    if (assetCategory === "UPS") return asset.category === "OTHER" && isUps;
+    if (assetCategory === "SHELF") return asset.category === "SHELF" || (asset.category === "OTHER" && isShelf);
+    if (assetCategory === "OTHER") return !isUps && !isShelf;
+    return true;
+  };
   const assets = [
-    ...assetsFromDatabase,
+    ...assetsFromDatabase.filter(belongsToPage),
   ].sort((a, b) => {
     const orderA =
       getSourceOrder(
@@ -518,8 +538,9 @@ export default async function AssetCategoryPage({
             assetId,
           departmentId:
             departmentIdForAction,
-          category:
-            assetCategoryForAction as any,
+          ...(assetCategoryForAction === "UPS" || assetCategoryForAction === "SHELF" || assetCategoryForAction === "OTHER" || assetCategoryForAction === "COMPUTER"
+            ? {}
+            : { category: assetCategoryForAction as any }),
         },
         select: {
           id:
@@ -529,6 +550,9 @@ export default async function AssetCategoryPage({
     if (!assetToDelete) {
       return;
     }
+    // Guard virtual-category deletion using the same classification as the displayed rows.
+    const visibleAsset = assets.find((asset) => asset.id === assetToDelete.id);
+    if (!visibleAsset) return;
     await prisma.asset.delete({
       where: {
         id:
@@ -573,7 +597,7 @@ export default async function AssetCategoryPage({
                 ADD
                 สีเขียวตัวกลาง
             =============================================== */}
-            {canManage && (
+            {canManage && assetCategory !== "UPS" && (
               <AppButton
                 href={withFiscalYear(`/assets/${departmentIdForAction}/${categorySlug}/new`)}
                 variant="primary"
@@ -744,13 +768,9 @@ export default async function AssetCategoryPage({
                           assetCategory
                         ]
                       );
-                    const responsible =
-                      getResponsibleName(
-                        asset,
-                        departmentNameForDisplay
-                      );
+                    const responsible = asset.section?.name?.trim() || departmentNameForDisplay;
                     const editHref =
-                      withFiscalYear(`/assets/${departmentIdForAction}/${categorySlug}/${asset.id}/edit`);
+                      withFiscalYear(`/assets/${departmentIdForAction}/${asset.category.toLowerCase()}/${asset.id}/edit`);
                     return (
                       <tr
                         key={

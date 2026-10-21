@@ -26,11 +26,8 @@ type Props = {
 /* =========================================================
    CATEGORY NAME
 
-   SHELF
-   -> รวมแสดงกับ CABINET
-
-   MONITOR
-   -> รวมแสดงกับ COMPUTER
+   SHELF แสดงเป็นการ์ดชั้นแยกต่างหาก
+   MONITOR รวมกับ COMPUTER
 ========================================================= */
 
 const categoryName: Record<
@@ -45,7 +42,9 @@ const categoryName: Record<
   CABINET: "ตู้",
   COMPUTER: "เครื่องคอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์คอมพิวเตอร์",
-  OTHER: "ชั้น",
+  SHELF: "ชั้น",
+  UPS: "เครื่องสำรองไฟฟ้า",
+  OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
 
@@ -64,21 +63,17 @@ const categoryIcon: Record<
   CABINET: "🗄️",
   COMPUTER: "💻",
   PRINTER: "🖨️",
-  OTHER: "🗄️",
+  SHELF: "🗂️",
+  UPS: "🔋",
+  OTHER: "📦",
   NO_SYSTEM: "❓",
 };
 
 /* =========================================================
    CATEGORY ORDER
 
-   ไม่แสดง SHELF แยก
-   ไม่แสดง MONITOR แยก
-
-   SHELF
-   -> CABINET
-
-   MONITOR
-   -> COMPUTER
+   แสดง SHELF และ UPS แยก
+   MONITOR รวมกับ COMPUTER
 ========================================================= */
 
 const categoryOrder = [
@@ -89,6 +84,8 @@ const categoryOrder = [
   "CABINET",
   "COMPUTER",
   "PRINTER",
+  "SHELF",
+  "UPS",
   "OTHER",
   "NO_SYSTEM",
 ] as const;
@@ -194,40 +191,30 @@ export default async function DepartmentAssetsPage({
       select: {
         id: true,
         category: true,
+        categoryDetail: true,
+        name: true,
       },
     });
 
   /* =======================================================
      CATEGORY COUNTS
 
-     CABINET
-     = CABINET + SHELF
-
-     COMPUTER
-     = COMPUTER + MONITOR
+     SHELF แยกจาก CABINET
+     UPS แยกจาก OTHER ด้วยชื่อชนิด/ชื่อครุภัณฑ์
+     COMPUTER รวม MONITOR
   ======================================================= */
 
   const categoryCounts =
     new Map<string, number>();
 
   for (const asset of assets) {
-    let displayCategory =
-      asset.category as string;
-
-    if (
-      displayCategory ===
-      "SHELF"
-    ) {
-      displayCategory =
-        "CABINET";
-    }
-
-    if (
-      displayCategory ===
-      "MONITOR"
-    ) {
-      displayCategory =
-        "COMPUTER";
+    let displayCategory = asset.category as string;
+    const detail = (asset.categoryDetail ?? "").trim();
+    const label = detail || asset.name;
+    if (displayCategory === "MONITOR") displayCategory = "COMPUTER";
+    if (displayCategory === "OTHER") {
+      if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(label)) displayCategory = "UPS";
+      else if (detail === "ชั้น") displayCategory = "SHELF";
     }
 
     categoryCounts.set(
