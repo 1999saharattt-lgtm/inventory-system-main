@@ -38,6 +38,47 @@ const categoryName: Record<string, string> = {
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 };
+// ข้อความมาตรฐานที่แสดงอัตโนมัติเมื่อรายการยังไม่มีหมวด/ชนิดเฉพาะ
+// หนึ่งข้อความต่อหนึ่งหมวด โดยไม่แก้ไขข้อมูลต้นฉบับในฐานข้อมูล
+const defaultCategoryDetail: Record<string, string> = {
+  CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+  AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+  TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+  SHELF: "ชั้น",
+  CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+  DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+  COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  MONITOR: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+};
+
+function getDisplayedCategoryDetail(asset: {
+  category: string;
+  categoryDetail: string | null;
+  remark: string | null;
+  name: string;
+}, pageCategory: string) {
+  const saved = asset.categoryDetail?.trim();
+  if (saved) return saved;
+
+  // รองรับรายการเก่าที่เคยบันทึกหมวด/ชนิดไว้ในบรรทัดแรกของหมายเหตุ
+  const firstRemarkLine = (asset.remark ?? "").split("\n")[0]?.trim() ?? "";
+  if (firstRemarkLine.startsWith("หมวด/ชนิด:")) {
+    const previous = firstRemarkLine.slice("หมวด/ชนิด:".length).trim();
+    if (previous) return previous;
+  }
+
+  if (pageCategory === "UPS") return defaultCategoryDetail.UPS;
+  if (pageCategory === "SHELF") return defaultCategoryDetail.SHELF;
+  if (pageCategory === "OTHER") {
+    if (/เครื่องเล่นเทปคาสเซ็ท/i.test(asset.name)) return "เครื่องเล่นเทปคาสเซ็ท";
+    if (/รถเข็น/i.test(asset.name)) return "รถเข็น";
+    return "ทั่วไป";
+  }
+  return defaultCategoryDetail[asset.category] ?? categoryName[asset.category] ?? asset.category;
+}
+
 const categoryIcon: Record<string, string> = {
   DESK: "🪑",
   CHAIR: "🪑",
@@ -875,7 +916,7 @@ export default async function AssetCategoryPage({
 
                         {/* หมวด/ชนิด: ประเภทครุภัณฑ์ในทะเบียน */}
                         <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
-                          {asset.categoryDetail?.trim() || categoryName[asset.category] || asset.category}
+                          {getDisplayedCategoryDetail(asset, assetCategory)}
                         </td>
 
                         {/* ชื่อเรียก/คุณลักษณะครุภัณฑ์ */}
