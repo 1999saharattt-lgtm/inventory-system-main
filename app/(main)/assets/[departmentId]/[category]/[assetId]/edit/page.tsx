@@ -55,6 +55,21 @@ const validCategories = [
 type AssetCategoryValue =
   (typeof validCategories)[number];
 
+// หนึ่งข้อความ = หนึ่งตัวเลือก โดยไม่แสดงวงเล็บ
+const predefinedCategoryTypes = [
+  "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+  "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+  "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+  "ชั้น",
+  "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+  "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+  "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+  "เครื่องเล่นเทปคาสเซ็ท",
+  "รถเข็น",
+] as const;
+
 /* =========================================================
    STATUS
 ========================================================= */
@@ -222,6 +237,17 @@ export default async function EditAssetPage({
       ],
     });
 
+  // รวมตัวเลือกที่ผู้ใช้เคยบันทึกลง categoryDetail เพื่อให้ค้นหาใช้ซ้ำได้
+  const savedCategoryTypes = await prisma.asset.findMany({
+    where: { categoryDetail: { not: null } },
+    select: { categoryDetail: true },
+    distinct: ["categoryDetail"],
+  });
+  const categoryTypeOptions = Array.from(new Set([
+    ...predefinedCategoryTypes,
+    ...savedCategoryTypes.map((item) => item.categoryDetail?.trim() ?? "").filter(Boolean),
+  ]));
+
   /* =======================================================
      UPDATE
   ======================================================= */
@@ -310,10 +336,10 @@ export default async function EditAssetPage({
   // หมวด/ชนิด ถูกบันทึกเป็นบรรทัดนำหน้าใน remark โดยหน้าเพิ่มครุภัณฑ์
   const remarkLines = (asset.remark ?? "").split("\n");
   const categoryLine = remarkLines[0] ?? "";
-  const existingCategoryType = categoryLine.startsWith("หมวด/ชนิด: ")
+  const existingCategoryType = asset.categoryDetail?.trim() || (categoryLine.startsWith("หมวด/ชนิด: ")
     ? categoryLine.slice("หมวด/ชนิด: ".length)
-    : "";
-  const existingRemark = existingCategoryType
+    : "");
+  const existingRemark = categoryLine.startsWith("หมวด/ชนิด: ")
     ? remarkLines.slice(1).join("\n")
     : asset.remark ?? "";
 
@@ -507,10 +533,20 @@ export default async function EditAssetPage({
                 id="categoryType"
                 name="categoryType"
                 type="text"
+                list="asset-category-type-options"
+                autoComplete="off"
                 defaultValue={existingCategoryType}
-                placeholder="กรอกหมวด/ชนิด"
+                placeholder="เลือกจากรายการ หรือพิมพ์หมวด/ชนิดใหม่"
                 className={inputClassName}
               />
+              <datalist id="asset-category-type-options">
+                {categoryTypeOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              <p className="mt-2 text-xs font-medium text-slate-500">
+                พิมพ์ค้นหาได้ หรือพิมพ์ชื่อใหม่เพื่อบันทึกเป็นหมวด/ชนิดใหม่
+              </p>
             </AppInfoCard>
 
             {/* BRAND */}

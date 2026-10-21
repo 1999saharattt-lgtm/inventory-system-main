@@ -86,6 +86,7 @@ export async function updateAsset(
         price: true,
         location: true,
         remark: true,
+        categoryDetail: true,
         quantity: true,
         unit: true,
 
@@ -206,15 +207,13 @@ export async function updateAsset(
   const categoryType = String(formData.get("categoryType") ?? "").trim();
   const previousCategoryLine = (asset.remark ?? "").split("\n")[0] ?? "";
   const previousCategoryType = previousCategoryLine.startsWith("หมวด/ชนิด: ")
-    ? previousCategoryLine.slice("หมวด/ชนิด: ".length)
+    ? previousCategoryLine.slice("หมวด/ชนิด: ".length).trim()
     : "";
   const resolvedCategoryType = formData.has("categoryType")
     ? categoryType
-    : previousCategoryType;
-  const resolvedRemark = formData.has("categoryType")
-    ? [resolvedCategoryType ? `หมวด/ชนิด: ${resolvedCategoryType}` : "", remark]
-        .filter(Boolean).join("\n")
-    : remark;
+    : (asset.categoryDetail?.trim() || previousCategoryType);
+  // เก็บหมวด/ชนิดในฟิลด์เฉพาะ ไม่เขียนซ้ำในหมายเหตุ
+  const resolvedRemark = remark;
 
   const quantityValue = String(formData.get("quantity") ?? asset.quantity).trim();
   const quantity = Number(quantityValue);
@@ -767,6 +766,9 @@ export async function updateAsset(
 
         remark:
           resolvedRemark || null,
+
+        categoryDetail:
+          resolvedCategoryType || null,
 
         quantity,
         unit: unit || null,
