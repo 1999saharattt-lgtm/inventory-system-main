@@ -1907,66 +1907,31 @@ export default function InspectionForm({
       )
   );
 
-  // สถานที่ใช้งานจริงแสดงเฉพาะชื่อกลุ่ม ไม่แบ่งงานย่อย
-
-  const DEFAULT_ASSET_CATEGORIES = [
-    "เก้าอี้", "เก้าอี้สำนักงานพนักพิงสูง", "เก้าอี้สำหรับห้องประชุม",
-    "เครื่องปรับอากาศแบบติดผนัง", "เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
-    "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย", "ชั้น",
-    "ตู้", "ตู้ใส่เอกสาร 2 บานเปิด", "ตู้เก็บเอกสารบานสไลด์", "ตู้เอกสาร",
-    "โต๊ะ", "โต๊ะทำงาน", "โต๊ะสำหรับวางคอมพิวเตอร์", "โต๊ะวางของอเนกประสงค์",
-    "เครื่องคอมพิวเตอร์โน๊ตบุ้ค", "เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ",
-    "เครื่องคอมพิวเตอร์สำนักงาน All In One",
-    "เครื่องพิมพ์คอมพิวเตอร์", "เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1",
-    "เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
-    "เครื่องสำรองไฟฟ้า", "เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
-    "เครื่องเล่นเทปคาสเซ็ท", "รถเข็น",
-  ];
-  const [addedCategories, setAddedCategories] = useState<string[]>([]);
-  const [newCategory, setNewCategory] = useState("");
-  const [addingCategoryFor, setAddingCategoryFor] = useState<number | null>(null);
-  const categoryOptions = useMemo<SearchableOption[]>(() => {
-    const values = new Set([...DEFAULT_ASSET_CATEGORIES, ...addedCategories]);
-    // เก็บค่าหมวดเดิมที่ยังไม่อยู่ในรายการ เพื่อไม่ให้ข้อมูลเก่าหาย
-    assets.forEach((asset) => { if (asset.categoryDetail) values.add(asset.categoryDetail); });
-    return Array.from(values).map((value) => ({ value, label: value }));
-  }, [assets, addedCategories]);
-
-  const [assetEdits, setAssetEdits] = useState<Record<number, {
-    governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
-    officerId: number | null; categoryDetail: string; name: string;
-    brand: string; model: string; unit: string;
-  }>>({});
-
-  const editAsset = (asset: Asset, patch: Partial<{
-    governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
-    officerId: number | null; categoryDetail: string; name: string;
-    brand: string; model: string; unit: string;
-  }>) => {
-    if (readOnly) return;
-    setAssetEdits(previous => {
-      const existing = previous[asset.id];
-      const initial = {
-        governmentAssetNo: asset.governmentAssetNo ?? "",
-        officeAssetNo: asset.officeAssetNo ?? "",
-        responsibleName: asset.responsibleName ?? "",
-        sectionId: asset.sectionId,
-        officerId: asset.officerId,
-        categoryDetail: asset.categoryDetail ?? "",
-        name: asset.name,
-        brand: asset.brand ?? "",
-        model: asset.model ?? "",
-        unit: asset.unit ?? getAssetUnit(asset),
-      };
-
-      return {
-        ...previous,
-        [asset.id]: existing
-          ? { ...existing, ...patch }
-          : { ...initial, ...patch },
-      };
-    });
+  // ข้อมูลทะเบียนครุภัณฑ์อ่านจาก Asset โดยตรง ไม่แก้ไขจากแบบตรวจสอบ
+  const categoryLabels: Record<string, string> = {
+    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+    SHELF: "ชั้น",
+    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+    COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    MONITOR: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
   };
+
+  function displayCategoryDetail(asset: Asset): string {
+    const explicit = asset.categoryDetail?.trim();
+    if (explicit) return explicit;
+    const remarkCategory = asset.remark?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]?.trim();
+    if (remarkCategory) return remarkCategory;
+    if (asset.category === "OTHER") {
+      const text = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
+      if (/เครื่องสำรองไฟ|\bUPS\b/i.test(text)) return "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS";
+      return "ทั่วไป";
+    }
+    return categoryLabels[asset.category] ?? asset.category;
+  }
 
   const [
     rows,
@@ -2574,7 +2539,7 @@ export default function InspectionForm({
                     ),
 
                   rows,
-                  assetEdits: Object.entries(assetEdits).map(([assetId, edit]) => ({ assetId: Number(assetId), ...edit })),
+                  assetEdits: [], // ข้อมูลทะเบียนมาจากหน้าแต่ละหมวดโดยตรง
                 }
               ),
           }
@@ -3444,124 +3409,36 @@ export default function InspectionForm({
                           hover:bg-emerald-50/60
                         `}
                       >
-                        <td className="border border-black px-2 py-2.5 text-center">
+                        <td className="border border-black px-2 py-2.5 text-center align-middle">
                           {
                             displayOrder
                           }
                         </td>
 
-                        {(["governmentAssetNo", "officeAssetNo"] as const).map(field => (
-                          <td key={field} className="border border-black px-1 py-1.5">
-                            <input disabled={readOnly} aria-label={field} className="w-full min-w-[150px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={assetEdits[asset.id]?.[field] ?? asset[field] ?? ""} onChange={event => editAsset(asset, { [field]: event.target.value })} />
+                        {(["governmentAssetNo", "officeAssetNo"] as const).map((field) => (
+                          <td key={field} className="border border-black px-2 py-2.5 text-center align-middle break-all">
+                            {asset[field] || "-"}
                           </td>
                         ))}
-                        <td className="border border-black px-1 py-1.5">
-                          <div className="min-w-[200px] rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm text-slate-900">
-                            {department.name}
-                          </div>
+                        <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
+                          {asset.section?.name || department.name}
                         </td>
-                        <td className="border border-black px-1 py-1.5">
-                          {(() => {
-                            // เจ้าหน้าที่ประจำกลุ่ม รวมถึงเจ้าหน้าที่ส่วนกลาง
-                            const eligibleOfficers = officers.filter((person) =>
-                              person.departmentId === asset.departmentId ||
-                              person.department?.id === asset.departmentId ||
-                              person.department?.name?.trim() === "ส่วนกลาง" ||
-                              person.section?.name?.trim() === "ส่วนกลาง" ||
-                              person.type?.trim() === "ส่วนกลาง" ||
-                              person.id === (assetEdits[asset.id]?.officerId ?? asset.officerId)
-                            );
-                            const selectedId = assetEdits[asset.id]?.officerId ?? asset.officerId;
-                            const officerOptions = eligibleOfficers.map((person) => ({
-                              value: String(person.id),
-                              label: `${person.firstName} ${person.lastName}`.trim(),
-                            }));
-                            return (
-                              <div className="min-w-[210px]">
-                                <SearchableDropdown
-                                  id={`asset-officers-${asset.id}`}
-                                  value={selectedId == null ? "" : String(selectedId)}
-                                  options={officerOptions}
-                                  placeholder="เลือกผู้รับผิดชอบ"
-                                  searchPlaceholder="พิมพ์ค้นหาชื่อผู้รับผิดชอบ..."
-                                  emptyText="ไม่พบรายชื่อผู้รับผิดชอบ"
-                                  disabled={readOnly}
-                                  onChange={(value) => {
-                                    const person = eligibleOfficers.find((item) => String(item.id) === value);
-                                    if (person) {
-                                      editAsset(asset, {
-                                        officerId: person.id,
-                                        responsibleName: `${person.firstName} ${person.lastName}`.trim(),
-                                      });
-                                    } else if (!value) {
-                                      editAsset(asset, { officerId: null, responsibleName: "" });
-                                    }
-                                  }}
-                                />
-                              </div>
-                            );
-                          })()}
+                        <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
+                          {asset.officer
+                            ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+                            : asset.responsibleName?.trim() || "-"}
                         </td>
-                        <td className="border border-black px-1 py-1.5">
-                          <div className="min-w-[220px] space-y-1">
-                            <SearchableDropdown
-                              id={`asset-category-${asset.id}`}
-                              value={assetEdits[asset.id]?.categoryDetail ?? asset.categoryDetail ?? ""}
-                              options={categoryOptions}
-                              placeholder="เลือกหมวด/ชนิด"
-                              searchPlaceholder="พิมพ์ค้นหาหมวด/ชนิด..."
-                              emptyText="ไม่พบหมวด/ชนิด"
-                              disabled={readOnly}
-                              onChange={(categoryDetail) => editAsset(asset, { categoryDetail })}
-                            />
-                            {!readOnly && (
-                              addingCategoryFor === asset.id ? (
-                                <div className="flex gap-1">
-                                  <input
-                                    aria-label="ชื่อหมวด/ชนิดใหม่"
-                                    className="min-w-0 flex-1 rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
-                                    placeholder="พิมพ์หมวด/ชนิดใหม่"
-                                    value={newCategory}
-                                    onChange={(event) => setNewCategory(event.target.value)}
-                                    onKeyDown={(event) => {
-                                      if (event.key === "Enter") {
-                                        event.preventDefault();
-                                        const name = newCategory.trim();
-                                        if (name) {
-                                          setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
-                                          editAsset(asset, { categoryDetail: name });
-                                          setNewCategory("");
-                                          setAddingCategoryFor(null);
-                                        }
-                                      }
-                                    }}
-                                  />
-                                  <button type="button" className="rounded bg-slate-800 px-2 py-1 text-xs text-white" onClick={() => {
-                                    const name = newCategory.trim();
-                                    if (!name) return;
-                                    setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
-                                    editAsset(asset, { categoryDetail: name });
-                                    setNewCategory("");
-                                    setAddingCategoryFor(null);
-                                  }}>เพิ่ม</button>
-                                  <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => { setNewCategory(""); setAddingCategoryFor(null); }}>ยกเลิก</button>
-                                </div>
-                              ) : (
-                                <button type="button" className="text-xs font-semibold text-blue-700 hover:underline" onClick={() => { setAddingCategoryFor(asset.id); setNewCategory(""); }}>+ เพิ่มหมวด/ชนิดใหม่</button>
-                              )
-                            )}
-                          </div>
+                        <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[240px]">
+                          {displayCategoryDetail(asset)}
                         </td>
-                        <td className="border border-black px-1 py-1.5">
-                          <input disabled={readOnly} aria-label="ชื่อเรียก/คุณลักษณะครุภัณฑ์" className="w-full min-w-[220px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.name ?? asset.name} onChange={event => editAsset(asset, { name: event.target.value })} />
+                        <td className="border border-black px-2 py-2.5 align-middle break-words min-w-[220px]">
+                          {asset.name || "-"}
                         </td>
-                        <td className="border border-black px-1 py-1.5">
-                          <div className="flex min-w-[230px] gap-1">
-                            {(["brand", "model"] as const).map(field => <input key={field} disabled={readOnly} aria-label={field === "brand" ? "ยี่ห้อ" : "รุ่น"} placeholder={field === "brand" ? "ยี่ห้อ" : "รุ่น"} className="w-1/2 min-w-0 rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.[field] ?? asset[field] ?? ""} onChange={event => editAsset(asset, { [field]: event.target.value })} />)}
-                          </div>
+                        <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[180px]">
+                          {[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}
                         </td>
-                        <td className="border border-black px-1 py-1.5">
-                          <input disabled={readOnly} aria-label="หน่วยนับ" className="w-full min-w-[85px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.unit ?? assetUnit} onChange={event => editAsset(asset, { unit: event.target.value })} />
+                        <td className="border border-black px-2 py-2.5 text-center align-middle">
+                          {assetUnit}
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
