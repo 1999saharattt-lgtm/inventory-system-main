@@ -72,6 +72,8 @@ type Asset = {
 
 type Officer = {
   id: number;
+  departmentId: number | null;
+  sectionId: number | null;
   firstName: string;
   lastName: string;
   position: string | null;
@@ -3268,12 +3270,7 @@ export default function InspectionForm({
                   สภาพครุภัณฑ์ที่ตรวจนับ
                 </th>
 
-                <th
-                  rowSpan={2}
-                  className="whitespace-nowrap border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-2 py-3 text-center align-middle font-extrabold !text-white"
-                >
-                  หมายเหตุ
-                </th>
+
               </tr>
 
               <tr>
@@ -3308,7 +3305,7 @@ export default function InspectionForm({
               0 ? (
                 <tr>
                   <td
-                    colSpan={21}
+                    colSpan={20}
                     className="
                       border
                       border-black
@@ -3425,17 +3422,51 @@ export default function InspectionForm({
                           }
                         </td>
 
-                        <td className="border border-black px-2 py-2.5 text-center">{displayOrder}</td>
                         {(["governmentAssetNo", "officeAssetNo", "responsibleName"] as const).map(field => (
                           <td key={field} className="border border-black px-1 py-1.5">
                             <input disabled={readOnly} aria-label={field} className="w-full min-w-[150px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={assetEdits[asset.id]?.[field] ?? (field === "responsibleName" ? responsibleName : asset[field] ?? "")} onChange={event => editAsset(asset, { [field]: event.target.value })} />
                           </td>
                         ))}
                         <td className="border border-black px-1 py-1.5">
-                          <input list={`asset-officers-${asset.id}`} disabled={readOnly} aria-label="ผู้รับผิดชอบ" className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none" value={(() => { const id = assetEdits[asset.id]?.officerId ?? asset.officerId; const person = officers.find(o => o.id === id); return person ? `${person.firstName} ${person.lastName} — ${person.department?.name ?? ""}${person.section?.name ? " / " + person.section.name : ""}` : ""; })()} onChange={event => { const person = officers.find(o => `${o.firstName} ${o.lastName} — ${o.department?.name ?? ""}${o.section?.name ? " / " + o.section.name : ""}` === event.target.value); if (person) editAsset(asset, { officerId: person.id }); else if (!event.target.value) editAsset(asset, { officerId: null }); }} placeholder="ค้นหาชื่อหรือกลุ่มงาน" />
-                          <datalist id={`asset-officers-${asset.id}`}>
-                            {officers.map(o => <option key={o.id} value={`${o.firstName} ${o.lastName} — ${o.department?.name ?? ""}${o.section?.name ? " / " + o.section.name : ""}`} />)}
-                          </datalist>
+                          {(() => {
+                            // รายชื่อผู้รับผิดชอบต้องอยู่ในกลุ่มงานเดียวกับครุภัณฑ์
+                            const eligibleOfficers = officers.filter(
+                              (person) =>
+                                asset.sectionId !== null &&
+                                person.sectionId === asset.sectionId &&
+                                (person.departmentId === asset.departmentId ||
+                                  person.department?.id === asset.departmentId ||
+                                  person.section?.id === asset.sectionId)
+                            );
+                            const selectedId = assetEdits[asset.id] ? assetEdits[asset.id].officerId : asset.officerId;
+                            const selectedPerson = eligibleOfficers.find((person) => person.id === selectedId);
+                            const officerLabel = (person: Officer) =>
+                              `${person.firstName} ${person.lastName} — ${person.section?.name ?? ""}`;
+                            return (
+                              <>
+                                <input
+                                  list={`asset-officers-${asset.id}`}
+                                  disabled={readOnly || asset.sectionId === null}
+                                  aria-label="ผู้รับผิดชอบ"
+                                  className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none"
+                                  value={selectedPerson ? officerLabel(selectedPerson) : ""}
+                                  onChange={(event) => {
+                                    const person = eligibleOfficers.find(
+                                      (item) => officerLabel(item) === event.target.value
+                                    );
+                                    if (person) editAsset(asset, { officerId: person.id });
+                                    else if (!event.target.value) editAsset(asset, { officerId: null });
+                                  }}
+                                  placeholder={asset.sectionId === null ? "ยังไม่ได้ระบุกลุ่มงาน" : "ค้นหาผู้รับผิดชอบในกลุ่มงาน"}
+                                />
+                                <datalist id={`asset-officers-${asset.id}`}>
+                                  {eligibleOfficers.map((person) => (
+                                    <option key={person.id} value={officerLabel(person)} />
+                                  ))}
+                                </datalist>
+                              </>
+                            );
+                          })()}
                         </td>
                         <td className="border border-black px-1 py-1.5">
                           <input disabled={readOnly} aria-label="หมวด/ชนิด" className="w-full min-w-[130px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900" value={assetEdits[asset.id]?.category ?? asset.category} onChange={event => editAsset(asset, { category: event.target.value })} />
@@ -3616,52 +3647,6 @@ export default function InspectionForm({
                           )
                         )}
 
-                        <td className="whitespace-nowrap border border-black px-2 py-2">
-                          <input
-                            type="text"
-                            value={
-                              row?.remark ??
-                              ""
-                            }
-                            disabled={
-                              readOnly
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              updateRow(
-                                asset.id,
-                                "remark",
-                                event.target.value
-                              )
-                            }
-                            className="
-                              h-9
-                              w-[160px]
-
-                              rounded-[10px]
-
-                              border
-                              border-slate-300
-
-                              bg-white
-
-                              px-3
-
-                              font-semibold
-
-                              !text-slate-900
-
-                              outline-none
-
-                              focus:border-blue-500
-                              focus:ring-2
-                              focus:ring-blue-500/10
-
-                              disabled:bg-slate-100
-                            "
-                          />
-                        </td>
                       </tr>
                     );
                   }
