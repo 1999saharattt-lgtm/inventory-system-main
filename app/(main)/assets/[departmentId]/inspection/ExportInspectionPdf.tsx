@@ -567,9 +567,9 @@ function getMultiLineFontSize(
 
 function getDisplayCategory(asset: Asset): string {
   const explicit = asset.categoryDetail?.trim();
-  if (explicit) return explicit;
+  if (explicit && explicit !== "-") return explicit;
   const fromRemark = asset.remark?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]?.trim();
-  if (fromRemark) return fromRemark;
+  if (fromRemark && fromRemark !== "-") return fromRemark;
   if (asset.category === "OTHER") {
     const description = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
     if (/เครื่องสำรองไฟ|\bUPS\b/i.test(description)) {
