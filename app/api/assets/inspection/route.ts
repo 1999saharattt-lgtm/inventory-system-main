@@ -32,6 +32,7 @@ type AssetEditInput = {
   responsibleName?: string | null;
   category?: string;
   officerId?: number | null;
+  sectionId?: number | null;
   name?: string;
   brand?: string | null;
   model?: string | null;
@@ -650,14 +651,54 @@ export async function POST(
         new Set(assetEdits.map((edit) => edit.assetId)).size !== assetEdits.length) {
       return NextResponse.json({ success: false, message: "รายการแก้ไขครุภัณฑ์ไม่ถูกต้อง" }, { status: 400 });
     }
-    const editOfficerIds = assetEdits.filter((edit) => edit.officerId != null).map((edit) => Number(edit.officerId));
+    // ตรวจสอบความสัมพันธ์กลุ่มงานและผู้รับผิดชอบก่อนบันทึก
+    const currentAssets = await prisma.asset.findMany({
+      where: { id: { in: assetIds }, departmentId },
+      select: { id: true, sectionId: true, officerId: true },
+    });
+    const currentAssetMap = new Map(currentAssets.map((asset) => [asset.id, asset]));
+    const editedSectionIds = assetEdits
+      .filter((edit) => edit.sectionId != null)
+      .map((edit) => Number(edit.sectionId));
+    if (editedSectionIds.some((id) => !Number.isInteger(id) || id <= 0)) {
+      return NextResponse.json({ success: false, message: "รหัสกลุ่ม/งานไม่ถูกต้อง" }, { status: 400 });
+    }
+    const validSections = await prisma.section.findMany({
+      where: { id: { in: editedSectionIds }, departmentId },
+      select: { id: true },
+    });
+    const validSectionIds = new Set(validSections.map((section) => section.id));
+    if (editedSectionIds.some((id) => !validSectionIds.has(id))) {
+      return NextResponse.json({ success: false, message: "กลุ่ม/งานที่เลือกไม่อยู่ในหน่วยงานนี้" }, { status: 400 });
+    }
+    const editOfficerIds = assetEdits
+      .filter((edit) => edit.officerId != null)
+      .map((edit) => Number(edit.officerId));
     if (editOfficerIds.some((id) => !Number.isInteger(id) || id <= 0)) {
       return NextResponse.json({ success: false, message: "รหัสผู้รับผิดชอบไม่ถูกต้อง" }, { status: 400 });
     }
-    if (editOfficerIds.length) {
-      const existing = await prisma.officer.findMany({ where: { id: { in: editOfficerIds } }, select: { id: true } });
-      if (existing.length !== new Set(editOfficerIds).size) {
-        return NextResponse.json({ success: false, message: "ไม่พบผู้รับผิดชอบในระบบ" }, { status: 400 });
+    const editedOfficers = await prisma.officer.findMany({
+      where: { id: { in: editOfficerIds } },
+      select: { id: true, sectionId: true, departmentId: true, section: { select: { departmentId: true } } },
+    });
+    const editedOfficerMap = new Map(editedOfficers.map((officer) => [officer.id, officer]));
+    for (const edit of assetEdits) {
+      const asset = currentAssetMap.get(Number(edit.assetId));
+      if (!asset) {
+        return NextResponse.json({ success: false, message: "ไม่พบครุภัณฑ์ที่ต้องการแก้ไข" }, { status: 400 });
+      }
+      const effectiveSectionId = edit.sectionId !== undefined ? edit.sectionId : asset.sectionId;
+      const effectiveOfficerId = edit.officerId !== undefined ? edit.officerId : asset.officerId;
+      if (effectiveOfficerId != null) {
+        const officer = editedOfficerMap.get(Number(effectiveOfficerId)) ??
+          (await prisma.officer.findUnique({
+            where: { id: Number(effectiveOfficerId) },
+            select: { id: true, sectionId: true, departmentId: true, section: { select: { departmentId: true } } },
+          }));
+        if (!officer || effectiveSectionId == null || officer.sectionId !== Number(effectiveSectionId) ||
+            (officer.departmentId !== departmentId && officer.section?.departmentId !== departmentId)) {
+          return NextResponse.json({ success: false, message: `ผู้รับผิดชอบของครุภัณฑ์ ${edit.assetId} ไม่ตรงกับกลุ่ม/งานที่เลือก` }, { status: 400 });
+        }
       }
     }
     if (assetEdits.some((edit) => edit.name !== undefined && (typeof edit.name !== "string" || !edit.name.trim()))) {
@@ -696,7 +737,8 @@ export async function POST(
               ...(edit.governmentAssetNo !== undefined ? { governmentAssetNo: edit.governmentAssetNo?.trim() || null } : {}),
               ...(edit.officeAssetNo !== undefined ? { officeAssetNo: edit.officeAssetNo?.trim() || null } : {}),
               ...(edit.location !== undefined ? { location: edit.location?.trim() || null } : {}),
-              ...(edit.responsibleName !== undefined ? { responsibleName: edit.responsibleName?.trim() || null, location: edit.responsibleName?.trim() || null } : {}),
+              ...(edit.responsibleName !== undefined ? { responsibleName: edit.responsibleName?.trim() || null } : {}),
+              ...(edit.sectionId !== undefined ? { sectionId: edit.sectionId } : {}),
               ...(edit.category !== undefined ? { category: edit.category as never } : {}),
               ...(edit.officerId !== undefined ? { officerId: edit.officerId } : {}),
               ...(edit.name !== undefined ? { name: edit.name.trim() } : {}),

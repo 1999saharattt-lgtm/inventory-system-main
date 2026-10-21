@@ -3448,7 +3448,7 @@ export default function InspectionForm({
                             disabled={readOnly}
                             aria-label="สถานที่ใช้งาน (กลุ่ม/งาน)"
                             className="w-full min-w-[200px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900"
-                            value={assetEdits[asset.id]?.sectionId ?? asset.sectionId ?? ""}
+                            value={(assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId) ?? ""}
                             onChange={(event) => {
                               const sectionId = event.target.value ? Number(event.target.value) : null;
                               // เปลี่ยนกลุ่มแล้วล้างผู้รับผิดชอบเดิม เพื่อไม่ให้ค้างชื่อข้ามกลุ่ม
@@ -3466,11 +3466,11 @@ export default function InspectionForm({
                             // รายชื่อผู้รับผิดชอบต้องอยู่ในกลุ่มงานเดียวกับครุภัณฑ์
                             const eligibleOfficers = officers.filter(
                               (person) =>
-                                ((assetEdits[asset.id]?.sectionId ?? asset.sectionId) !== null) &&
-                                person.sectionId === (assetEdits[asset.id]?.sectionId ?? asset.sectionId) &&
+                                (((assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId)) !== null) &&
+                                person.sectionId === ((assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId)) &&
                                 (person.departmentId === asset.departmentId ||
                                   person.department?.id === asset.departmentId ||
-                                  person.section?.id === (assetEdits[asset.id]?.sectionId ?? asset.sectionId))
+                                  person.section?.id === ((assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId)))
                             );
                             const selectedId = assetEdits[asset.id] ? assetEdits[asset.id].officerId : asset.officerId;
                             const selectedPerson = eligibleOfficers.find((person) => person.id === selectedId);
@@ -3480,7 +3480,7 @@ export default function InspectionForm({
                               <>
                                 <input
                                   list={`asset-officers-${asset.id}`}
-                                  disabled={readOnly || (assetEdits[asset.id]?.sectionId ?? asset.sectionId) === null}
+                                  disabled={readOnly || ((assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId)) === null}
                                   aria-label="ผู้รับผิดชอบ"
                                   className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none"
                                   value={selectedPerson ? officerLabel(selectedPerson) : ""}
@@ -3491,7 +3491,7 @@ export default function InspectionForm({
                                     if (person) editAsset(asset, { officerId: person.id, responsibleName: `${person.firstName} ${person.lastName}`.trim() });
                                     else if (!event.target.value) editAsset(asset, { officerId: null, responsibleName: "" });
                                   }}
-                                  placeholder={(assetEdits[asset.id]?.sectionId ?? asset.sectionId) === null ? "เลือกสถานที่ใช้งานก่อน" : "ค้นหาผู้รับผิดชอบในกลุ่มงาน"}
+                                  placeholder={((assetEdits[asset.id] ? assetEdits[asset.id].sectionId : asset.sectionId)) === null ? "เลือกสถานที่ใช้งานก่อน" : "ค้นหาผู้รับผิดชอบในกลุ่มงาน"}
                                 />
                                 <datalist id={`asset-officers-${asset.id}`}>
                                   {eligibleOfficers.map((person) => (
