@@ -1,3 +1,4 @@
+
 import {
   notFound,
 } from "next/navigation";
@@ -171,6 +172,9 @@ export default async function AssetInspectionPage({
           true,
 
         category:
+          true,
+
+        categoryDetail:
           true,
 
         brand:

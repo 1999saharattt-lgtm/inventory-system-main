@@ -17,6 +17,9 @@ type Asset = {
   id: number;
   name: string;
   category: string;
+  categoryDetail?: string | null;
+  quantity?: number;
+  unit?: string | null;
   brand: string | null;
   model: string | null;
   serialNumber: string | null;
@@ -96,10 +99,10 @@ type Props = {
   officers?: Officer[];
 };
 
-const ROWS_PER_PAGE = 9;
+const MAX_ROWS_PER_PAGE = 9;
+const FIXED_FONT_SIZE = 8.5;
+const MAX_BODY_HEIGHT = 115;
 
-const INSPECTION_FISCAL_YEAR =
-  "2569";
 
 const thaiMonths = [
   "มกราคม",
@@ -562,6 +565,43 @@ function getMultiLineFontSize(
   return minSize;
 }
 
+function getDisplayCategory(asset: Asset): string {
+  const explicit = asset.categoryDetail?.trim();
+  if (explicit) return explicit;
+  const fromRemark = asset.remark?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]?.trim();
+  if (fromRemark) return fromRemark;
+  if (asset.category === "OTHER") {
+    const description = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
+    if (/เครื่องสำรองไฟ|\bUPS\b/i.test(description)) {
+      return "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS";
+    }
+    return "ทั่วไป";
+  }
+  const labels: Record<string, string> = {
+    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+    SHELF: "ชั้น",
+    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+    COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    MONITOR: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  };
+  return labels[asset.category] ?? asset.category;
+}
+
+// แบ่งบรรทัดตามวลีที่คั่นด้วยจุลภาคหรือเครื่องหมายทับก่อน
+// แล้วจึงให้ jsPDF ตัดตามความกว้างจริง โดยไม่ย่อฟอนต์และไม่ตัดข้อความทิ้ง
+function wrapCellText(doc: jsPDF, value: string, width: number): string[] {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return [""];
+  const phrases = text.replace(/,\s*/g, ",\n").replace(/\s+\/\s+/g, " /\n");
+  return phrases.split("\n").flatMap(part =>
+    doc.splitTextToSize(part, Math.max(1, width - 1.2)) as string[]
+  );
+}
+
 /* =========================================================
    CHECK
    ========================================================= */
@@ -641,7 +681,7 @@ export default function ExportInspectionPdf({
     doc.setFontSize(18);
 
     doc.text(
-      `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${INSPECTION_FISCAL_YEAR}`,
+      `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`,
       center,
       12,
       {
@@ -885,12 +925,46 @@ export default function ExportInspectionPdf({
         "normal"
       );
 
+      // ใช้ความสูงแถวเดียวกันทั้งเอกสาร คำนวณจากข้อความที่ยาวที่สุด
+      // เพื่อให้ทุกหน้ามีขนาดตารางเท่ากันโดยไม่ลดขนาดตัวอักษร
+      doc.setFont("2.3.2 THSarabunNew", "normal");
+      doc.setFontSize(FIXED_FONT_SIZE);
+      const measuredWidths = [
+        COLUMN_WIDTHS.order, COLUMN_WIDTHS.gfmis, COLUMN_WIDTHS.assetNo,
+        COLUMN_WIDTHS.location, COLUMN_WIDTHS.responsible, COLUMN_WIDTHS.category,
+        COLUMN_WIDTHS.item, COLUMN_WIDTHS.brandModel, COLUMN_WIDTHS.unit,
+        COLUMN_WIDTHS.accountStart, COLUMN_WIDTHS.receive, COLUMN_WIDTHS.issue,
+        COLUMN_WIDTHS.accountEnd, COLUMN_WIDTHS.counted, COLUMN_WIDTHS.correct,
+        COLUMN_WIDTHS.incorrect, COLUMN_WIDTHS.inUse, COLUMN_WIDTHS.damaged,
+        COLUMN_WIDTHS.deteriorated, COLUMN_WIDTHS.unusable, COLUMN_WIDTHS.remark,
+      ];
+      const rowMap = new Map(rows.map(row => [row.assetId, row]));
+      const maxLineCount = Math.max(1, ...assets.map(asset => {
+        const responsible = getResponsibleName(asset, department);
+        const officer = asset.officer
+          ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : "-";
+        const texts = [
+          String(getSourceOrder(asset.remark) ?? ""),
+          asset.governmentAssetNo ?? "-", asset.officeAssetNo ?? "-",
+          responsible, officer, getDisplayCategory(asset), asset.name,
+          [asset.brand, asset.model].filter(Boolean).join(" / ") || "-",
+          asset.unit?.trim() || getCategoryUnit(asset.category),
+          String(asset.quantity ?? 1), "-", "-", String(asset.quantity ?? 1),
+          rowMap.get(asset.id)?.countedQty ?? "1", "", "", "", "", "", "",
+          rowMap.get(asset.id)?.remark ?? "",
+        ];
+        return Math.max(...texts.map((t, i) => wrapCellText(doc, t, measuredWidths[i]).length));
+      }));
+      const rowHeight = Math.max(9, maxLineCount * 3.65 + 1.2);
+      const rowsPerPage = Math.max(1, Math.min(MAX_ROWS_PER_PAGE,
+        Math.floor(MAX_BODY_HEIGHT / rowHeight)));
+
       const totalPages =
         Math.max(
           1,
           Math.ceil(
             assets.length /
-              ROWS_PER_PAGE
+              rowsPerPage
           )
         );
 
@@ -915,13 +989,13 @@ export default function ExportInspectionPdf({
 
         const startIndex =
           pageIndex *
-          ROWS_PER_PAGE;
+          rowsPerPage;
 
         const pageAssets =
           assets.slice(
             startIndex,
             startIndex +
-              ROWS_PER_PAGE
+              rowsPerPage
           );
 
         const body =
@@ -989,21 +1063,21 @@ export default function ExportInspectionPdf({
 
                 responsibleName,
                 officerName,
-                "-", // หมวด/ชนิด: รอเพิ่มข้อมูลในภายหลัง
+                getDisplayCategory(asset),
                 assetName,
                 brandModel,
 
-                getCategoryUnit(
+                asset.unit?.trim() || getCategoryUnit(
                   asset.category
                 ),
 
-                "1",
+                String(asset.quantity ?? 1),
 
                 "-",
 
                 "-",
 
-                "1",
+                String(asset.quantity ?? 1),
 
                 row.countedQty,
 
@@ -1044,7 +1118,7 @@ export default function ExportInspectionPdf({
 
         while (
           body.length <
-          ROWS_PER_PAGE
+          rowsPerPage
         ) {
           body.push(
             Array(21).fill(
@@ -1112,7 +1186,7 @@ export default function ExportInspectionPdf({
           ],
 
           body,
-
+          pageBreak: "avoid",
           styles: {
             font:
               "2.3.2 THSarabunNew",
@@ -1141,7 +1215,7 @@ export default function ExportInspectionPdf({
               0.6,
 
             minCellHeight:
-              9,
+              rowHeight,
 
             halign:
               "center",
@@ -1224,7 +1298,7 @@ export default function ExportInspectionPdf({
               0.6,
 
             minCellHeight:
-              9,
+              rowHeight,
 
             halign:
               "center",
@@ -1233,6 +1307,17 @@ export default function ExportInspectionPdf({
               "middle",
           },
 
+          didParseCell: (data) => {
+            if (data.section === "body") {
+              data.cell.styles.minCellHeight = rowHeight;
+              if (data.column.index >= 14 && data.column.index <= 19) {
+                data.cell.text = [""];
+              } else {
+                const raw = String(data.cell.raw ?? "");
+                data.cell.text = wrapCellText(doc, raw, measuredWidths[data.column.index]);
+              }
+            }
+          },
           // Uniform 8.5pt font throughout: wrap long text rather than shrinking it.
           columnStyles: {
             0: { cellWidth: COLUMN_WIDTHS.order },
@@ -1258,11 +1343,6 @@ export default function ExportInspectionPdf({
             20: { cellWidth: COLUMN_WIDTHS.remark },
           },
 
-          didParseCell: (data) => {
-            if (data.section === "body" && data.column.index >= 14 && data.column.index <= 19) {
-              data.cell.text = [""];
-            }
-          },
 
           /* =================================================
              วาดเครื่องหมายถูกตามค่าที่เลือกและบันทึกไว้
@@ -1397,7 +1477,7 @@ export default function ExportInspectionPdf({
           .trim();
 
       const fileName =
-        `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${INSPECTION_FISCAL_YEAR}.pdf`;
+        `กระดาษทำการตรวจสอบพัสดุ_${safeDepartmentName}_พ.ศ.${movementFiscalYear}.pdf`;
 
       const pdfBlob =
         doc.output(
