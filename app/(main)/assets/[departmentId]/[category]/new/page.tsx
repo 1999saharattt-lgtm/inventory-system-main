@@ -901,7 +901,7 @@ export default async function NewAssetPage({
                 </label>
                 <AssetCategoryTypeDropdown
                   name="categoryType"
-                  initialValue={defaultType}
+                  initialValue=""
                   options={typeOptions}
                 />
               </AppInfoCard>
