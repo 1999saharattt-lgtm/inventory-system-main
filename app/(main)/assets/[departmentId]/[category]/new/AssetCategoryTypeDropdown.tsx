@@ -36,7 +36,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
   };
 
   return (
-    <div ref={containerRef} className="relative z-[110] w-full min-w-0">
+    <div ref={containerRef} className="relative w-full min-w-0">
       <input type="hidden" name={name} value={value} />
       <button
         type="button"
@@ -55,7 +55,7 @@ export default function AssetCategoryTypeDropdown({ name, initialValue, options 
         <span aria-hidden="true" className="shrink-0 text-slate-500">⌄</span>
       </button>
       {open && (
-        <div className="absolute left-0 right-0 top-full z-[200] mt-2 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-[14px] border border-slate-200 bg-white shadow-xl">
           <div className="border-b border-slate-100 p-2">
             <input
               ref={searchRef}

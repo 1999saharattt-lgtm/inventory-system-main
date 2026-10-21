@@ -170,6 +170,8 @@ export default async function NewAssetPage({
      PERMISSION
   ======================================================= */
 
+  if (user.role === "VIEWER") redirect("/");
+
   if (
     user.role === "STAFF" &&
     user.departmentId !==
@@ -235,6 +237,18 @@ export default async function NewAssetPage({
   /* =======================================================
      CREATE ASSET
   ======================================================= */
+
+  // รวมตัวเลือกมาตรฐานกับหมวด/ชนิดที่เคยบันทึกไว้
+  const savedTypes = await prisma.asset.findMany({
+    where: { categoryDetail: { not: null } },
+    select: { categoryDetail: true },
+    distinct: ["categoryDetail"],
+  });
+  const typeOptions = Array.from(new Set([
+    ...Object.values(STANDARD_TYPES),
+    ...EXTRA_TYPES,
+    ...savedTypes.map((item) => item.categoryDetail?.trim() ?? "").filter(Boolean),
+  ]));
 
   async function createAsset(
     formData: FormData
@@ -348,6 +362,8 @@ export default async function NewAssetPage({
     /* =====================================================
        PERMISSION
     ===================================================== */
+
+    if (currentUser.role === "VIEWER") throw new Error("ไม่มีสิทธิ์เพิ่มครุภัณฑ์");
 
     if (
       currentUser.role ===
