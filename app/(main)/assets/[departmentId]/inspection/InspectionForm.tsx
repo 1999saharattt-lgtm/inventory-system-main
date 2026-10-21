@@ -1874,7 +1874,7 @@ export default function InspectionForm({
       today
   );
 
-  const [movementFiscalYear, setMovementFiscalYear] = useState(
+  const [movementFiscalYear] = useState(
     initialData?.movementFiscalYear ||
       getFiscalYear(initialData?.inspectionStartDate || today)
   );
@@ -1889,13 +1889,55 @@ export default function InspectionForm({
     : "";
 
   // ข้อมูลทะเบียนครุภัณฑ์อ่านจาก Asset โดยตรง ไม่แก้ไขจากแบบตรวจสอบ
+  const categoryLabels: Record<string, string> = {
+    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+    SHELF: "ชั้น",
+    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+    COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    MONITOR: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  };
+
   function displayCategoryDetail(asset: Asset): string {
-    // ใช้หมวด/ชนิดของรายการที่บันทึกจริง ไม่ใช้ชื่อกลุ่มการ์ดหรือเดาจากชื่อทรัพย์สิน
+    // ใช้หมวด/ชนิดที่บันทึกกับครุภัณฑ์แต่ละรายการก่อนเสมอ
     const explicit = asset.categoryDetail?.trim();
-    if (explicit && explicit !== "-") return explicit;
-    const remarkCategory = asset.remark?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]?.trim();
-    if (remarkCategory && remarkCategory !== "-") return remarkCategory;
-    return asset.category === "OTHER" ? "ทั่วไป" : asset.category || "-";
+    const remarkCategory = asset.remark
+      ?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]
+      ?.trim();
+
+    const isSpecificThaiCategory = (value?: string | null) =>
+      Boolean(value && value !== "-" && value !== "ทั่วไป" && value !== "OTHER");
+
+    if (isSpecificThaiCategory(explicit)) return explicit!;
+    if (isSpecificThaiCategory(remarkCategory)) return remarkCategory!;
+
+    // รักษาชื่อหมวดภาษาไทยเดิม และไม่แสดงรหัส enum ภาษาอังกฤษ
+    const thaiCategoryLabels: Record<string, string> = {
+      ...categoryLabels,
+      OTHER: "ทั่วไป",
+      NO_SYSTEM: "ไม่มีระบบ",
+      LAPTOP: "เครื่องคอมพิวเตอร์โน้ตบุ๊ก",
+      DESKTOP: "เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ",
+      FAN: "พัดลม",
+      TABLE: "โต๊ะ",
+      ELECTRIC: "ครุภัณฑ์ไฟฟ้า",
+      OFFICE: "ครุภัณฑ์สำนักงาน",
+      HOUSEHOLD: "ครุภัณฑ์งานบ้านงานครัว",
+      VEHICLE: "ครุภัณฑ์ยานพาหนะ",
+      PRINTING: "ครุภัณฑ์การพิมพ์",
+    };
+
+    if (asset.category === "OTHER") {
+      const text = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
+      if (/เครื่องสำรองไฟ|\bUPS\b/i.test(text)) {
+        return "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS";
+      }
+    }
+
+    return thaiCategoryLabels[asset.category] ?? "ทั่วไป";
   }
 
   const [
@@ -2685,7 +2727,7 @@ export default function InspectionForm({
                 relative
                 z-30
 
-                mt-5
+                mt-3
 
                 w-full
                 max-w-[560px]
@@ -2743,39 +2785,18 @@ export default function InspectionForm({
             </div>
           )}
 
-        <div className="mt-5 max-w-xs">
-          <label htmlFor="movementFiscalYearSelect" className="mb-2 block text-sm font-extrabold !text-slate-700">
-            ปีงบประมาณที่ตรวจสอบ
-          </label>
-          <select
-            id="movementFiscalYearSelect"
-            value={movementFiscalYear}
-            disabled={readOnly}
-            onChange={(event) => setMovementFiscalYear(event.target.value)}
-            className="h-[52px] w-full rounded-[16px] border border-slate-300 bg-white px-4 text-base font-bold text-slate-900 shadow-sm"
-          >
-            {Array.from({ length: 15 }, (_, index) => 2565 + index)
-              .concat(Number(movementFiscalYear))
-              .filter((year, index, years) => years.indexOf(year) === index)
-              .sort((a, b) => a - b)
-              .map((year) => (
-                <option key={year} value={String(year)}>พ.ศ. {year}</option>
-              ))}
-          </select>
-        </div>
-
         {/* =================================================
             DATE
         ================================================= */}
 
         <div
           className="
-            mt-5
+            mt-3
 
             grid
             grid-cols-1
 
-            gap-4
+            gap-3
 
             md:grid-cols-2
           "
@@ -2817,13 +2838,6 @@ export default function InspectionForm({
                   value
                 );
 
-                if (value) {
-                  setMovementFiscalYear(
-                    getFiscalYear(
-                      value
-                    )
-                  );
-                }
               }}
             />
           </div>
