@@ -72,6 +72,7 @@ type Asset = {
 
 type Officer = {
   id: number;
+  type?: string | null;
   departmentId: number | null;
   sectionId: number | null;
   firstName: string;
@@ -3471,39 +3472,43 @@ export default function InspectionForm({
                         </td>
                         <td className="border border-black px-1 py-1.5">
                           {(() => {
-                            // กรองรายชื่อด้วย departmentId เท่านั้น ไม่แยกตาม sectionId
-                            const eligibleOfficers = officers.filter(
-                              (person) =>
-                                person.departmentId === asset.departmentId ||
-                                person.department?.id === asset.departmentId
+                            // เจ้าหน้าที่ประจำกลุ่ม รวมถึงเจ้าหน้าที่ส่วนกลาง
+                            const eligibleOfficers = officers.filter((person) =>
+                              person.departmentId === asset.departmentId ||
+                              person.department?.id === asset.departmentId ||
+                              person.department?.name?.trim() === "ส่วนกลาง" ||
+                              person.section?.name?.trim() === "ส่วนกลาง" ||
+                              person.type?.trim() === "ส่วนกลาง" ||
+                              person.id === (assetEdits[asset.id]?.officerId ?? asset.officerId)
                             );
-                            const selectedId = assetEdits[asset.id] ? assetEdits[asset.id].officerId : asset.officerId;
-                            const selectedPerson = eligibleOfficers.find((person) => person.id === selectedId);
-                            const officerLabel = (person: Officer) =>
-                              `${person.firstName} ${person.lastName}`;
+                            const selectedId = assetEdits[asset.id]?.officerId ?? asset.officerId;
+                            const officerOptions = eligibleOfficers.map((person) => ({
+                              value: String(person.id),
+                              label: `${person.firstName} ${person.lastName}`.trim(),
+                            }));
                             return (
-                              <>
-                                <input
-                                  list={`asset-officers-${asset.id}`}
+                              <div className="min-w-[210px]">
+                                <SearchableDropdown
+                                  id={`asset-officers-${asset.id}`}
+                                  value={selectedId == null ? "" : String(selectedId)}
+                                  options={officerOptions}
+                                  placeholder="เลือกผู้รับผิดชอบ"
+                                  searchPlaceholder="พิมพ์ค้นหาชื่อผู้รับผิดชอบ..."
+                                  emptyText="ไม่พบรายชื่อผู้รับผิดชอบ"
                                   disabled={readOnly}
-                                  aria-label="ผู้รับผิดชอบ"
-                                  className="w-full min-w-[210px] rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none"
-                                  value={selectedPerson ? officerLabel(selectedPerson) : ""}
-                                  onChange={(event) => {
-                                    const person = eligibleOfficers.find(
-                                      (item) => officerLabel(item) === event.target.value
-                                    );
-                                    if (person) editAsset(asset, { officerId: person.id, responsibleName: `${person.firstName} ${person.lastName}`.trim() });
-                                    else if (!event.target.value) editAsset(asset, { officerId: null, responsibleName: "" });
+                                  onChange={(value) => {
+                                    const person = eligibleOfficers.find((item) => String(item.id) === value);
+                                    if (person) {
+                                      editAsset(asset, {
+                                        officerId: person.id,
+                                        responsibleName: `${person.firstName} ${person.lastName}`.trim(),
+                                      });
+                                    } else if (!value) {
+                                      editAsset(asset, { officerId: null, responsibleName: "" });
+                                    }
                                   }}
-                                  placeholder="ค้นหาผู้รับผิดชอบในกลุ่มงาน"
                                 />
-                                <datalist id={`asset-officers-${asset.id}`}>
-                                  {eligibleOfficers.map((person) => (
-                                    <option key={person.id} value={officerLabel(person)} />
-                                  ))}
-                                </datalist>
-                              </>
+                              </div>
                             );
                           })()}
                         </td>
