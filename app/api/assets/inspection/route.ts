@@ -31,6 +31,7 @@ type AssetEditInput = {
   location?: string | null;
   responsibleName?: string | null;
   category?: string;
+  categoryDetail?: string | null;
   officerId?: number | null;
   sectionId?: number | null;
   name?: string;
@@ -739,7 +740,7 @@ export async function POST(
               ...(edit.location !== undefined ? { location: edit.location?.trim() || null } : {}),
               ...(edit.responsibleName !== undefined ? { responsibleName: edit.responsibleName?.trim() || null } : {}),
               ...(edit.sectionId !== undefined ? { sectionId: edit.sectionId } : {}),
-              ...(edit.category !== undefined ? { category: edit.category as never } : {}),
+              ...(edit.categoryDetail !== undefined ? { categoryDetail: edit.categoryDetail?.trim() || null } : {}),
               ...(edit.officerId !== undefined ? { officerId: edit.officerId } : {}),
               ...(edit.name !== undefined ? { name: edit.name.trim() } : {}),
               ...(edit.brand !== undefined ? { brand: edit.brand?.trim() || null } : {}),

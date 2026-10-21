@@ -30,6 +30,7 @@ type Asset = {
   id: number;
   name: string;
   category: string;
+  categoryDetail?: string | null;
 
   brand: string | null;
   model: string | null;
@@ -1927,19 +1928,19 @@ export default function InspectionForm({
   const categoryOptions = useMemo<SearchableOption[]>(() => {
     const values = new Set([...DEFAULT_ASSET_CATEGORIES, ...addedCategories]);
     // เก็บค่าหมวดเดิมที่ยังไม่อยู่ในรายการ เพื่อไม่ให้ข้อมูลเก่าหาย
-    assets.forEach((asset) => { if (asset.category) values.add(asset.category); });
+    assets.forEach((asset) => { if (asset.categoryDetail) values.add(asset.categoryDetail); });
     return Array.from(values).map((value) => ({ value, label: value }));
   }, [assets, addedCategories]);
 
   const [assetEdits, setAssetEdits] = useState<Record<number, {
     governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
-    officerId: number | null; category: string; name: string;
+    officerId: number | null; categoryDetail: string; name: string;
     brand: string; model: string; unit: string;
   }>>({});
 
   const editAsset = (asset: Asset, patch: Partial<{
     governmentAssetNo: string; officeAssetNo: string; responsibleName: string; sectionId: number | null;
-    officerId: number | null; category: string; name: string;
+    officerId: number | null; categoryDetail: string; name: string;
     brand: string; model: string; unit: string;
   }>) => {
     if (readOnly) return;
@@ -1951,7 +1952,7 @@ export default function InspectionForm({
         responsibleName: asset.responsibleName ?? "",
         sectionId: asset.sectionId,
         officerId: asset.officerId,
-        category: asset.category,
+        categoryDetail: asset.categoryDetail ?? "",
         name: asset.name,
         brand: asset.brand ?? "",
         model: asset.model ?? "",
@@ -3505,13 +3506,13 @@ export default function InspectionForm({
                           <div className="min-w-[220px] space-y-1">
                             <SearchableDropdown
                               id={`asset-category-${asset.id}`}
-                              value={assetEdits[asset.id]?.category ?? asset.category}
+                              value={assetEdits[asset.id]?.categoryDetail ?? asset.categoryDetail ?? ""}
                               options={categoryOptions}
                               placeholder="เลือกหมวด/ชนิด"
                               searchPlaceholder="พิมพ์ค้นหาหมวด/ชนิด..."
                               emptyText="ไม่พบหมวด/ชนิด"
                               disabled={readOnly}
-                              onChange={(category) => editAsset(asset, { category })}
+                              onChange={(categoryDetail) => editAsset(asset, { categoryDetail })}
                             />
                             {!readOnly && (
                               addingCategoryFor === asset.id ? (
@@ -3528,7 +3529,7 @@ export default function InspectionForm({
                                         const name = newCategory.trim();
                                         if (name) {
                                           setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
-                                          editAsset(asset, { category: name });
+                                          editAsset(asset, { categoryDetail: name });
                                           setNewCategory("");
                                           setAddingCategoryFor(null);
                                         }
@@ -3539,7 +3540,7 @@ export default function InspectionForm({
                                     const name = newCategory.trim();
                                     if (!name) return;
                                     setAddedCategories((current) => current.includes(name) ? current : [...current, name]);
-                                    editAsset(asset, { category: name });
+                                    editAsset(asset, { categoryDetail: name });
                                     setNewCategory("");
                                     setAddingCategoryFor(null);
                                   }}>เพิ่ม</button>

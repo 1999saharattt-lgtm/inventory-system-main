@@ -855,7 +855,7 @@ export default async function AssetCategoryPage({
 
                         {/* หมวด/ชนิด: ประเภทครุภัณฑ์ในทะเบียน */}
                         <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
-                          {categoryName[asset.category] ?? asset.category}
+                          {asset.categoryDetail?.trim() || categoryName[asset.category] || asset.category}
                         </td>
 
                         {/* ชื่อเรียก/คุณลักษณะครุภัณฑ์ */}

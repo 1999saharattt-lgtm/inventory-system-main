@@ -76,8 +76,6 @@ enum AssetCategory {
 enum AssetStatus {
   IN_USE
   DAMAGED
-  DETERIORATED
-  UNNECESSARY
   WAITING_DISPOSAL
   DISPOSED
 }
@@ -384,6 +382,7 @@ model Asset {
 
   name     String
   category AssetCategory
+  categoryDetail String?
 
   brand        String?
   model        String?
