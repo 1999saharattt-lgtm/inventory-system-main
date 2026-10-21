@@ -813,7 +813,11 @@ export async function updateAsset(
      REDIRECT
      ======================================================= */
 
+  const rawFiscalYear = String(formData.get("fiscalYear") ?? "").trim();
+  const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
+    ? `?fiscalYear=${rawFiscalYear}`
+    : "";
   redirect(
-    `/assets/${updatedAsset.departmentId}/${updatedAsset.category}/${updatedAsset.id}`
+    `/assets/${updatedAsset.departmentId}/${updatedAsset.category.toLowerCase()}${fiscalYearQuery}`
   );
 }

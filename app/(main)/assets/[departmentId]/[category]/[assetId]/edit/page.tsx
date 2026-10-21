@@ -9,6 +9,7 @@ import AppCard from "@/components/AppCard";
 import AppInfoCard from "@/components/AppInfoCard";
 
 import AssetResponsibleFields from "./AssetResponsibleFields";
+import AssetCategoryTypeDropdown from "./AssetCategoryTypeDropdown";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 ========================================================= */
 
 type Props = {
+  searchParams?: Promise<{ fiscalYear?: string | string[] }>;
   params: Promise<{
     departmentId: string;
     category: string;
@@ -87,7 +89,14 @@ const statusName: Record<string, string> = {
 
 export default async function EditAssetPage({
   params,
+  searchParams,
 }: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYear = Array.isArray(rawFiscalYear) ? rawFiscalYear[0] : rawFiscalYear;
+  const validFiscalYear = fiscalYear && /^\d{4}$/.test(fiscalYear) ? fiscalYear : "";
+  const withFiscalYear = (path: string) => validFiscalYear ? `${path}?fiscalYear=${validFiscalYear}` : path;
+
   const {
     departmentId,
     category,
@@ -336,9 +345,31 @@ export default async function EditAssetPage({
   // หมวด/ชนิด ถูกบันทึกเป็นบรรทัดนำหน้าใน remark โดยหน้าเพิ่มครุภัณฑ์
   const remarkLines = (asset.remark ?? "").split("\n");
   const categoryLine = remarkLines[0] ?? "";
-  const existingCategoryType = asset.categoryDetail?.trim() || (categoryLine.startsWith("หมวด/ชนิด: ")
-    ? categoryLine.slice("หมวด/ชนิด: ".length)
-    : "");
+  const legacyCategoryType = categoryLine.startsWith("หมวด/ชนิด: ")
+    ? categoryLine.slice("หมวด/ชนิด: ".length).trim()
+    : "";
+  const defaultCategoryDetail: Record<string, string> = {
+    CHAIR: predefinedCategoryTypes[0],
+    AIR_CONDITIONER: predefinedCategoryTypes[1],
+    TELEPHONE: predefinedCategoryTypes[2],
+    SHELF: predefinedCategoryTypes[3],
+    CABINET: predefinedCategoryTypes[4],
+    DESK: predefinedCategoryTypes[5],
+    COMPUTER: predefinedCategoryTypes[6],
+    MONITOR: predefinedCategoryTypes[6],
+    PRINTER: predefinedCategoryTypes[7],
+    UPS: predefinedCategoryTypes[8],
+  };
+  const existingCategoryType = asset.categoryDetail?.trim() || legacyCategoryType ||
+    (assetCategory === "OTHER"
+      ? (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(asset.name)
+          ? predefinedCategoryTypes[8]
+          : /เครื่องเล่นเทปคาสเซ็ท/i.test(asset.name)
+            ? "เครื่องเล่นเทปคาสเซ็ท"
+            : /รถเข็น/i.test(asset.name)
+              ? "รถเข็น"
+              : "ทั่วไป")
+      : defaultCategoryDetail[asset.category] || "ทั่วไป");
   const existingRemark = categoryLine.startsWith("หมวด/ชนิด: ")
     ? remarkLines.slice(1).join("\n")
     : asset.remark ?? "";
@@ -364,7 +395,7 @@ export default async function EditAssetPage({
             =============================================== */}
 
             <AppButton
-              href={disposalPath}
+              href={withFiscalYear(disposalPath)}
               variant="danger"
               size="md"
               icon={
@@ -387,7 +418,7 @@ export default async function EditAssetPage({
             =============================================== */}
 
             <AppButton
-              href={categoryPath}
+              href={withFiscalYear(categoryPath)}
               variant="back"
               size="md"
               icon={
@@ -417,6 +448,7 @@ export default async function EditAssetPage({
         "
       >
         <input type="hidden" name="category" value={asset.category} />
+        <input type="hidden" name="fiscalYear" value={validFiscalYear} />
         <input type="hidden" name="responsibleName" value={asset.responsibleName ?? ""} />
         <AppCard
           className="
@@ -529,24 +561,11 @@ export default async function EditAssetPage({
               <label htmlFor="categoryType" className={labelClassName}>
                 หมวด/ชนิด
               </label>
-              <input
-                id="categoryType"
+              <AssetCategoryTypeDropdown
                 name="categoryType"
-                type="text"
-                list="asset-category-type-options"
-                autoComplete="off"
-                defaultValue={existingCategoryType}
-                placeholder="เลือกจากรายการ หรือพิมพ์หมวด/ชนิดใหม่"
-                className={inputClassName}
+                initialValue={existingCategoryType}
+                options={categoryTypeOptions}
               />
-              <datalist id="asset-category-type-options">
-                {categoryTypeOptions.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
-              <p className="mt-2 text-xs font-medium text-slate-500">
-                พิมพ์ค้นหาได้ หรือพิมพ์ชื่อใหม่เพื่อบันทึกเป็นหมวด/ชนิดใหม่
-              </p>
             </AppInfoCard>
 
             {/* BRAND */}
@@ -876,7 +895,7 @@ export default async function EditAssetPage({
             "
           >
             <AppButton
-              href={categoryPath}
+              href={withFiscalYear(categoryPath)}
               variant="secondary"
               size="md"
             >
