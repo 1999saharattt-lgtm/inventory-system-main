@@ -2533,8 +2533,17 @@ export default function InspectionForm({
           : "บันทึกข้อมูลการตรวจสอบเรียบร้อยแล้ว"
       );
 
+      const savedFiscalYear =
+        data &&
+        typeof data === "object" &&
+        "fiscalYear" in data &&
+        (typeof data.fiscalYear === "number" ||
+          typeof data.fiscalYear === "string")
+          ? String(data.fiscalYear)
+          : movementFiscalYear;
+
       window.location.href =
-        "/assets/inspection-history";
+        `/assets/inspection-history?fiscalYear=${encodeURIComponent(savedFiscalYear)}`;
     } catch (
       error
     ) {
