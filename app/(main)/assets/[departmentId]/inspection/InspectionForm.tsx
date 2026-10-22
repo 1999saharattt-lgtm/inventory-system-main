@@ -1617,7 +1617,7 @@ function getResponsibleName(
 
   // หากไม่ได้ผูก officer ให้แสดงค่าที่บันทึกในทะเบียนตามจริง
   // ไม่ตัดข้อมูลเพราะชื่ออยู่ต่างงานหรือมีคำนำหน้าเป็นชื่อหน่วยงาน
-  return asset.responsibleName?.trim() || "-";
+  return asset.responsibleName?.trim() || "";
 }
 
 /* =========================================================
@@ -1670,10 +1670,7 @@ function createInitialRows(
         asset.id,
 
       countedQty:
-        String(
-          asset.quantity ??
-            1
-        ),
+        "",
 
       accuracy:
         "",
@@ -1717,11 +1714,9 @@ function normalizeInitialRows(
             asset.id,
 
           countedQty:
-            existingRow.countedQty ??
-            String(
-              asset.quantity ??
-                1
-            ),
+            existingRow.countedQty == null
+              ? ""
+              : String(existingRow.countedQty),
 
           accuracy:
             existingRow.accuracy ??
@@ -1742,10 +1737,7 @@ function normalizeInitialRows(
           asset.id,
 
         countedQty:
-          String(
-            asset.quantity ??
-              1
-          ),
+          "",
 
         accuracy:
           "",
@@ -2437,16 +2429,12 @@ export default function InspectionForm({
       const row of
       rows
     ) {
-      const countedQty =
-        Number(
-          row.countedQty
-        );
+      const countedQtyText = row.countedQty.trim();
+      const countedQty = Number(countedQtyText);
 
       if (
-        !Number.isInteger(
-          countedQty
-        ) ||
-        countedQty < 0
+        countedQtyText !== "" &&
+        (!Number.isInteger(countedQty) || countedQty < 0)
       ) {
         alert(
           "จำนวนที่ตรวจนับต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป"
@@ -3355,11 +3343,11 @@ export default function InspectionForm({
 
                         {(["governmentAssetNo", "officeAssetNo"] as const).map((field) => (
                           <td key={field} className="border border-black px-2 py-2.5 text-center align-middle break-all">
-                            {asset[field] || "-"}
+                            {asset[field]?.trim() || ""}
                           </td>
                         ))}
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
-                          {department.name.trim() || "-"}
+                          {department.name.trim()}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
                           {getResponsibleName(asset, department, officers)}
@@ -3368,10 +3356,10 @@ export default function InspectionForm({
                           {displayCategoryDetail(asset)}
                         </td>
                         <td className="border border-black px-2 py-2.5 align-middle break-words min-w-[220px]">
-                          {asset.name || "-"}
+                          {asset.name || ""}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[180px]">
-                          {[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}
+                          {[asset.brand, asset.model].filter(Boolean).join(" / ")}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle">
                           {assetUnit}
@@ -3384,11 +3372,9 @@ export default function InspectionForm({
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
-                          -
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
-                          -
                         </td>
 
                         <td className="border border-black px-2 py-2.5 text-center">
@@ -3403,10 +3389,7 @@ export default function InspectionForm({
                             min="0"
                             step="1"
                             value={
-                              row?.countedQty ??
-                              String(
-                                quantity
-                              )
+                              row?.countedQty ?? ""
                             }
                             disabled={
                               readOnly
