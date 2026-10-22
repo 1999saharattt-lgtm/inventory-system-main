@@ -99,9 +99,9 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 9;
+const MAX_ROWS_PER_PAGE = 5;
 const FIXED_FONT_SIZE = 8.5;
-const MAX_BODY_HEIGHT = 115;
+const MAX_BODY_HEIGHT = 125;
 
 
 const thaiMonths = [
@@ -151,11 +151,10 @@ const SIGNATURE_MIN_START_Y = 170;
    ========================================================= */
 const COLUMN_WIDTHS = {
   order: 6, gfmis: 17, assetNo: 19, location: 24,
-  responsible: 18, category: 14, item: 26, brandModel: 16,
+  responsible: 21, category: 18, item: 34, brandModel: 16,
   unit: 9, accountStart: 15, receive: 8, issue: 8,
   accountEnd: 15, counted: 12, correct: 9, incorrect: 11,
   inUse: 10, damaged: 9, deteriorated: 11, unusable: 13,
-  remark: 15,
 } as const;
 
 /* =========================================================
@@ -355,7 +354,7 @@ function getResponsibleName(
   const officerName = asset.officer
     ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
     : "";
-  return officerName || "-";
+  return officerName || "";
 }
 
 /* =========================================================
@@ -593,7 +592,7 @@ export default function ExportInspectionPdf({
     doc.setFontSize(12);
     doc.text(`แผ่นที่ ${pageNumber}`, PAGE_WIDTH - MARGIN_X, 9, { align: "right" });
 
-    doc.setFontSize(18);
+    doc.setFontSize(15);
 
     doc.text(
       `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`,
@@ -604,7 +603,7 @@ export default function ExportInspectionPdf({
       }
     );
 
-    doc.setFontSize(18);
+    doc.setFontSize(15);
 
     doc.text(
       "สำนักอนามัยการเจริญพันธุ์",
@@ -851,26 +850,25 @@ export default function ExportInspectionPdf({
         COLUMN_WIDTHS.accountStart, COLUMN_WIDTHS.receive, COLUMN_WIDTHS.issue,
         COLUMN_WIDTHS.accountEnd, COLUMN_WIDTHS.counted, COLUMN_WIDTHS.correct,
         COLUMN_WIDTHS.incorrect, COLUMN_WIDTHS.inUse, COLUMN_WIDTHS.damaged,
-        COLUMN_WIDTHS.deteriorated, COLUMN_WIDTHS.unusable, COLUMN_WIDTHS.remark,
+        COLUMN_WIDTHS.deteriorated, COLUMN_WIDTHS.unusable,
       ];
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
       const maxLineCount = Math.max(1, ...assets.map(asset => {
         const responsible = getResponsibleName(asset, department);
         const officer = asset.officer
-          ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : "-";
+          ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : "";
         const texts = [
           String(getSourceOrder(asset.remark) ?? ""),
-          asset.governmentAssetNo ?? "-", asset.officeAssetNo ?? "-",
+          asset.governmentAssetNo ?? "", asset.officeAssetNo ?? "",
           department.name, responsible, getDisplayCategory(asset), asset.name,
-          [asset.brand, asset.model].filter(Boolean).join(" / ") || "-",
+          [asset.brand, asset.model].filter(Boolean).join(" / "),
           asset.unit?.trim() || getCategoryUnit(asset.category),
-          String(asset.quantity ?? 1), "-", "-", String(asset.quantity ?? 1),
-          rowMap.get(asset.id)?.countedQty ?? "1", "", "", "", "", "", "",
-          rowMap.get(asset.id)?.remark ?? "",
+          String(asset.quantity ?? 1), "", "", String(asset.quantity ?? 1),
+          (Number(rowMap.get(asset.id)?.countedQty) === 0 ? "" : (rowMap.get(asset.id)?.countedQty ?? "")), "", "", "", "", "", "",
         ];
         return Math.max(...texts.map((t, i) => wrapCellText(doc, t, measuredWidths[i]).length));
       }));
-      const rowHeight = Math.max(9, maxLineCount * 3.65 + 1.2);
+      const rowHeight = Math.max(23, maxLineCount * 3.65 + 1.2);
       const rowsPerPage = Math.max(1, Math.min(MAX_ROWS_PER_PAGE,
         Math.floor(MAX_BODY_HEIGHT / rowHeight)));
 
@@ -942,7 +940,7 @@ export default function ExportInspectionPdf({
                     asset.id,
 
                   countedQty:
-                    "1",
+                    "",
 
                   accuracy: "",
 
@@ -957,11 +955,11 @@ export default function ExportInspectionPdf({
                   department
                 );
 
-              const assetName = asset.name || "-";
+              const assetName = asset.name || "";
               const officerName = asset.officer
                 ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-                : "-";
-              const brandModel = [asset.brand, asset.model].filter(Boolean).join(" / ") || "-";
+                : "";
+              const brandModel = [asset.brand, asset.model].filter(Boolean).join(" / ");
 
               return [
                 String(
@@ -970,11 +968,11 @@ export default function ExportInspectionPdf({
 
                 asset.governmentAssetNo?.trim()
                   ? asset.governmentAssetNo
-                  : "-",
+                  : "",
 
                 asset.officeAssetNo?.trim()
                   ? asset.officeAssetNo
-                  : "-",
+                  : "",
 
                 department.name,
                 responsibleName,
@@ -988,13 +986,13 @@ export default function ExportInspectionPdf({
 
                 String(asset.quantity ?? 1),
 
-                "-",
+                "",
 
-                "-",
+                "",
 
                 String(asset.quantity ?? 1),
 
-                row.countedQty,
+                (row.countedQty.trim() === "" || Number(row.countedQty) === 0) ? "" : row.countedQty,
 
                 getAccuracyChecked(
                   row,
@@ -1025,8 +1023,6 @@ export default function ExportInspectionPdf({
                   row,
                   "UNUSABLE"
                 ),
-
-                row.remark || "",
               ];
             }
           );
@@ -1036,7 +1032,7 @@ export default function ExportInspectionPdf({
           rowsPerPage
         ) {
           body.push(
-            Array(21).fill(
+            Array(20).fill(
               ""
             )
           );
@@ -1078,16 +1074,15 @@ export default function ExportInspectionPdf({
           3: ["สถานที่ใช้งาน"],
           4: ["ผู้รับผิดชอบ"],
           5: ["หมวด/ชนิด"],
-          6: ["ชื่อเรียก/", "คุณลักษณะ", "ครุภัณฑ์"],
+          6: ["ชื่อเรียก/คุณลักษณะ", "ครุภัณฑ์"],
           7: ["ยี่ห้อ/รุ่น"],
           8: ["หน่วยนับ"],
           9: accountStartHeaderLines,
           10: movementHeaderLines,
           12: accountEndHeaderLines,
           13: ["จำนวนที่", "ตรวจนับได้"],
-          14: ["ผลการตรวจนับถูกต้อง", "ตรงกับยอดคงเหลือ", "ตามบัญชี"],
+          14: ["ผลการตรวจนับถูกต้อง", "ตรงกับยอดคงเหลือตามบัญชี"],
           16: ["สภาพครุภัณฑ์ที่ตรวจนับ"],
-          20: ["หมายเหตุ"],
         };
 
         autoTable(doc, {
@@ -1124,7 +1119,6 @@ export default function ExportInspectionPdf({
               { content: "จำนวนที่ตรวจนับได้", rowSpan: 2 },
               { content: "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี", colSpan: 2 },
               { content: "สภาพครุภัณฑ์ที่ตรวจนับ", colSpan: 4 },
-              { content: "หมายเหตุ", rowSpan: 2 },
             ],
             ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ใช้งานปกติ", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
           ],
@@ -1138,7 +1132,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: 8.5,
+            fontSize: FIXED_FONT_SIZE,
 
             textColor: [
               0,
@@ -1179,7 +1173,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: 8.5,
+            fontSize: FIXED_FONT_SIZE,
 
             fillColor: [
               255,
@@ -1222,7 +1216,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: 8.5,
+            fontSize: FIXED_FONT_SIZE,
 
             textColor: [
               0,
@@ -1265,22 +1259,10 @@ export default function ExportInspectionPdf({
                 data.cell.text = [String(data.cell.raw ?? "")];
               }
 
-              const width = data.cell.width ||
-                measuredWidths[index] || 10;
-              const actualLines = data.cell.text;
-              const headerFontSize = getMultiLineFontSize(
-                doc,
-                actualLines,
-                width,
-                8,
-                3.5,
-                1.8
-              );
-              data.cell.styles.fontSize = headerFontSize;
-              data.cell.styles.cellPadding = 0.35;
-              data.cell.styles.minCellHeight = data.row.index === 0 ? 8 : 6;
-              // ไม่ให้ autoTable ตัดคำไทยเพิ่มเติมโดยพลการ
-              data.cell.styles.overflow = "visible";
+                             data.cell.styles.fontSize = FIXED_FONT_SIZE;
+               data.cell.styles.cellPadding = 0.35;
+               data.cell.styles.minCellHeight = data.row.index === 0 ? 10 : 7;
+               data.cell.styles.overflow = "linebreak";
             }
             if (data.section === "body") {
               data.cell.styles.minCellHeight = rowHeight;
@@ -1314,7 +1296,6 @@ export default function ExportInspectionPdf({
             17: { cellWidth: COLUMN_WIDTHS.damaged },
             18: { cellWidth: COLUMN_WIDTHS.deteriorated },
             19: { cellWidth: COLUMN_WIDTHS.unusable },
-            20: { cellWidth: COLUMN_WIDTHS.remark },
           },
 
 
