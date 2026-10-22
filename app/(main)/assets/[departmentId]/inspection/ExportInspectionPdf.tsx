@@ -507,13 +507,83 @@ function getDisplayCategory(asset: Asset): string {
 
 // แบ่งบรรทัดตามวลีที่คั่นด้วยจุลภาคหรือเครื่องหมายทับก่อน
 // แล้วจึงให้ jsPDF ตัดตามความกว้างจริง โดยไม่ย่อฟอนต์และไม่ตัดข้อความทิ้ง
+// ตัดข้อความตามขอบเขตคำภาษาไทย ไม่แยกสระหรือวรรณยุกต์จากพยัญชนะ
+// และคงรหัส GFMIS / รหัสครุภัณฑ์เป็นบรรทัดเดียวเสมอ
 function wrapCellText(doc: jsPDF, value: string, width: number): string[] {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
-  if (!text) return [""];
-  const phrases = text.replace(/,\s*/g, ",\n").replace(/\s+\/\s+/g, " /\n");
-  return phrases.split("\n").flatMap(part =>
-    doc.splitTextToSize(part, Math.max(1, width - 1.2)) as string[]
-  );
+  if (!text || text === "-") return [""];
+  const available = Math.max(1, width - 1.6);
+  const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+  const words = Array.from(segmenter.segment(text), part => part.segment);
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const candidate = current + word;
+    if (current && doc.getTextWidth(candidate) > available) {
+      lines.push(current.trim());
+      current = word.trimStart();
+    } else {
+      current = candidate;
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines.length ? lines : [""];
+}
+
+// แบ่งพื้นที่คอลัมน์ให้รหัสและข้อความสำคัญมีความกว้างเหมาะสม
+// โดยรักษาความกว้างรวมของตาราง A4 แนวนอน 285 มม. ไว้เท่าเดิม
+function getAdjustedColumnWidths(doc: jsPDF, assets: Asset[], department: Department): number[] {
+  const widths = [
+    COLUMN_WIDTHS.order, COLUMN_WIDTHS.gfmis, COLUMN_WIDTHS.assetNo,
+    COLUMN_WIDTHS.location, COLUMN_WIDTHS.responsible, COLUMN_WIDTHS.category,
+    COLUMN_WIDTHS.item, COLUMN_WIDTHS.brandModel, COLUMN_WIDTHS.unit,
+    COLUMN_WIDTHS.accountStart, COLUMN_WIDTHS.receive, COLUMN_WIDTHS.issue,
+    COLUMN_WIDTHS.accountEnd, COLUMN_WIDTHS.counted, COLUMN_WIDTHS.correct,
+    COLUMN_WIDTHS.incorrect, COLUMN_WIDTHS.inUse, COLUMN_WIDTHS.damaged,
+    COLUMN_WIDTHS.deteriorated, COLUMN_WIDTHS.unusable,
+  ].map(Number);
+  doc.setFont("2.3.2 THSarabunNew", "normal");
+  doc.setFontSize(FIXED_FONT_SIZE);
+  const maxTextWidth = (values: string[]) => Math.max(0, ...values.map(v => doc.getTextWidth(v || ""))) + 2;
+  const requests: [number, number][] = [
+    [1, maxTextWidth(assets.map(a => a.governmentAssetNo?.trim() || ""))],
+    [2, maxTextWidth(assets.map(a => a.officeAssetNo?.trim() || ""))],
+    [3, maxTextWidth([department.name])],
+    [4, maxTextWidth(assets.map(a => getResponsibleName(a, department)))],
+    [7, maxTextWidth(assets.map(a => [a.brand, a.model].filter(Boolean).join(" / ")))],
+  ];
+  // จำกัดการขยายของข้อความที่ยาวมาก เพื่อไม่ให้คอลัมน์อื่นถูกบีบจนอ่านไม่ได้
+  const caps: Record<number, number> = { 1: 30, 2: 33, 3: 33, 4: 35, 7: 30 };
+  for (const [index, requested] of requests) widths[index] = Math.max(widths[index], Math.min(requested, caps[index]));
+  const total = widths.reduce((a, b) => a + b, 0);
+  if (total > TABLE_WIDTH) {
+    const flexible = [5, 6, 9, 12, 13, 14, 15, 16, 17, 18, 19, 0, 8, 10, 11];
+    const minimums: Record<number, number> = {
+      0: 6, 5: 12, 6: 25, 8: 8, 9: 13, 10: 7, 11: 7,
+      12: 13, 13: 11, 14: 8, 15: 9, 16: 9, 17: 8, 18: 9, 19: 11,
+    };
+    let excess = total - TABLE_WIDTH;
+    for (const index of flexible) {
+      const removable = Math.max(0, widths[index] - minimums[index]);
+      const take = Math.min(excess, removable);
+      widths[index] -= take;
+      excess -= take;
+      if (excess <= 0.001) break;
+    }
+    // เมื่อข้อมูลยาวเกินพื้นที่ A4 จริง ให้ลดเฉพาะคอลัมน์ข้อความ
+    // ไม่ลดขนาดฟอนต์ และไม่บังคับตัดรหัสครุภัณฑ์
+    if (excess > 0) {
+      for (const index of [3, 4, 7, 5, 6]) {
+        const take = Math.min(excess, Math.max(0, widths[index] - 12));
+        widths[index] -= take;
+        excess -= take;
+        if (excess <= 0.001) break;
+      }
+    }
+  }
+  const remaining = TABLE_WIDTH - widths.reduce((sum, width) => sum + width, 0);
+  widths[6] += remaining;
+  return widths;
 }
 
 /* =========================================================
@@ -589,7 +659,7 @@ export default function ExportInspectionPdf({
       0
     );
 
-    doc.setFontSize(12);
+    doc.setFontSize(FIXED_FONT_SIZE);
     doc.text(`แผ่นที่ ${pageNumber}`, PAGE_WIDTH - MARGIN_X, 9, { align: "right" });
 
     doc.setFontSize(15);
@@ -843,15 +913,7 @@ export default function ExportInspectionPdf({
       // เพื่อให้ทุกหน้ามีขนาดตารางเท่ากันโดยไม่ลดขนาดตัวอักษร
       doc.setFont("2.3.2 THSarabunNew", "normal");
       doc.setFontSize(FIXED_FONT_SIZE);
-      const measuredWidths = [
-        COLUMN_WIDTHS.order, COLUMN_WIDTHS.gfmis, COLUMN_WIDTHS.assetNo,
-        COLUMN_WIDTHS.location, COLUMN_WIDTHS.responsible, COLUMN_WIDTHS.category,
-        COLUMN_WIDTHS.item, COLUMN_WIDTHS.brandModel, COLUMN_WIDTHS.unit,
-        COLUMN_WIDTHS.accountStart, COLUMN_WIDTHS.receive, COLUMN_WIDTHS.issue,
-        COLUMN_WIDTHS.accountEnd, COLUMN_WIDTHS.counted, COLUMN_WIDTHS.correct,
-        COLUMN_WIDTHS.incorrect, COLUMN_WIDTHS.inUse, COLUMN_WIDTHS.damaged,
-        COLUMN_WIDTHS.deteriorated, COLUMN_WIDTHS.unusable,
-      ];
+      const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
       const maxLineCount = Math.max(1, ...assets.map(asset => {
         const responsible = getResponsibleName(asset, department);
@@ -866,7 +928,7 @@ export default function ExportInspectionPdf({
           String(asset.quantity ?? 1), "", "", String(asset.quantity ?? 1),
           (Number(rowMap.get(asset.id)?.countedQty) === 0 ? "" : (rowMap.get(asset.id)?.countedQty ?? "")), "", "", "", "", "", "",
         ];
-        return Math.max(...texts.map((t, i) => wrapCellText(doc, t, measuredWidths[i]).length));
+        return Math.max(...texts.map((t, i) => ([1, 2].includes(i) ? 1 : wrapCellText(doc, t, measuredWidths[i]).length)));
       }));
       const rowHeight = Math.max(23, maxLineCount * 3.65 + 1.2);
       const rowsPerPage = Math.max(1, Math.min(MAX_ROWS_PER_PAGE,
@@ -1266,36 +1328,45 @@ export default function ExportInspectionPdf({
             }
             if (data.section === "body") {
               data.cell.styles.minCellHeight = rowHeight;
+              if (data.column.index === 6) {
+                data.cell.styles.halign = "center";
+                data.cell.styles.valign = "middle";
+              }
               if (data.column.index >= 14 && data.column.index <= 19) {
                 data.cell.text = [""];
               } else {
                 const raw = String(data.cell.raw ?? "");
-                data.cell.text = wrapCellText(doc, raw, measuredWidths[data.column.index]);
+                data.cell.text = [1, 2].includes(data.column.index)
+                  ? [raw.trim() === "-" ? "" : raw.trim()]
+                  : wrapCellText(doc, raw, measuredWidths[data.column.index]);
+                if ([1, 2].includes(data.column.index)) {
+                  data.cell.styles.overflow = "visible";
+                }
               }
             }
           },
           // Uniform 8.5pt font throughout: wrap long text rather than shrinking it.
           columnStyles: {
-            0: { cellWidth: COLUMN_WIDTHS.order },
-            1: { cellWidth: COLUMN_WIDTHS.gfmis },
-            2: { cellWidth: COLUMN_WIDTHS.assetNo },
-            3: { cellWidth: COLUMN_WIDTHS.location },
-            4: { cellWidth: COLUMN_WIDTHS.responsible },
-            5: { cellWidth: COLUMN_WIDTHS.category },
-            6: { cellWidth: COLUMN_WIDTHS.item, halign: "left" },
-            7: { cellWidth: COLUMN_WIDTHS.brandModel },
-            8: { cellWidth: COLUMN_WIDTHS.unit },
-            9: { cellWidth: COLUMN_WIDTHS.accountStart },
-            10: { cellWidth: COLUMN_WIDTHS.receive },
-            11: { cellWidth: COLUMN_WIDTHS.issue },
-            12: { cellWidth: COLUMN_WIDTHS.accountEnd },
-            13: { cellWidth: COLUMN_WIDTHS.counted },
-            14: { cellWidth: COLUMN_WIDTHS.correct },
-            15: { cellWidth: COLUMN_WIDTHS.incorrect },
-            16: { cellWidth: COLUMN_WIDTHS.inUse },
-            17: { cellWidth: COLUMN_WIDTHS.damaged },
-            18: { cellWidth: COLUMN_WIDTHS.deteriorated },
-            19: { cellWidth: COLUMN_WIDTHS.unusable },
+            0: { cellWidth: measuredWidths[0] },
+            1: { cellWidth: measuredWidths[1] },
+            2: { cellWidth: measuredWidths[2] },
+            3: { cellWidth: measuredWidths[3] },
+            4: { cellWidth: measuredWidths[4] },
+            5: { cellWidth: measuredWidths[5] },
+            6: { cellWidth: measuredWidths[6], halign: "center", valign: "middle" },
+            7: { cellWidth: measuredWidths[7] },
+            8: { cellWidth: measuredWidths[8] },
+            9: { cellWidth: measuredWidths[9] },
+            10: { cellWidth: measuredWidths[10] },
+            11: { cellWidth: measuredWidths[11] },
+            12: { cellWidth: measuredWidths[12] },
+            13: { cellWidth: measuredWidths[13] },
+            14: { cellWidth: measuredWidths[14] },
+            15: { cellWidth: measuredWidths[15] },
+            16: { cellWidth: measuredWidths[16] },
+            17: { cellWidth: measuredWidths[17] },
+            18: { cellWidth: measuredWidths[18] },
+            19: { cellWidth: measuredWidths[19] },
           },
 
 
