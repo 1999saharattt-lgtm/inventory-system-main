@@ -550,9 +550,11 @@ export default function EditIssueForm({
                   mt-2
                   flex
                   w-fit
+                  max-w-full
                   cursor-pointer
                   items-center
                   gap-2
+                  whitespace-nowrap
                   text-xs
                   font-semibold
                   !text-slate-600
@@ -589,7 +591,7 @@ export default function EditIssueForm({
                     border-slate-300
                   "
                 />
-                <span>
+                <span className="whitespace-nowrap">
                   แก้ไขเลขที่เอกสาร
                 </span>
               </label>
@@ -1271,8 +1273,8 @@ export default function EditIssueForm({
                             h-[46px]
                             w-full
                             rounded-[12px]
-                            border-2
-                            !border-black
+                            border
+                            border-slate-200
                             bg-white
                             px-3
                             text-center
@@ -1280,9 +1282,12 @@ export default function EditIssueForm({
                             !text-slate-900
                             outline-none
                             transition
-                            focus:!border-emerald-500
+                            focus:border-blue-300
                             focus:ring-2
                             focus:ring-emerald-100
+                            [appearance:textfield]
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
                             disabled:!text-slate-500
