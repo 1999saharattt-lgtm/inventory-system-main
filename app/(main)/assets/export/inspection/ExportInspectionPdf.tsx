@@ -14,7 +14,7 @@ type Inspection = {
   year: number;
   quarter: string;
   inspectionDate: string;
-  status: string;
+  status: string | null;
   condition: string | null;
   location: string | null;
   remark: string | null;
@@ -934,10 +934,9 @@ export default function ExportInspectionPdf({
                           text-slate-900
                         "
                       >
-                        {statusName[
-                          inspection.status
-                        ] ??
-                          inspection.status}
+                        {inspection.status
+                          ? (statusName[inspection.status] ?? inspection.status)
+                          : "-"}
                       </td>
 
                       <td
