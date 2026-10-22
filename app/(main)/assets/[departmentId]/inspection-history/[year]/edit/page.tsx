@@ -395,9 +395,7 @@ export default async function InspectionHistoryEditPage({
     inspections[0].year;
 
   const displayFiscalYear =
-    normalizeFiscalYear(
-      databaseYear
-    );
+    String(buddhistYear);
 
   /* =======================================================
      OFFICERS
@@ -509,17 +507,17 @@ export default async function InspectionHistoryEditPage({
 
   const accountStartDate =
     getFiscalYearStartDate(
-      databaseYear
+      buddhistYear
     );
 
   const accountEndDate =
     getFiscalYearEndDate(
-      databaseYear
+      buddhistYear
     );
 
   const movementFiscalYear =
     getMovementFiscalYear(
-      databaseYear
+      buddhistYear
     );
 
   /* =======================================================
@@ -604,6 +602,7 @@ export default async function InspectionHistoryEditPage({
         initialData={
           initialData
         }
+        fiscalYear={String(buddhistYear)}
         submitUrl={`/api/assets/inspection?departmentId=${department.id}&year=${databaseYear}`}
         submitMethod="PUT"
         cancelHref={
