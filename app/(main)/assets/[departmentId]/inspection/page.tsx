@@ -324,8 +324,7 @@ export default async function AssetInspectionPage({
   ======================================================= */
 
   const assets = sortedAssets.map((asset) => {
-    const sectionName =
-      asset.section?.name?.trim() || "";
+    const groupName = department.name.trim();
 
     const officerName = asset.officer
       ? [
@@ -339,8 +338,8 @@ export default async function AssetInspectionPage({
 
     return {
       ...asset,
-      location: sectionName,
-      responsibleName: officerName,
+      location: groupName,
+      responsibleName: asset.responsibleName?.trim() || officerName,
     };
   });
 

@@ -1600,7 +1600,13 @@ function getResponsibleName(
   asset: Asset,
   _department: Department
 ) {
-  // แสดงเฉพาะชื่อ-นามสกุลของผู้รับผิดชอบที่ผูกกับครุภัณฑ์
+  // ใช้ชื่อผู้รับผิดชอบที่กรอกไว้ในทะเบียนครุภัณฑ์ก่อน
+  const recordedName = asset.responsibleName?.trim();
+  if (recordedName && recordedName !== "-") {
+    return recordedName;
+  }
+
+  // กรณีไม่ได้กรอกชื่อไว้ ใช้ชื่อบุคคลที่ผูกกับครุภัณฑ์
   if (!asset.officer) return "-";
 
   return [asset.officer.firstName, asset.officer.lastName]
@@ -3340,7 +3346,7 @@ export default function InspectionForm({
                           </td>
                         ))}
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
-                          {asset.section?.name?.trim() || "-"}
+                          {department.name.trim() || "-"}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
                           {getResponsibleName(asset, department)}
