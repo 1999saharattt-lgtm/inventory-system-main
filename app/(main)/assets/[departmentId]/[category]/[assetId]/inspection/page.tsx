@@ -416,16 +416,16 @@ export default async function AssetInspectionPage({
                     text-sm
                     font-extrabold
                     ${
-                      inspectionStatusClass[
-                        latestInspection.status
-                      ] ??
+                      (latestInspection.status
+                        ? inspectionStatusClass[latestInspection.status]
+                        : undefined) ??
                       "border-slate-300 bg-slate-50 text-slate-700"
                     }
                   `}
                 >
-                  {inspectionStatusName[
-                    latestInspection.status
-                  ] ?? latestInspection.status}
+                  {(latestInspection.status
+                    ? inspectionStatusName[latestInspection.status] ?? latestInspection.status
+                    : "ยังไม่ระบุผลการตรวจ")}
                 </span>
               ) : (
                 <p
@@ -726,16 +726,16 @@ export default async function AssetInspectionPage({
                             text-sm
                             font-extrabold
                             ${
-                              inspectionStatusClass[
-                                inspection.status
-                              ] ??
+                              (inspection.status
+                                ? inspectionStatusClass[inspection.status]
+                                : undefined) ??
                               "border-slate-300 bg-slate-50 text-slate-700"
                             }
                           `}
                         >
-                          {inspectionStatusName[
-                            inspection.status
-                          ] ?? inspection.status}
+                          {(inspection.status
+                            ? inspectionStatusName[inspection.status] ?? inspection.status
+                            : "ยังไม่ระบุผลการตรวจ")}
                         </span>
                       </td>
 
