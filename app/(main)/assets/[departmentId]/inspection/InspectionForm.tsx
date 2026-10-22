@@ -124,6 +124,8 @@ type Props = {
 
   initialData?: InitialData;
 
+  fiscalYear?: string;
+
   submitUrl?: string;
 
   submitMethod?:
@@ -1596,68 +1598,15 @@ function getAssetUnit(
 
 function getResponsibleName(
   asset: Asset,
-  department: Department
+  _department: Department
 ) {
-  const originalResponsibleName =
-    asset.responsibleName?.trim();
+  // แสดงเฉพาะชื่อ-นามสกุลของผู้รับผิดชอบที่ผูกกับครุภัณฑ์
+  if (!asset.officer) return "-";
 
-  let responsibleName =
-    "";
-
-  if (
-    originalResponsibleName &&
-    originalResponsibleName !== "-"
-  ) {
-    responsibleName =
-      originalResponsibleName;
-  } else {
-    const officerName =
-      asset.officer
-        ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-        : "";
-
-    if (
-      officerName &&
-      asset.section?.name
-    ) {
-      responsibleName =
-        `${officerName} / ${asset.section.name}`;
-    } else if (
-      officerName
-    ) {
-      responsibleName =
-        officerName;
-    } else if (
-      asset.section?.name
-    ) {
-      responsibleName =
-        asset.section.name;
-    } else {
-      responsibleName =
-        "-";
-    }
-  }
-
-  if (
-    department.name ===
-      "กลุ่มอำนวยการ" &&
-    responsibleName !== "-"
-  ) {
-    const prefix =
-      `${department.name} / `;
-
-    if (
-      !responsibleName.startsWith(
-        prefix
-      ) &&
-      responsibleName !==
-        department.name
-    ) {
-      return `${department.name} / ${responsibleName}`;
-    }
-  }
-
-  return responsibleName;
+  return [asset.officer.firstName, asset.officer.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || "-";
 }
 
 /* =========================================================
@@ -1842,6 +1791,7 @@ export default function InspectionForm({
   assets,
   officers,
   initialData,
+  fiscalYear,
   submitUrl = "/api/assets/inspection",
   submitMethod = "POST",
   cancelHref,
@@ -1875,7 +1825,8 @@ export default function InspectionForm({
   );
 
   const [movementFiscalYear] = useState(
-    initialData?.movementFiscalYear ||
+    fiscalYear ||
+      initialData?.movementFiscalYear ||
       getFiscalYear(initialData?.inspectionStartDate || today)
   );
 
@@ -3389,12 +3340,10 @@ export default function InspectionForm({
                           </td>
                         ))}
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
-                          {asset.section?.name || department.name}
+                          {asset.section?.name?.trim() || "-"}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
-                          {asset.officer
-                            ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-                            : asset.responsibleName?.trim() || "-"}
+                          {getResponsibleName(asset, department)}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[240px]">
                           {displayCategoryDetail(asset)}
