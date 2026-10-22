@@ -1,12 +1,81 @@
 "use client";
 import {
   useState,
+  useRef,
+  useEffect,
 } from "react";
 import { updateIssue } from "./action";
 import AppButton from "@/components/AppButton";
 import AppCard from "@/components/AppCard";
 import AppInfoCard from "@/components/AppInfoCard";
 import AppTableCard from "@/components/AppTableCard";
+type SearchOption = { value: string; label: string };
+
+function SearchSelect({ value, options, onChange, disabled = false, placeholder = "เลือกข้อมูล", className = "", name, required = false }: {
+  value: string;
+  options: SearchOption[];
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+  name?: string;
+  required?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const root = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value);
+  useEffect(() => {
+    function outside(event: MouseEvent) {
+      if (root.current && !root.current.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", outside);
+    return () => document.removeEventListener("mousedown", outside);
+  }, []);
+  const matches = options.filter((option) => option.label.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
+  return (
+    <div ref={root} className="relative w-full min-w-0">
+      {name && <input type="hidden" name={name} value={value} />}
+      {required && <input tabIndex={-1} required value={value} onChange={() => {}} className="pointer-events-none absolute h-px w-px opacity-0" />}
+      <div className="relative">
+        <input
+          type="text"
+          disabled={disabled}
+          value={open ? search : (selected?.label ?? "")}
+          placeholder={placeholder}
+          autoComplete="off"
+          aria-label={placeholder}
+          aria-expanded={open}
+          role="combobox"
+          className={`${className} pr-9`}
+          onFocus={() => { setSearch(""); setOpen(true); }}
+          onChange={(event) => { setSearch(event.target.value); setOpen(true); }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setOpen(false);
+            if (event.key === "Enter" && open) {
+              event.preventDefault();
+              if (matches.length > 0) { onChange(matches[0].value); setOpen(false); setSearch(""); }
+            }
+          }}
+        />
+        <span aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">⌄</span>
+      </div>
+      {open && !disabled && (
+        <div className="absolute left-0 right-0 top-full z-[9999] mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+          {matches.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-slate-500">ไม่พบข้อมูล</div>
+          ) : matches.map((option) => (
+            <button key={option.value} type="button" className={`block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-blue-50 ${option.value === value ? "bg-blue-50 font-bold" : ""}`}
+              onClick={() => { onChange(option.value); setOpen(false); setSearch(""); }}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* =========================================================
    TYPES
 ========================================================= */
@@ -631,81 +700,17 @@ export default function EditIssueForm({
             >
               วันที่เบิก
             </label>
-            <div
-              className="
-                relative
-                h-11
-                w-full
-              "
-            >
+            <div className="relative w-full">
               <input
                 type="date"
                 name="issueDate"
                 value={issueDate}
-                disabled={
-                  !isEditable
-                }
-                onChange={(
-                  event
-                ) =>
-                  setIssueDate(
-                    event.target
-                      .value
-                  )
-                }
-                className="
-                  absolute
-                  inset-0
-                  z-10
-                  h-11
-                  w-full
-                  cursor-pointer
-                  opacity-0
-                  disabled:cursor-not-allowed
-                "
+                disabled={!isEditable}
+                onChange={(event) => setIssueDate(event.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold !text-slate-900 shadow-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
               />
-              {!isEditable && (
-                <input
-                  type="hidden"
-                  name="issueDate"
-                  value={
-                    issueDate
-                  }
-                />
-              )}
-              <div
-                className="
-                  flex
-                  h-11
-                  w-full
-                  items-center
-                  justify-between
-                  rounded-xl
-                  border
-                  border-slate-300
-                  bg-white
-                  px-3
-                  text-sm
-                  font-bold
-                  !text-slate-900
-                  shadow-sm
-                "
-              >
-                <span>
-                  {formatThaiDate(
-                    issueDate
-                  )}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="
-                    shrink-0
-                    text-lg
-                  "
-                >
-                  📅
-                </span>
-              </div>
+              {!isEditable && <input type="hidden" name="issueDate" value={issueDate} />}
+              <div className="mt-1 text-xs text-slate-500">{formatThaiDate(issueDate)}</div>
             </div>
           </AppInfoCard>
           {/* ===============================================
@@ -733,81 +738,15 @@ export default function EditIssueForm({
                 }
               />
             )}
-            <select
-              name={
-                canChangeDepartment &&
-                isEditable
-                  ? "departmentId"
-                  : undefined
-              }
-              value={
-                departmentId
-              }
-              disabled={
-                !canChangeDepartment ||
-                !isEditable
-              }
-              onChange={(
-                event
-              ) => {
-                if (
-                  !canChangeDepartment ||
-                  !isEditable
-                ) {
-                  return;
-                }
-                setDepartmentId(
-                  event.target
-                    .value
-                );
-                setOfficerId("");
-              }}
-              className="
-                h-11
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-3
-                text-sm
-                font-bold
-                !text-slate-900
-                outline-none
-                transition
-                focus:border-blue-400
-                focus:ring-2
-                focus:ring-blue-100
-                disabled:cursor-not-allowed
-                disabled:bg-slate-100
-                disabled:!text-slate-500
-              "
-            >
-              {canChangeDepartment &&
-                isEditable && (
-                  <option value="">
-                    -- เลือกหน่วยงาน --
-                  </option>
-                )}
-              {departments.map(
-                (
-                  department
-                ) => (
-                  <option
-                    key={
-                      department.id
-                    }
-                    value={
-                      department.id
-                    }
-                  >
-                    {
-                      department.name
-                    }
-                  </option>
-                )
-              )}
-            </select>
+            <SearchSelect
+              name={canChangeDepartment && isEditable ? "departmentId" : undefined}
+              value={departmentId}
+              disabled={!canChangeDepartment || !isEditable}
+              onChange={(next) => { if (!canChangeDepartment || !isEditable) return; setDepartmentId(next); setOfficerId(""); }}
+              placeholder="-- เลือกหน่วยงาน --"
+              options={departments.map((department) => ({ value: String(department.id), label: department.name }))}
+              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold !text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+            />
           </AppInfoCard>
           {/* ===============================================
               REQUESTER
@@ -824,68 +763,16 @@ export default function EditIssueForm({
             >
               ผู้ขอเบิก
             </label>
-            <select
+            <SearchSelect
               name="officerId"
-              value={
-                officerId
-              }
-              disabled={
-                !isEditable ||
-                !departmentId
-              }
-              onChange={(
-                event
-              ) =>
-                setOfficerId(
-                  event.target
-                    .value
-                )
-              }
+              value={officerId}
+              disabled={!isEditable || !departmentId}
               required={isEditable}
-              className="
-                h-11
-                w-full
-                rounded-xl
-                border
-                border-slate-300
-                bg-white
-                px-3
-                text-sm
-                font-bold
-                !text-slate-900
-                outline-none
-                transition
-                focus:border-blue-400
-                focus:ring-2
-                focus:ring-blue-100
-                disabled:cursor-not-allowed
-                disabled:bg-slate-100
-                disabled:!text-slate-500
-              "
-            >
-              <option value="">
-                -- เลือกผู้ขอเบิก --
-              </option>
-              {filteredOfficers.map(
-                (officer) => (
-                  <option
-                    key={
-                      officer.id
-                    }
-                    value={
-                      officer.id
-                    }
-                  >
-                    {
-                      officer.firstName
-                    }{" "}
-                    {
-                      officer.lastName
-                    }
-                  </option>
-                )
-              )}
-            </select>
+              onChange={setOfficerId}
+              placeholder="-- เลือกผู้ขอเบิก --"
+              options={filteredOfficers.map((officer) => ({ value: String(officer.id), label: `${officer.firstName} ${officer.lastName}` }))}
+              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold !text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+            />
             {!isEditable &&
               officerId && (
                 <input
@@ -1031,63 +918,14 @@ export default function EditIssueForm({
                           py-3
                         "
                       >
-                        <select
-                          value={
-                            row.category
-                          }
-                          disabled={
-                            !isEditable
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            updateRow(
-                              index,
-                              "category",
-                              event.target
-                                .value
-                            )
-                          }
-                          className="
-                            h-[46px]
-                            w-full
-                            rounded-[12px]
-                            border
-                            border-slate-300
-                            bg-white
-                            px-3
-                            font-semibold
-                            !text-slate-900
-                            outline-none
-                            focus:border-blue-400
-                            focus:ring-2
-                            focus:ring-blue-100
-                            disabled:cursor-not-allowed
-                            disabled:bg-slate-100
-                          "
-                        >
-                          <option value="">
-                            เลือกหมวดหมู่
-                          </option>
-                          {categories.map(
-                            (
-                              category
-                            ) => (
-                              <option
-                                key={
-                                  category.value
-                                }
-                                value={
-                                  category.value
-                                }
-                              >
-                                {
-                                  category.label
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
+                        <SearchSelect
+                          value={row.category}
+                          disabled={!isEditable}
+                          onChange={(next) => updateRow(index, "category", next)}
+                          placeholder="เลือกหมวดหมู่"
+                          options={categories.map((category) => ({ value: category.value, label: category.label }))}
+                          className="h-[46px] w-full rounded-[12px] border border-slate-300 bg-white px-3 font-semibold !text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                        />
                       </td>
                       {/* =====================================
                           MATERIAL
@@ -1115,66 +953,14 @@ export default function EditIssueForm({
                             row.receiveItemId
                           }
                         />
-                        <select
-                          value={
-                            row.materialId
-                          }
-                          disabled={
-                            !isEditable ||
-                            !row.category
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            updateRow(
-                              index,
-                              "materialId",
-                              event.target
-                                .value
-                            )
-                          }
-                          className="
-                            h-[46px]
-                            w-full
-                            rounded-[12px]
-                            border
-                            border-slate-300
-                            bg-white
-                            px-3
-                            font-semibold
-                            !text-slate-900
-                            outline-none
-                            focus:border-blue-400
-                            focus:ring-2
-                            focus:ring-blue-100
-                            disabled:cursor-not-allowed
-                            disabled:bg-slate-100
-                          "
-                        >
-                          <option value="">
-                            {row.category
-                              ? "เลือกรายการพัสดุ"
-                              : "เลือกหมวดหมู่ก่อน"}
-                          </option>
-                          {list.map(
-                            (
-                              material
-                            ) => (
-                              <option
-                                key={
-                                  material.id
-                                }
-                                value={
-                                  material.id
-                                }
-                              >
-                                {
-                                  material.name
-                                }
-                              </option>
-                            )
-                          )}
-                        </select>
+                        <SearchSelect
+                          value={row.materialId}
+                          disabled={!isEditable || !row.category}
+                          onChange={(next) => updateRow(index, "materialId", next)}
+                          placeholder={row.category ? "เลือกรายการพัสดุ" : "เลือกหมวดหมู่ก่อน"}
+                          options={list.map((material) => ({ value: String(material.id), label: material.name }))}
+                          className="h-[46px] w-full rounded-[12px] border border-slate-300 bg-white px-3 font-semibold !text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                        />
                       </td>
                       {/* =====================================
                           REQUEST QTY
