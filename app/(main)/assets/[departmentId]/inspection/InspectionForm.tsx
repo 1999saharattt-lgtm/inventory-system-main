@@ -1827,10 +1827,9 @@ export default function InspectionForm({
       today
   );
 
+  // ต้องรับปีงบประมาณที่เลือกอย่างชัดเจน ห้ามเดาจากวันที่ปัจจุบัน
   const [movementFiscalYear] = useState(
-    fiscalYear ||
-      initialData?.movementFiscalYear ||
-      getFiscalYear(initialData?.inspectionStartDate || today)
+    fiscalYear || initialData?.movementFiscalYear || ""
   );
 
   // วันที่หัวตารางยึดปีงบประมาณที่เลือกเสมอ
@@ -2339,6 +2338,16 @@ export default function InspectionForm({
 
   async function handleSave() {
     if (readOnly) {
+      return;
+    }
+
+    // ป้องกันการบันทึกผิดปีเมื่อ URL ไม่ได้ส่ง fiscalYear มา
+    if (
+      !/^\d{4}$/.test(movementFiscalYear) ||
+      Number(movementFiscalYear) < 2500 ||
+      Number(movementFiscalYear) > 2700
+    ) {
+      alert("ไม่พบปีงบประมาณที่เลือก กรุณากลับไปเลือกปีงบประมาณแล้วเปิดแบบฟอร์มใหม่");
       return;
     }
 

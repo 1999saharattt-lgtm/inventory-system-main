@@ -43,6 +43,7 @@ type AssetEditInput = {
 type InspectionRequestBody = {
   assetEdits?: AssetEditInput[];
   departmentId: number;
+  movementFiscalYear?: string | number;
   inspectionStartDate: string;
   inspectionEndDate: string;
   inspectorIds: string[];
@@ -707,10 +708,14 @@ export async function POST(
       return NextResponse.json({ success: false, message: "ชื่อครุภัณฑ์ต้องไม่ว่าง" }, { status: 400 });
     }
 
-    const fiscalYear =
-      getFiscalYear(
-        inspectionStartDate
+    // ใช้ปีงบประมาณที่เลือกในแบบฟอร์ม ไม่ใช้ปีจากวันที่ตรวจสอบ
+    const fiscalYear = Number(body.movementFiscalYear);
+    if (!Number.isInteger(fiscalYear) || fiscalYear < 2500 || fiscalYear > 2700) {
+      return NextResponse.json(
+        { success: false, message: "ปีงบประมาณที่เลือกไม่ถูกต้อง" },
+        { status: 400 }
       );
+    }
 
     const quarter =
       getQuarter(
