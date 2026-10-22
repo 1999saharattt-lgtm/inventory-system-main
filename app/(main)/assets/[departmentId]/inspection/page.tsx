@@ -1,15 +1,8 @@
 
-import {
-  notFound,
-} from "next/navigation";
+import { notFound } from "next/navigation";
 
-import {
-  prisma,
-} from "@/lib/prisma";
-
-import {
-  requireLogin,
-} from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { requireLogin } from "@/lib/auth";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -17,8 +10,7 @@ import AppButton from "@/components/AppButton";
 
 import InspectionForm from "./InspectionForm";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 /* =========================================================
    TYPES
@@ -35,32 +27,24 @@ type Props = {
 ========================================================= */
 
 function getSourceOrder(
-  remark:
-    | string
-    | null
+  remark: string | null
 ): number | null {
   if (!remark) {
     return null;
   }
 
-  const match =
-    remark.match(
-      /SOURCE:DEPARTMENT_1:(\d+)/
-    );
+  const match = remark.match(
+    /SOURCE:DEPARTMENT_1:(\d+)/
+  );
 
   if (!match) {
     return null;
   }
 
-  const sourceOrder =
-    Number(
-      match[1]
-    );
+  const sourceOrder = Number(match[1]);
 
   if (
-    !Number.isInteger(
-      sourceOrder
-    ) ||
+    !Number.isInteger(sourceOrder) ||
     sourceOrder <= 0
   ) {
     return null;
@@ -80,26 +64,18 @@ export default async function AssetInspectionPage({
      USER
   ======================================================= */
 
-  const user =
-    await requireLogin();
+  const user = await requireLogin();
 
   /* =======================================================
      PARAMS
   ======================================================= */
 
-  const {
-    departmentId,
-  } = await params;
+  const { departmentId } = await params;
 
-  const id =
-    Number(
-      departmentId
-    );
+  const id = Number(departmentId);
 
   if (
-    !Number.isInteger(
-      id
-    ) ||
+    !Number.isInteger(id) ||
     id <= 0
   ) {
     notFound();
@@ -109,10 +85,7 @@ export default async function AssetInspectionPage({
      ADMIN ONLY
   ======================================================= */
 
-  if (
-    user.role !==
-    "ADMIN"
-  ) {
+  if (user.role !== "ADMIN") {
     notFound();
   }
 
@@ -123,16 +96,11 @@ export default async function AssetInspectionPage({
   const departments =
     await prisma.department.findMany({
       select: {
-        id:
-          true,
-
-        name:
-          true,
+        id: true,
+        name: true,
       },
-
       orderBy: {
-        id:
-          "asc",
+        id: "asc",
       },
     });
 
@@ -140,14 +108,9 @@ export default async function AssetInspectionPage({
      CURRENT DEPARTMENT
   ======================================================= */
 
-  const department =
-    departments.find(
-      (
-        item
-      ) =>
-        item.id ===
-        id
-    );
+  const department = departments.find(
+    (item) => item.id === id
+  );
 
   if (!department) {
     notFound();
@@ -160,94 +123,46 @@ export default async function AssetInspectionPage({
   const assetsFromDatabase =
     await prisma.asset.findMany({
       where: {
-        departmentId:
-          id,
+        departmentId: id,
       },
 
       select: {
-        id:
-          true,
+        id: true,
+        name: true,
+        category: true,
+        categoryDetail: true,
+        brand: true,
+        model: true,
+        serialNumber: true,
+        governmentAssetNo: true,
+        officeAssetNo: true,
+        quantity: true,
+        unit: true,
 
-        name:
-          true,
+        responsibleName: true,
 
-        category:
-          true,
-
-        categoryDetail:
-          true,
-
-        brand:
-          true,
-
-        model:
-          true,
-
-        serialNumber:
-          true,
-
-        governmentAssetNo:
-          true,
-
-        officeAssetNo:
-          true,
-
-        quantity:
-          true,
-
-        unit:
-          true,
-
-        responsibleName:
-          true,
-
-        departmentId:
-          true,
-
-        sectionId:
-          true,
-
-        officerId:
-          true,
-
-        status:
-          true,
-
-        purchaseDate:
-          true,
-
-        price:
-          true,
-
-        location:
-          true,
-
-        remark:
-          true,
+        departmentId: true,
+        sectionId: true,
+        officerId: true,
+        status: true,
+        purchaseDate: true,
+        price: true,
+        location: true,
+        remark: true,
 
         section: {
           select: {
-            id:
-              true,
-
-            name:
-              true,
+            id: true,
+            name: true,
           },
         },
 
         officer: {
           select: {
-            id:
-              true,
-
-            firstName:
-              true,
-
-            lastName:
-              true,
-
-            position:
-              true,
+            id: true,
+            firstName: true,
+            lastName: true,
+            position: true,
           },
         },
       },
@@ -257,56 +172,61 @@ export default async function AssetInspectionPage({
      SORT
   ======================================================= */
 
-  const assets =
-    [
-      ...assetsFromDatabase,
-    ].sort(
-      (
-        a,
-        b
-      ) => {
-        const orderA =
-          getSourceOrder(
-            a.remark
-          );
+  const sortedAssets = [
+    ...assetsFromDatabase,
+  ].sort((a, b) => {
+    const orderA = getSourceOrder(a.remark);
+    const orderB = getSourceOrder(b.remark);
 
-        const orderB =
-          getSourceOrder(
-            b.remark
-          );
+    if (
+      orderA !== null &&
+      orderB !== null
+    ) {
+      return orderA - orderB;
+    }
 
-        if (
-          orderA !==
-            null &&
-          orderB !==
-            null
-        ) {
-          return (
-            orderA -
-            orderB
-          );
-        }
+    if (orderA !== null) {
+      return -1;
+    }
 
-        if (
-          orderA !==
-          null
-        ) {
-          return -1;
-        }
+    if (orderB !== null) {
+      return 1;
+    }
 
-        if (
-          orderB !==
-          null
-        ) {
-          return 1;
-        }
+    return a.id - b.id;
+  });
 
-        return (
-          a.id -
-          b.id
-        );
-      }
-    );
+  /* =======================================================
+     DISPLAY DATA
+
+     สถานที่ใช้งานจริง = ชื่อกลุ่มงาน
+     ชื่อผู้รับผิดชอบ = ชื่อบุคคล
+  ======================================================= */
+
+  const assets = sortedAssets.map((asset) => {
+    const sectionName =
+      asset.section?.name?.trim() || "";
+
+    const officerName = asset.officer
+      ? [
+          asset.officer.firstName,
+          asset.officer.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim()
+      : "";
+
+    return {
+      ...asset,
+
+      // ใช้ชื่อกลุ่มงานเป็นสถานที่ใช้งานจริง
+      location: sectionName,
+
+      // ใช้ชื่อบุคคล ไม่ใช้ชื่อฝ่ายหรืองาน
+      responsibleName: officerName,
+    };
+  });
 
   /* =======================================================
      OFFICERS
@@ -315,56 +235,35 @@ export default async function AssetInspectionPage({
   const officers =
     await prisma.officer.findMany({
       select: {
-        id:
-          true,
-
-        firstName:
-          true,
-
-        lastName:
-          true,
-
-        position:
-          true,
-
-        type:
-          true,
-
-        departmentId:
-          true,
-
-        sectionId:
-          true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        position: true,
+        type: true,
+        departmentId: true,
+        sectionId: true,
 
         department: {
           select: {
-            id:
-              true,
-
-            name:
-              true,
+            id: true,
+            name: true,
           },
         },
 
         section: {
           select: {
-            id:
-              true,
-
-            name:
-              true,
+            id: true,
+            name: true,
           },
         },
       },
 
       orderBy: [
         {
-          firstName:
-            "asc",
+          firstName: "asc",
         },
         {
-          lastName:
-            "asc",
+          lastName: "asc",
         },
       ],
     });
@@ -377,9 +276,6 @@ export default async function AssetInspectionPage({
     <AppPage>
       {/* =====================================================
           HEADER
-
-          ไม่มีชื่อกลุ่มงาน /
-          ปีงบประมาณซ้ำด้านล่าง
       ===================================================== */}
 
       <AppPageHeader
@@ -402,21 +298,11 @@ export default async function AssetInspectionPage({
       ===================================================== */}
 
       <InspectionForm
-        key={
-          department.id
-        }
-        department={
-          department
-        }
-        departments={
-          departments
-        }
-        assets={
-          assets
-        }
-        officers={
-          officers
-        }
+        key={department.id}
+        department={department}
+        departments={departments}
+        assets={assets}
+        officers={officers}
       />
     </AppPage>
   );
