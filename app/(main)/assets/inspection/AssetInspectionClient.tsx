@@ -22,7 +22,7 @@ type InspectionRow = {
 
   year: number;
 
-  status: string;
+  status: string | null;
 
   asset: {
     id: number;
@@ -175,7 +175,7 @@ function formatDate(
 ========================================================= */
 
 function getStatusStyle(
-  status: string
+  status: string | null
 ) {
   switch (status) {
     case "IN_USE":
@@ -271,10 +271,9 @@ export default function AssetInspectionClient({
               .category;
 
           const status =
-            inspectionStatusName[
-              inspection.status
-            ] ??
-            inspection.status;
+            inspection.status
+              ? inspectionStatusName[inspection.status] ?? inspection.status
+              : "-";
 
           const quarter =
             quarterName[
@@ -508,10 +507,9 @@ export default function AssetInspectionClient({
                         .category;
 
                     const status =
-                      inspectionStatusName[
-                        inspection.status
-                      ] ??
-                      inspection.status;
+                      inspection.status
+                        ? inspectionStatusName[inspection.status] ?? inspection.status
+                        : "-";
 
                     const quarter =
                       quarterName[
