@@ -18,7 +18,7 @@ const accuracyOptions = [
 
 type InspectionRowInput = {
   assetId: number;
-  countedQty: string | number;
+  countedQty: string | number | null;
   accuracy: string | null;
   status: string | null;
   remark: string;
@@ -584,15 +584,15 @@ export async function POST(
       body.rows
     ) {
       const countedQty =
-        Number(
-          row.countedQty
-        );
+        row.countedQty === null ||
+        row.countedQty === undefined ||
+        String(row.countedQty).trim() === ""
+          ? null
+          : Number(row.countedQty);
 
       if (
-        !Number.isInteger(
-          countedQty
-        ) ||
-        countedQty < 0
+        (countedQty !== null &&
+          (!Number.isInteger(countedQty) || countedQty < 0))
       ) {
         return NextResponse.json(
           {
@@ -690,7 +690,6 @@ export async function POST(
       if (!asset) {
         return NextResponse.json({ success: false, message: "ไม่พบครุภัณฑ์ที่ต้องการแก้ไข" }, { status: 400 });
       }
-      const effectiveSectionId = edit.sectionId !== undefined ? edit.sectionId : asset.sectionId;
       const effectiveOfficerId = edit.officerId !== undefined ? edit.officerId : asset.officerId;
       if (effectiveOfficerId != null) {
         const officer = editedOfficerMap.get(Number(effectiveOfficerId)) ??
@@ -698,7 +697,7 @@ export async function POST(
             where: { id: Number(effectiveOfficerId) },
             select: { id: true, sectionId: true, departmentId: true, section: { select: { departmentId: true } } },
           }));
-        if (!officer || effectiveSectionId == null || officer.sectionId !== Number(effectiveSectionId) ||
+        if (!officer ||
             (officer.departmentId !== departmentId && officer.section?.departmentId !== departmentId)) {
           return NextResponse.json({ success: false, message: `ผู้รับผิดชอบของครุภัณฑ์ ${edit.assetId} ไม่ตรงกับกลุ่ม/งานที่เลือก` }, { status: 400 });
         }
@@ -756,9 +755,11 @@ export async function POST(
           body.rows
         ) {
           const countedQty =
-            Number(
-              row.countedQty
-            );
+            row.countedQty === null ||
+            row.countedQty === undefined ||
+            String(row.countedQty).trim() === ""
+              ? null
+              : Number(row.countedQty);
 
           await tx.assetInspection.upsert(
             {
