@@ -2728,7 +2728,7 @@ export default function InspectionForm({
                   }
 
                   router.push(
-                    `/assets/${nextDepartmentId}/inspection`
+                    `/assets/${nextDepartmentId}/inspection?fiscalYear=${encodeURIComponent(movementFiscalYear)}`
                   );
                 }}
               />
