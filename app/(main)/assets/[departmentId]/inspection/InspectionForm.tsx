@@ -2486,25 +2486,6 @@ export default function InspectionForm({
         return;
       }
 
-      if (
-        !row.accuracy
-      ) {
-        alert(
-          "กรุณาระบุผลการตรวจสอบยอดคงเหลือให้ครบทุกรายการ"
-        );
-
-        return;
-      }
-
-      if (
-        !row.status
-      ) {
-        alert(
-          "กรุณาระบุสถานะครุภัณฑ์ให้ครบทุกรายการ"
-        );
-
-        return;
-      }
     }
 
     try {
