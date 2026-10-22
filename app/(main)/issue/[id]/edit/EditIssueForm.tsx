@@ -319,9 +319,9 @@ export default function EditIssueForm({
                   item.qty
                 ),
               issuedQty:
-                String(
-                  item.issuedQty ?? 0
-                ),
+                item.issuedQty == null || item.issuedQty === 0
+                  ? ""
+                  : String(item.issuedQty),
               remark:
                 item.remark ??
                 "",
@@ -1224,6 +1224,9 @@ export default function EditIssueForm({
                             focus:border-blue-400
                             focus:ring-2
                             focus:ring-blue-100
+                            [appearance:textfield]
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
                             disabled:cursor-not-allowed
                             disabled:bg-slate-100
                           "

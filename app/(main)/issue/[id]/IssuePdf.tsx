@@ -49,7 +49,7 @@ const thaiMonths = [
   "ธันวาคม",
 ];
 
-const TABLE_HEADER_FONT_SIZE = 16;
+const TABLE_HEADER_FONT_SIZE = 14;
 const TABLE_BODY_FONT_SIZE = 12;
 
 function formatThaiDate(
@@ -288,16 +288,16 @@ export default function IssuePdf({
         doc,
         "พอ.101",
         centerX,
-        10,
-        25
+        11,
+        22
       );
 
       drawBoldCenterText(
         doc,
         "ใบเบิกพัสดุ",
         centerX,
-        18,
-        25
+        19,
+        22
       );
 
       doc.setFont(
@@ -307,44 +307,63 @@ export default function IssuePdf({
 
       doc.setFontSize(16);
 
-      doc.text(
-        "กลุ่ม/งาน :",
-        leftX,
-        29
-      );
+      /* =================================================
+         จัดตำแหน่งชื่อกลุ่มงานและหน่วยงานแบบยืดหยุ่น
+         ไม่ให้ข้อความทับกันเมื่อชื่อกลุ่มงานยาว
+      ================================================= */
 
-      doc.text(
-        departmentName ||
-          "-",
-        31,
-        29
-      );
+      const groupLabelX = leftX;
+      const groupValueX = 31;
+      const groupStartY = 29;
+      const lineHeight = 6;
+      const organizationName =
+        "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย";
+      const groupName = departmentName || "-";
+      const organizationWidth = doc.getTextWidth(organizationName);
+      const groupWidth = doc.getTextWidth(groupName);
+      const organizationGap = 5;
 
-      doc.text(
-        "สำนักอนามัยการเจริญพันธุ์ กรมอนามัย",
-        72,
-        29
-      );
+      doc.text("กลุ่ม/งาน :", groupLabelX, groupStartY);
 
-      doc.text(
-        "วันที่ :",
-        leftX,
-        36
-      );
+      // วางสองข้อความในบรรทัดเดียวเฉพาะเมื่อมีพื้นที่เพียงพอ
+      const organizationX =
+        groupValueX + groupWidth + organizationGap;
+      let groupLastY = groupStartY;
 
-      doc.text(
-        formatThaiDate(
-          issueDate
-        ),
-        31,
-        36
-      );
+      if (organizationX + organizationWidth <= rightX) {
+        doc.text(groupName, groupValueX, groupStartY);
+        doc.text(organizationName, organizationX, groupStartY);
+      } else {
+        // ชื่อกลุ่มงานยาว: ตัดบรรทัดตามความกว้างกระดาษ
+        const groupLines = doc.splitTextToSize(
+          groupName,
+          rightX - groupValueX
+        ) as string[];
 
+        doc.text(groupLines, groupValueX, groupStartY, {
+          lineHeightFactor: 1.05,
+        });
+
+        groupLastY =
+          groupStartY + (groupLines.length - 1) * lineHeight;
+
+        // แยกชื่อหน่วยงานหลักเป็นบรรทัดถัดไป ไม่ให้ทับชื่อกลุ่มงาน
+        groupLastY += lineHeight;
+        doc.text(organizationName, groupValueX, groupLastY);
+      }
+
+      const dateY = groupLastY + 7;
+      doc.text("วันที่ :", leftX, dateY);
+      doc.text(formatThaiDate(issueDate), groupValueX, dateY);
+
+      const descriptionY = dateY + 7;
       doc.text(
         "ประสงค์จะขอเบิกสิ่งของต่างๆ สำหรับใช้ในราชการ ดังมีรายการต่อไปนี้",
         leftX,
-        43
+        descriptionY
       );
+
+      const tableStartY = descriptionY + 5;
 
       const tableHeaders = [
         "ลำดับ",
@@ -403,7 +422,7 @@ export default function IssuePdf({
         doc,
         {
           startY:
-            48,
+            tableStartY,
 
           margin: {
             left:
