@@ -343,104 +343,19 @@ function getOfficer(
 
 function getResponsibleName(
   asset: Asset,
-  department: Department
+  _department: Department
 ) {
-  const departmentName =
-    department.name?.trim() ||
-    "";
-
-  const originalResponsibleName =
-    asset.responsibleName?.trim();
-
-  /* =======================================================
-     responsibleName จากทะเบียนเดิมเป็นหลัก
-     ======================================================= */
-
-  if (
-    originalResponsibleName &&
-    originalResponsibleName !== "-"
-  ) {
-    if (
-      departmentName &&
-      (
-        originalResponsibleName ===
-          departmentName ||
-        originalResponsibleName.startsWith(
-          `${departmentName} /`
-        )
-      )
-    ) {
-      return originalResponsibleName;
-    }
-
-    if (
-      departmentName
-    ) {
-      return `${departmentName} / ${originalResponsibleName}`;
-    }
-
-    return originalResponsibleName;
+  // ใช้ชื่อผู้รับผิดชอบที่บันทึกไว้ในทะเบียนครุภัณฑ์โดยตรง
+  const recordedName = asset.responsibleName?.trim();
+  if (recordedName && recordedName !== "-") {
+    return recordedName;
   }
 
-  /* =======================================================
-     fallback เป็น section
-     ======================================================= */
-
-  const sectionName =
-    asset.section?.name?.trim() ||
-    "";
-
-  if (sectionName) {
-    if (
-      departmentName &&
-      (
-        sectionName ===
-          departmentName ||
-        sectionName.startsWith(
-          `${departmentName} /`
-        )
-      )
-    ) {
-      return sectionName;
-    }
-
-    if (
-      departmentName
-    ) {
-      return `${departmentName} / ${sectionName}`;
-    }
-
-    return sectionName;
-  }
-
-  /* =======================================================
-     fallback เป็น officer
-     ======================================================= */
-
-  const officerName =
-    asset.officer
-      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-      : "";
-
-  if (officerName) {
-    if (
-      departmentName
-    ) {
-      return `${departmentName} / ${officerName}`;
-    }
-
-    return officerName;
-  }
-
-  /* =======================================================
-     fallback สุดท้าย
-     ======================================================= */
-
-  if (departmentName) {
-    return departmentName;
-  }
-
-  return "-";
+  // กรณีไม่มีชื่อในทะเบียน จึงใช้ชื่อบุคลากรที่ผูกกับครุภัณฑ์
+  const officerName = asset.officer
+    ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
+    : "";
+  return officerName || "-";
 }
 
 /* =========================================================
@@ -946,7 +861,7 @@ export default function ExportInspectionPdf({
         const texts = [
           String(getSourceOrder(asset.remark) ?? ""),
           asset.governmentAssetNo ?? "-", asset.officeAssetNo ?? "-",
-          responsible, officer, getDisplayCategory(asset), asset.name,
+          department.name, responsible, getDisplayCategory(asset), asset.name,
           [asset.brand, asset.model].filter(Boolean).join(" / ") || "-",
           asset.unit?.trim() || getCategoryUnit(asset.category),
           String(asset.quantity ?? 1), "-", "-", String(asset.quantity ?? 1),
@@ -1061,8 +976,8 @@ export default function ExportInspectionPdf({
                   ? asset.officeAssetNo
                   : "-",
 
+                department.name,
                 responsibleName,
-                officerName,
                 getDisplayCategory(asset),
                 assetName,
                 brandModel,
@@ -1127,10 +1042,18 @@ export default function ExportInspectionPdf({
           );
         }
 
+        const fiscalYear = Number(movementFiscalYear);
+        const headerStartDate = Number.isInteger(fiscalYear)
+          ? `${fiscalYear - 544}-10-01`
+          : accountStartDate;
+        const headerEndDate = Number.isInteger(fiscalYear)
+          ? `${fiscalYear - 543}-09-30`
+          : accountEndDate;
+
         const accountStartHeaderLines = [
           "ยอดคงเหลือตามบัญชี",
           `ณ วันที่ ${formatThaiDate(
-            accountStartDate
+            headerStartDate
           )}`,
         ];
 
@@ -1142,9 +1065,30 @@ export default function ExportInspectionPdf({
         const accountEndHeaderLines = [
           "ยอดคงเหลือตามบัญชี",
           `ณ วันที่ ${formatThaiDate(
-            accountEndDate
+            headerEndDate
           )}`,
         ];
+
+        // หัวตารางจัดบรรทัดเป็นวลีแบบ Excel ไม่แยกคำกลางคำ
+        // และปรับขนาดตัวอักษรตามความกว้างคอลัมน์เฉพาะหัวตาราง
+        const headerCellLines: Record<number, string[]> = {
+          0: ["ลำดับ"],
+          1: ["รหัส GFMIS"],
+          2: ["รหัสครุภัณฑ์"],
+          3: ["สถานที่ใช้งาน"],
+          4: ["ผู้รับผิดชอบ"],
+          5: ["หมวด/ชนิด"],
+          6: ["ชื่อเรียก/", "คุณลักษณะ", "ครุภัณฑ์"],
+          7: ["ยี่ห้อ/รุ่น"],
+          8: ["หน่วยนับ"],
+          9: accountStartHeaderLines,
+          10: movementHeaderLines,
+          12: accountEndHeaderLines,
+          13: ["จำนวนที่", "ตรวจนับได้"],
+          14: ["ผลการตรวจนับถูกต้อง", "ตรงกับยอดคงเหลือ", "ตามบัญชี"],
+          16: ["สภาพครุภัณฑ์ที่ตรวจนับ"],
+          20: ["หมายเหตุ"],
+        };
 
         autoTable(doc, {
           startY:
@@ -1228,6 +1172,7 @@ export default function ExportInspectionPdf({
           },
 
           headStyles: {
+            minCellHeight: 0,
             font:
               "2.3.2 THSarabunNew",
 
@@ -1258,7 +1203,7 @@ export default function ExportInspectionPdf({
               0.25,
 
             cellPadding:
-              0.45,
+              0.35,
 
             halign:
               "center",
@@ -1308,6 +1253,35 @@ export default function ExportInspectionPdf({
           },
 
           didParseCell: (data) => {
+            if (data.section === "head") {
+              const index = data.column.index;
+              const lines = data.row.index === 0
+                ? headerCellLines[index]
+                : undefined;
+              if (lines) {
+                data.cell.text = lines;
+              } else if (data.row.index === 1) {
+                // คำหัวตารางชั้นล่างอยู่ในบรรทัดเดียว
+                data.cell.text = [String(data.cell.raw ?? "")];
+              }
+
+              const width = data.cell.width ||
+                measuredWidths[index] || 10;
+              const actualLines = data.cell.text;
+              const headerFontSize = getMultiLineFontSize(
+                doc,
+                actualLines,
+                width,
+                8,
+                3.5,
+                1.8
+              );
+              data.cell.styles.fontSize = headerFontSize;
+              data.cell.styles.cellPadding = 0.35;
+              data.cell.styles.minCellHeight = data.row.index === 0 ? 8 : 6;
+              // ไม่ให้ autoTable ตัดคำไทยเพิ่มเติมโดยพลการ
+              data.cell.styles.overflow = "visible";
+            }
             if (data.section === "body") {
               data.cell.styles.minCellHeight = rowHeight;
               if (data.column.index >= 14 && data.column.index <= 19) {
