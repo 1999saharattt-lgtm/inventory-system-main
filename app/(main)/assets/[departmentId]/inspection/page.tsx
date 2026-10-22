@@ -339,7 +339,7 @@ export default async function AssetInspectionPage({
     return {
       ...asset,
       location: groupName,
-      responsibleName: asset.responsibleName?.trim() || officerName,
+      responsibleName: officerName || asset.responsibleName?.trim() || null,
     };
   });
 

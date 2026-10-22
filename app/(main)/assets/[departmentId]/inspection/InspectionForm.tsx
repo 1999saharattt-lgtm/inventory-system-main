@@ -1600,19 +1600,22 @@ function getResponsibleName(
   asset: Asset,
   _department: Department
 ) {
-  // ใช้ชื่อผู้รับผิดชอบที่กรอกไว้ในทะเบียนครุภัณฑ์ก่อน
-  const recordedName = asset.responsibleName?.trim();
-  if (recordedName && recordedName !== "-") {
-    return recordedName;
-  }
+  // ชื่อบุคคลที่ผูกกับทะเบียนครุภัณฑ์มีความสำคัญก่อนชื่องาน
+  const officerName = asset.officer
+    ? [asset.officer.firstName, asset.officer.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim()
+    : "";
+  if (officerName) return officerName;
 
-  // กรณีไม่ได้กรอกชื่อไว้ ใช้ชื่อบุคคลที่ผูกกับครุภัณฑ์
-  if (!asset.officer) return "-";
-
-  return [asset.officer.firstName, asset.officer.lastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim() || "-";
+  // responsibleName อาจเก็บชื่องานแทนบุคคล จึงต้องคัดออก
+  const recordedName = asset.responsibleName?.trim() || "";
+  if (!recordedName || recordedName === "-") return "-";
+  const organizationName = /^(?:งาน|กลุ่ม|ฝ่าย|ส่วน|หน่วย|ห้อง|สำนักงาน|สำนัก|กอง|ศูนย์|ส่วนกลาง)(?:\s|$|[^\s])/;
+  if (organizationName.test(recordedName)) return "-";
+  if (/\s+\/\s+/.test(recordedName) && /(?:งาน|กลุ่ม|ฝ่าย|ส่วน|หน่วย)/.test(recordedName)) return "-";
+  return recordedName;
 }
 
 /* =========================================================
