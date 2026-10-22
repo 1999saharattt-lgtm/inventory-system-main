@@ -1859,22 +1859,25 @@ export default function InspectionForm({
   };
 
   function displayCategoryDetail(asset: Asset): string {
-    // ใช้หมวด/ชนิดที่บันทึกกับครุภัณฑ์แต่ละรายการก่อนเสมอ
+    // แสดงหมวด/ชนิดที่บันทึกในทะเบียนครุภัณฑ์ของทุกรายการก่อนเสมอ
+    // ไม่จำกัดเฉพาะกลุ่มบริหารยุทธศาสตร์
     const explicit = asset.categoryDetail?.trim();
     const remarkCategory = asset.remark
-      ?.match(/(?:^|\n)หมวด\/ชนิด:\s*([^\n]+)/)?.[1]
+      ?.match(/(?:^|\r?\n)\s*(?:หมวด\s*\/\s*ชนิด|ประเภทครุภัณฑ์|ชนิดครุภัณฑ์)\s*[:：]\s*([^\r\n]+)/i)?.[1]
       ?.trim();
 
-    const isSpecificThaiCategory = (value?: string | null) =>
-      Boolean(value && value !== "-" && value !== "ทั่วไป" && value !== "OTHER");
+    const isSpecificCategory = (value?: string | null) =>
+      Boolean(
+        value &&
+        !["-", "ทั่วไป", "OTHER", "null", "undefined"].includes(value.trim())
+      );
 
-    if (isSpecificThaiCategory(explicit)) return explicit!;
-    if (isSpecificThaiCategory(remarkCategory)) return remarkCategory!;
+    if (isSpecificCategory(explicit)) return explicit!;
+    if (isSpecificCategory(remarkCategory)) return remarkCategory!;
 
-    // รักษาชื่อหมวดภาษาไทยเดิม และไม่แสดงรหัส enum ภาษาอังกฤษ
+    // ใช้ชื่อหมวดที่มีอยู่ในฐานข้อมูลเมื่อไม่มีรายละเอียดเฉพาะ
     const thaiCategoryLabels: Record<string, string> = {
       ...categoryLabels,
-      OTHER: "ทั่วไป",
       NO_SYSTEM: "ไม่มีระบบ",
       LAPTOP: "เครื่องคอมพิวเตอร์โน้ตบุ๊ก",
       DESKTOP: "เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ",
@@ -1888,13 +1891,16 @@ export default function InspectionForm({
     };
 
     if (asset.category === "OTHER") {
-      const text = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
-      if (/เครื่องสำรองไฟ|\bUPS\b/i.test(text)) {
+      const description = `${asset.name} ${asset.brand ?? ""} ${asset.model ?? ""}`;
+      if (/เครื่องสำรองไฟ|\bUPS\b/i.test(description)) {
         return "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS";
       }
+      // หากไม่มี categoryDetail หรือข้อความหมวด/ชนิดใน remark จริง ๆ
+      // ห้ามสมมติว่าทุกรายการเป็นหมวด "ทั่วไป"
+      return "ไม่ระบุหมวด/ชนิด";
     }
 
-    return thaiCategoryLabels[asset.category] ?? "ทั่วไป";
+    return thaiCategoryLabels[asset.category] ?? "ไม่ระบุหมวด/ชนิด";
   }
 
   const [
