@@ -1598,24 +1598,26 @@ function getAssetUnit(
 
 function getResponsibleName(
   asset: Asset,
-  _department: Department
+  _department: Department,
+  officers: Officer[] = []
 ) {
-  // ชื่อบุคคลที่ผูกกับทะเบียนครุภัณฑ์มีความสำคัญก่อนชื่องาน
-  const officerName = asset.officer
-    ? [asset.officer.firstName, asset.officer.lastName]
+  // ใช้ชื่อบุคคลที่ผูกกับครุภัณฑ์โดยไม่จำกัดงานหรือกลุ่มที่สังกัด
+  const linkedOfficer = asset.officer ??
+    (asset.officerId != null
+      ? officers.find((person) => person.id === asset.officerId) ?? null
+      : null);
+
+  const officerName = linkedOfficer
+    ? [linkedOfficer.firstName, linkedOfficer.lastName]
         .filter(Boolean)
         .join(" ")
         .trim()
     : "";
   if (officerName) return officerName;
 
-  // responsibleName อาจเก็บชื่องานแทนบุคคล จึงต้องคัดออก
-  const recordedName = asset.responsibleName?.trim() || "";
-  if (!recordedName || recordedName === "-") return "-";
-  const organizationName = /^(?:งาน|กลุ่ม|ฝ่าย|ส่วน|หน่วย|ห้อง|สำนักงาน|สำนัก|กอง|ศูนย์|ส่วนกลาง)(?:\s|$|[^\s])/;
-  if (organizationName.test(recordedName)) return "-";
-  if (/\s+\/\s+/.test(recordedName) && /(?:งาน|กลุ่ม|ฝ่าย|ส่วน|หน่วย)/.test(recordedName)) return "-";
-  return recordedName;
+  // หากไม่ได้ผูก officer ให้แสดงค่าที่บันทึกในทะเบียนตามจริง
+  // ไม่ตัดข้อมูลเพราะชื่ออยู่ต่างงานหรือมีคำนำหน้าเป็นชื่อหน่วยงาน
+  return asset.responsibleName?.trim() || "-";
 }
 
 /* =========================================================
@@ -1983,7 +1985,8 @@ export default function InspectionForm({
           const responsibleName =
             getResponsibleName(
               asset,
-              department
+              department,
+              officers
             );
 
           const unit =
@@ -3307,7 +3310,8 @@ export default function InspectionForm({
                     const responsibleName =
                       getResponsibleName(
                         asset,
-                        department
+                        department,
+                        officers
                       );
 
                     const assetUnit =
@@ -3358,7 +3362,7 @@ export default function InspectionForm({
                           {department.name.trim() || "-"}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
-                          {getResponsibleName(asset, department)}
+                          {getResponsibleName(asset, department, officers)}
                         </td>
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[240px]">
                           {displayCategoryDetail(asset)}
