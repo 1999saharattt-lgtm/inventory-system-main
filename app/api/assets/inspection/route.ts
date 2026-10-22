@@ -19,8 +19,8 @@ const accuracyOptions = [
 type InspectionRowInput = {
   assetId: number;
   countedQty: string | number;
-  accuracy: string;
-  status: string;
+  accuracy: string | null;
+  status: string | null;
   remark: string;
 };
 
@@ -607,6 +607,7 @@ export async function POST(
       }
 
       if (
+        (row.accuracy ?? "").trim() !== "" &&
         !accuracyOptions.includes(
           row.accuracy as
             (typeof accuracyOptions)[number]
@@ -625,6 +626,7 @@ export async function POST(
       }
 
       if (
+        (row.status ?? "").trim() !== "" &&
         !inspectionStatuses.includes(
           row.status as
             (typeof inspectionStatuses)[number]
@@ -793,20 +795,17 @@ export async function POST(
 
                 inspectionEndDate,
 
-                status:
-                  row.status as
-                    | "IN_USE"
-                    | "RETURNED"
-                    | "DAMAGED"
-                    | "MISSING"
-                    | "NOT_FOUND"
-                    | "DETERIORATED"
-                    | "UNUSABLE",
+                status: (row.status?.trim() || null) as
+                  | "IN_USE"
+                  | "DAMAGED"
+                  | "DETERIORATED"
+                  | "UNUSABLE"
+                  | null,
 
                 countedQty,
 
                 accuracy:
-                  row.accuracy,
+                  row.accuracy?.trim() || null,
 
                 inspectorIds,
 
@@ -822,7 +821,7 @@ export async function POST(
                     : null,
 
                 condition:
-                  row.status,
+                  row.status?.trim() || null,
 
                 location:
                   null,
@@ -841,20 +840,17 @@ export async function POST(
 
                 inspectionEndDate,
 
-                status:
-                  row.status as
-                    | "IN_USE"
-                    | "RETURNED"
-                    | "DAMAGED"
-                    | "MISSING"
-                    | "NOT_FOUND"
-                    | "DETERIORATED"
-                    | "UNUSABLE",
+                status: (row.status?.trim() || null) as
+                  | "IN_USE"
+                  | "DAMAGED"
+                  | "DETERIORATED"
+                  | "UNUSABLE"
+                  | null,
 
                 countedQty,
 
                 accuracy:
-                  row.accuracy,
+                  row.accuracy?.trim() || null,
 
                 inspectorIds,
 
@@ -870,7 +866,7 @@ export async function POST(
                     : null,
 
                 condition:
-                  row.status,
+                  row.status?.trim() || null,
 
                 remark:
                   row.remark?.trim()

@@ -447,7 +447,7 @@ model AssetInspection {
   inspectionStartDate DateTime?
   inspectionEndDate   DateTime?
 
-  status AssetInspectionStatus
+  status AssetInspectionStatus?
 
   countedQty Int?
   accuracy   String?
