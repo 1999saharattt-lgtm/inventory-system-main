@@ -221,6 +221,33 @@ export async function updateAsset(
   const resolvedCategoryType = formData.has("categoryType")
     ? categoryType
     : (asset.categoryDetail?.trim() || previousCategoryType);
+  // เมื่อเปลี่ยน "หมวด/ชนิด" แต่ช่องประเภทหลักยังส่งค่าเดิม
+  // ให้จัดหมวดตามชนิดที่เลือก เพื่อย้ายรายการไปหน้าหมวดที่ถูกต้อง
+  // ไม่ใช้ชื่อรายการเป็นตัวตัดสิน เพราะอาจมีคำข้ามหมวด เช่น "โต๊ะวางคอมพิวเตอร์"
+  const inferCategoryFromDetail = (detail: string): AssetCategory | null => {
+    const value = detail.trim();
+    if (!value) return null;
+    if (/^(เครื่องสำรองไฟฟ้า|UPS\b)/i.test(value)) return "OTHER" as AssetCategory;
+    if (/^ชั้น(?:$|\s|วาง|เหล็ก|ไม้)/.test(value)) return "SHELF" as AssetCategory;
+    if (/^(เครื่องคอมพิวเตอร์|คอมพิวเตอร์|โน้ตบุ๊ก|โน๊ตบุ๊ค|Notebook\b|Laptop\b|All\s*in\s*one\b)/i.test(value)) return "COMPUTER" as AssetCategory;
+    if (/^(จอภาพ|จอมอนิเตอร์|Monitor\b)/i.test(value)) return "COMPUTER" as AssetCategory;
+    if (/^(เครื่องพิมพ์|ปริ้นเตอร์|Printer\b)/i.test(value)) return "PRINTER" as AssetCategory;
+    if (/^(เครื่องโทรศัพท์|โทรศัพท์|IP\s*PHONE\b)/i.test(value)) return "TELEPHONE" as AssetCategory;
+    if (/^(เครื่องปรับอากาศ|แอร์(?:$|\s))/i.test(value)) return "AIR_CONDITIONER" as AssetCategory;
+    if (/^(เก้าอี้)/.test(value)) return "CHAIR" as AssetCategory;
+    if (/^(โต๊ะ)/.test(value)) return "DESK" as AssetCategory;
+    if (/^(ตู้)/.test(value)) return "CABINET" as AssetCategory;
+    if (/^(ทั่วไป|รถเข็น|เครื่องเล่นเทป)/.test(value)) return "OTHER" as AssetCategory;
+    return null;
+  };
+  const previousDetail = (asset.categoryDetail?.trim() || previousCategoryType);
+  const detailWasEdited = formData.has("categoryType") && resolvedCategoryType !== previousDetail;
+  const submittedCategory = category.toUpperCase();
+  const resolvedCategory =
+    detailWasEdited && submittedCategory === asset.category
+      ? inferCategoryFromDetail(resolvedCategoryType) ?? (category as AssetCategory)
+      : (category as AssetCategory);
+
   // เก็บหมวด/ชนิดในฟิลด์เฉพาะ ไม่เขียนซ้ำในหมายเหตุ
   const resolvedRemark = remark;
 
@@ -294,7 +321,7 @@ export async function updateAsset(
   }
 
   const assetCategory =
-    category as AssetCategory;
+    resolvedCategory;
 
   /* =======================================================
      STATUS
@@ -781,31 +808,25 @@ export async function updateAsset(
   });
 
   /* =======================================================
-     REVALIDATE: หมวดเดิมและหมวดใหม่
+     REVALIDATE: หมวดเดิม + หมวดใหม่
      ======================================================= */
-
   const basePath = `/assets/${updatedAsset.departmentId}`;
-  const previousCategorySlug = asset.category.toLowerCase();
+  const oldCategorySlug = asset.category.toLowerCase();
   const newCategorySlug = updatedAsset.category.toLowerCase();
-
   revalidatePath("/assets");
   revalidatePath(basePath);
   revalidatePath(`${basePath}/all`);
-  revalidatePath(`${basePath}/${previousCategorySlug}`);
+  revalidatePath(`${basePath}/${oldCategorySlug}`);
   revalidatePath(`${basePath}/${newCategorySlug}`);
-  revalidatePath(`${basePath}/${previousCategorySlug}/${updatedAsset.id}`);
-  revalidatePath(`${basePath}/${previousCategorySlug}/${updatedAsset.id}/edit`);
   revalidatePath(`${basePath}/${newCategorySlug}/${updatedAsset.id}`);
   revalidatePath(`${basePath}/${newCategorySlug}/${updatedAsset.id}/edit`);
 
   /* =======================================================
-     REDIRECT: กลับไปหมวดใหม่ พร้อมปีงบประมาณที่เลือก
+     REDIRECT: ไปหน้าหมวดใหม่ตามที่บันทึก พร้อมปีงบประมาณ
      ======================================================= */
-
   const rawFiscalYear = String(formData.get("fiscalYear") ?? "").trim();
   const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
     ? `?fiscalYear=${rawFiscalYear}`
     : "";
-
   redirect(`${basePath}/${newCategorySlug}${fiscalYearQuery}`);
 }
