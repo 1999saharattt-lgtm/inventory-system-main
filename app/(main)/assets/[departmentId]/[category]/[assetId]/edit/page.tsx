@@ -246,6 +246,21 @@ export default async function EditAssetPage({
       ],
     });
 
+  // รายชื่อผู้ครอบครองที่เคยบันทึกไว้ในครุภัณฑ์ทุกหมวดของหน่วยงานนี้
+  // รองรับข้อมูลเก่าที่บันทึกเพียง responsibleName โดยไม่ได้สร้าง Officer
+  const savedOwners = await prisma.asset.findMany({
+    where: {
+      departmentId: departmentIdForPage,
+      officerId: null,
+      responsibleName: { not: null },
+    },
+    select: { responsibleName: true, sectionId: true },
+    distinct: ["responsibleName", "sectionId"],
+  });
+  const savedOwnerNames = savedOwners
+    .map((item) => ({ name: (item.responsibleName ?? "").trim(), sectionId: item.sectionId }))
+    .filter((item) => item.name.length > 0);
+
   // รวมตัวเลือกที่ผู้ใช้เคยบันทึกลง categoryDetail เพื่อให้ค้นหาใช้ซ้ำได้
   const savedCategoryTypes = await prisma.asset.findMany({
     where: { categoryDetail: { not: null } },
@@ -798,6 +813,7 @@ export default async function EditAssetPage({
               <AssetResponsibleFields
                 sections={sections}
                 officers={officers}
+                savedOwnerNames={savedOwnerNames}
                 departmentName={asset.department.name}
                 departmentId={departmentIdForPage}
                 initialSectionId={asset.sectionId}

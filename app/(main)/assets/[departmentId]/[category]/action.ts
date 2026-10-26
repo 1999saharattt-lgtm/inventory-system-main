@@ -695,7 +695,41 @@ export async function updateAsset(
      ======================================================= */
 
   const updatedAsset = await prisma.$transaction(async (tx) => {
-    const resolvedOfficerId = newOfficerName ? null : officerId;
+    let resolvedOfficerId = officerId;
+    if (newOfficerName) {
+      const parts = newOfficerName.split(/\s+/);
+      const firstName = parts.shift() ?? newOfficerName;
+      const lastName = parts.join(" ");
+      // ค้นชื่อที่เคยมีในหน่วยงานและกลุ่มงานเดียวกันก่อน เพื่อไม่สร้างซ้ำ
+      const existingOfficer = await tx.officer.findFirst({
+        where: {
+          firstName,
+          lastName,
+          sectionId,
+          OR: [
+            { departmentId },
+            { section: { is: { departmentId } } },
+          ],
+        },
+        select: { id: true },
+      });
+      if (existingOfficer) {
+        resolvedOfficerId = existingOfficer.id;
+      } else {
+        const createdOfficer = await tx.officer.create({
+          data: {
+            firstName,
+            lastName,
+            position: String(formData.get("newOfficerPosition") ?? "").trim(),
+            type: "CIVIL_SERVANT",
+            departmentId,
+            sectionId,
+          },
+          select: { id: true },
+        });
+        resolvedOfficerId = createdOfficer.id;
+      }
+    }
     const previousOfficer = asset.officerId
       ? await tx.officer.findUnique({ where: { id: asset.officerId }, select: { firstName: true, lastName: true } })
       : null;
@@ -815,6 +849,7 @@ export async function updateAsset(
   const newCategorySlug = updatedAsset.category.toLowerCase();
   revalidatePath("/assets");
   revalidatePath(basePath);
+  // หน้าแก้ไขทุกหมวดอ่านรายชื่อ Officer ใหม่จากฐานข้อมูลเมื่อเปิดหน้า
   revalidatePath(`${basePath}/all`);
   revalidatePath(`${basePath}/${oldCategorySlug}`);
   revalidatePath(`${basePath}/${newCategorySlug}`);
