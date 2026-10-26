@@ -14,7 +14,6 @@ import AppCard from "@/components/AppCard";
 import AppInfoCard from "@/components/AppInfoCard";
 
 import AssetResponsibleFields from "./AssetResponsibleFields";
-import AssetCategoryTypeDropdown from "./AssetCategoryTypeDropdown";
 
 export const dynamic =
   "force-dynamic";
@@ -245,7 +244,7 @@ export default async function NewAssetPage({
     distinct: ["categoryDetail"],
   });
   const typeOptions = Array.from(new Set([
-    ...Object.values(STANDARD_TYPES),
+    ...Object.values(STANDARD_TYPES).flatMap((value) => value.split(",").map((item) => item.trim())),
     ...EXTRA_TYPES,
     ...savedTypes.map((item) => item.categoryDetail?.trim() ?? "").filter(Boolean),
   ]));
@@ -338,7 +337,8 @@ export default async function NewAssetPage({
       ).trim();
 
     const categoryType = normalizeText(String(formData.get("categoryType") ?? ""));
-    const customOfficerName = normalizeText(String(formData.get("customOfficerName") ?? ""));
+    const customOfficerName = normalizeText(String(formData.get("newOfficerName") ?? formData.get("customOfficerName") ?? ""));
+    const newOfficerPosition = normalizeText(String(formData.get("newOfficerPosition") ?? ""));
 
     const remark =
       normalizeText(
@@ -627,6 +627,10 @@ export default async function NewAssetPage({
       }
     }
 
+    if (customOfficerName && hasTargetSections && sectionId === null) {
+      throw new Error("กรุณาเลือกกลุ่มงานก่อนเพิ่มผู้ครอบครองใหม่");
+    }
+
     /* =====================================================
        SECTION RESPONSIBLE
     ===================================================== */
@@ -661,7 +665,26 @@ export default async function NewAssetPage({
        CREATE
     ===================================================== */
 
-    await prisma.asset.create({
+    await prisma.$transaction(async (tx) => {
+      let resolvedOfficerId = officerId;
+      if (customOfficerName) {
+        const parts = customOfficerName.split(/\s+/);
+        const firstName = parts.shift() ?? customOfficerName;
+        const lastName = parts.join(" ");
+        const createdOfficer = await tx.officer.create({
+          data: {
+            firstName,
+            lastName,
+            position: newOfficerPosition,
+            type: "CIVIL_SERVANT",
+            departmentId: departmentIdNumber,
+            sectionId,
+          },
+          select: { id: true },
+        });
+        resolvedOfficerId = createdOfficer.id;
+      }
+      await tx.asset.create({
       data: {
         name,
 
@@ -697,15 +720,16 @@ export default async function NewAssetPage({
 
         sectionId,
 
-        officerId,
+        officerId: resolvedOfficerId,
 
-        responsibleName,
+        responsibleName: customOfficerName || responsibleName,
 
         status: assetStatus as AssetStatus,
 
         remark:
           remark || null,
       },
+      });
     });
 
     redirect(backHref);
@@ -915,11 +939,20 @@ export default async function NewAssetPage({
                 <label htmlFor="categoryType" className={labelClassName}>
                   หมวด/ชนิด
                 </label>
-                <AssetCategoryTypeDropdown
+                <input
+                  id="categoryType"
                   name="categoryType"
-                  initialValue=""
-                  options={typeOptions}
+                  type="text"
+                  list="asset-category-type-options"
+                  autoComplete="off"
+                  placeholder="เลือกจากรายการหรือพิมพ์ชื่อหมวด/ชนิดใหม่"
+                  className={inputClassName}
                 />
+                <datalist id="asset-category-type-options">
+                  {typeOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
               </AppInfoCard>
             </div>
 
