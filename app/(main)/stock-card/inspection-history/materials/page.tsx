@@ -66,7 +66,7 @@ const cellClassName = [
   "border border-black",
   "px-4 py-4",
   "text-center align-middle",
-  "text-sm font-semibold !text-slate-700",
+  "text-base font-semibold !text-slate-700",
 ].join(" ");
 
 const tableHeaders = [
@@ -166,7 +166,7 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
                       }
                     >
                       <td className={cellClassName}>{index + 1}</td>
-                      <td className={cellClassName}>{inspection.fiscalYear}</td>
+                      <td className={cellClassName}>พ.ศ. {inspection.fiscalYear}</td>
                       <td className={cellClassName}>
                         {formatInspectionDate(inspection.inspectionDate)}
                       </td>
