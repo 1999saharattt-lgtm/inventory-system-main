@@ -828,5 +828,17 @@ export async function updateAsset(
   const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
     ? `?fiscalYear=${rawFiscalYear}`
     : "";
-  redirect(`${basePath}/${newCategorySlug}${fiscalYearQuery}`);
+  // หมวดที่แสดงจริง: UPS และ SHELF อาจเก็บ category เป็น OTHER
+  // ใช้หมวด/ชนิดที่บันทึกไว้ก่อน เพื่อให้กลับไปยังหน้าของรายการ
+  const savedDetail = resolvedCategoryType.trim();
+  const savedLabel = savedDetail || name.trim();
+  let destinationCategory = newCategorySlug;
+
+  if (/^(เครื่องสำรองไฟฟ้า|UPS\b)/i.test(savedLabel)) {
+    destinationCategory = "ups";
+  } else if (/^ชั้น(?:$|\s|วาง|เหล็ก|ไม้)/.test(savedDetail)) {
+    destinationCategory = "shelf";
+  }
+
+  redirect(`${basePath}/${destinationCategory}${fiscalYearQuery}`);
 }
