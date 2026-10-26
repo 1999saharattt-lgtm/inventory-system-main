@@ -75,6 +75,8 @@ export async function updateAsset(
       select: {
         id: true,
         departmentId: true,
+        governmentAssetNo: true,
+        officeAssetNo: true,
         sectionId: true,
         officerId: true,
         status: true,
@@ -589,7 +591,8 @@ export async function updateAsset(
      GFMIS ซ้ำ
      ======================================================= */
 
-  if (governmentAssetNo) {
+  // ตรวจเลขซ้ำเฉพาะเมื่อเปลี่ยนจากเลขเดิม เพื่อให้แก้ไขข้อมูลอื่นได้
+  if (governmentAssetNo && governmentAssetNo !== (asset.governmentAssetNo ?? "").trim()) {
     const existingGovernment =
       await prisma.asset.findFirst({
         where: {
@@ -616,7 +619,8 @@ export async function updateAsset(
      รหัสครุภัณฑ์ซ้ำ
      ======================================================= */
 
-  if (officeAssetNo) {
+  // เลขเดิมที่นำเข้ามาแม้ซ้ำอยู่แล้ว ต้องไม่ขัดขวางการแก้ไขข้อมูลอื่น
+  if (officeAssetNo && officeAssetNo !== (asset.officeAssetNo ?? "").trim()) {
     const existingOffice =
       await prisma.asset.findFirst({
         where: {
