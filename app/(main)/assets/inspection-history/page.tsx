@@ -385,7 +385,7 @@ export default async function InspectionHistoryPage({
         subtitle="แสดงประวัติการตรวจสอบครุภัณฑ์แยกตามกลุ่มงานและปีงบประมาณ"
         actions={
           <AppButton
-            href={`/assets${fiscalYearQuery}`}
+            href={`/stock-card/inspection-history${fiscalYearQuery}`}
             variant="back"
             size="md"
           >

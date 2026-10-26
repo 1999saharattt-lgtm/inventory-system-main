@@ -550,7 +550,7 @@ export default async function InspectionHistoryEditPage({
   ======================================================= */
 
   const historyHref =
-    `/assets/inspection-history${fiscalYearQuery}`;
+    `/assets/inspection-history?fiscalYear=${buddhistYear}`;
 
   /* =========================================================
      UI
