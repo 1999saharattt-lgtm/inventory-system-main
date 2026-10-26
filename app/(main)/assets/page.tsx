@@ -160,19 +160,6 @@ export default async function AssetsPage({
         actions={
           <>
             {/* ===============================================
-                INSPECTION HISTORY
-                ไม่มีอิโมจิ
-            =============================================== */}
-
-            <AppButton
-              href={`/assets/inspection-history?fiscalYear=${selectedFiscalYear}`}
-              variant="primary"
-              size="md"
-            >
-              ประวัติการตรวจสอบครุภัณฑ์ประจำปี
-            </AppButton>
-
-            {/* ===============================================
                 ANNUAL INSPECTION
                 ADMIN ONLY
                 ไม่มีอิโมจิ
