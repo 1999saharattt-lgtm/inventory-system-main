@@ -7,6 +7,7 @@ import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 import AssetCategorySearch from "./AssetCategorySearch";
+import AssetHorizontalScroll from "./AssetHorizontalScroll";
 export const dynamic = "force-dynamic";
 /* =========================================================
    TYPES
@@ -750,45 +751,9 @@ export default async function AssetCategoryPage({
           max-w-full
         "
       >
-        {/* =================================================
-            TABLE SCROLL
-            Desktop = เต็มพื้นที่
-            Mobile = เลื่อนแนวนอน
-        ================================================= */}
-        <div
-          className="
-            w-full
-            min-w-0
-            max-w-full
-            overflow-x-auto
-            overscroll-x-contain
-            [-webkit-overflow-scrolling:touch]
-          "
-        >
-          <table
-            className={(assetCategory === "TELEPHONE" || assetCategory === "CABINET")
-              ? "w-max min-w-full table-auto border-collapse bg-white text-sm [&_th]:!whitespace-nowrap [&_th]:!break-normal [&_td]:!whitespace-nowrap [&_td]:!break-normal [&_td]:!overflow-visible"
-              : "w-full min-w-0 table-fixed border-collapse bg-white text-sm"}
-          >
-            {/* =================================================
-                COLUMN WIDTHS
-            ================================================= */}
-            {assetCategory !== "TELEPHONE" && assetCategory !== "CABINET" && (
-              <colgroup>
-                <col style={{ width: "4%" }} />
-                <col style={{ width: "9%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "9%" }} />
-                <col style={{ width: "6%" }} />
-                <col style={{ width: "5%" }} />
-                <col style={{ width: "7%" }} />
-                <col style={{ width: "5%" }} />
-              </colgroup>
-            )}
+        {/* ตารางทุกหมวด: เลื่อนแนวนอนด้านบนและด้านล่างพร้อมกัน */}
+        <AssetHorizontalScroll>
+          <table className="w-max min-w-full table-auto border-collapse bg-white text-sm [&_th]:!whitespace-nowrap [&_th]:!break-normal [&_td]:!whitespace-nowrap [&_td]:!break-normal [&_td]:!overflow-visible">
             {/* =================================================
                 HEADER
             ================================================= */}
@@ -1181,7 +1146,7 @@ export default async function AssetCategoryPage({
               )}
             </tbody>
           </table>
-        </div>
+        </AssetHorizontalScroll>
       </AppTableCard>
     </AppPage>
   );
