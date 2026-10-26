@@ -419,6 +419,7 @@ model Asset {
   updatedAt DateTime @updatedAt
 
   inspections AssetInspection[]
+  ownerHistory AssetOwnerHistory[]
 
   @@index([departmentId])
   @@index([sectionId])
@@ -541,4 +542,19 @@ model StockCardInspectionRow {
   @@index([inspectionId])
   @@index([materialId])
   @@index([accuracy])
+}
+
+// ประวัติการเปลี่ยนผู้ครอบครองครุภัณฑ์
+model AssetOwnerHistory {
+  id Int @id @default(autoincrement())
+  assetId Int
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  previousOfficerId Int?
+  nextOfficerId Int?
+  previousName String?
+  nextName String?
+  changedById Int?
+  changedAt DateTime @default(now())
+
+  @@index([assetId, changedAt])
 }

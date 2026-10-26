@@ -922,7 +922,7 @@ export default async function AssetCategoryPage({
                         <td className="border border-black px-3 py-2.5 text-center font-semibold !text-slate-700 break-words">
                           {asset.officer
                             ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() || "-"
-                            : "-"}
+                            : asset.responsibleName?.trim() || "-"}
                         </td>
 
                         {/* หมวด/ชนิด: ประเภทครุภัณฑ์ในทะเบียน */}

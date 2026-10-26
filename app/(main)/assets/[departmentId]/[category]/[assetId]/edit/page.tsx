@@ -257,6 +257,12 @@ export default async function EditAssetPage({
     ...savedCategoryTypes.map((item) => item.categoryDetail?.trim() ?? "").filter(Boolean),
   ]));
 
+   const ownerHistory = await prisma.assetOwnerHistory.findMany({
+     where: { assetId: asset.id },
+     orderBy: { changedAt: "desc" },
+     take: 50,
+   });
+
   /* =======================================================
      UPDATE
   ======================================================= */
@@ -796,11 +802,33 @@ export default async function EditAssetPage({
                 departmentId={departmentIdForPage}
                 initialSectionId={asset.sectionId}
                 initialOfficerId={asset.officerId}
+                initialResponsibleName={asset.responsibleName ?? ""}
               />
-            </AppInfoCard>
-          </div>
+             </AppInfoCard>
+             <div className="mt-5">
+               <h4 className="mb-3 text-base font-extrabold !text-slate-900">ประวัติผู้ครอบครอง</h4>
+               <div className="overflow-x-auto rounded-xl border border-slate-200">
+                 <table className="w-full min-w-[620px] border-collapse text-sm">
+                   <thead className="bg-slate-800 text-white"><tr>
+                     <th className="px-3 py-3 text-left">วันที่เปลี่ยน</th>
+                     <th className="px-3 py-3 text-left">ผู้ครอบครองเดิม</th>
+                     <th className="px-3 py-3 text-left">ผู้ครอบครองใหม่</th>
+                   </tr></thead>
+                   <tbody>
+                     {ownerHistory.length ? ownerHistory.map((item) => (
+                       <tr key={item.id} className="border-t border-slate-200">
+                         <td className="px-3 py-3">{item.changedAt.toLocaleString("th-TH")}</td>
+                         <td className="px-3 py-3">{item.previousName || "-"}</td>
+                         <td className="px-3 py-3">{item.nextName || "-"}</td>
+                       </tr>
+                     )) : <tr><td colSpan={3} className="px-3 py-4 text-center text-slate-500">ยังไม่มีประวัติการเปลี่ยนผู้ครอบครอง</td></tr>}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           </div>
 
-          {/* =================================================
+           {/* =================================================
               REMARK
           ================================================= */}
 

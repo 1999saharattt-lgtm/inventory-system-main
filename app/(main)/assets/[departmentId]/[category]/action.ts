@@ -187,6 +187,12 @@ export async function updateAsset(
     formData.get("officerId") ?? ""
   ).trim();
 
+  const newOfficerName = String(formData.get("newOfficerName") ?? "").trim().replace(/\s+/g, " ");
+  if (newOfficerName && officerIdValue) {
+    throw new Error("กรุณาเลือกผู้ครอบครองเดิมหรือเพิ่มชื่อใหม่อย่างใดอย่างหนึ่ง");
+  }
+
+
   const purchaseDateValue = formData.has("purchaseDate")
     ? String(formData.get("purchaseDate") ?? "").trim()
     : asset.purchaseDate?.toISOString().slice(0, 10) ?? "";
@@ -574,6 +580,11 @@ export async function updateAsset(
     }
   }
 
+  // ชื่อใหม่จะถูกสร้างเป็น Officer หลังตรวจสอบข้อมูลอื่นครบแล้ว
+  if (newOfficerName && !sectionId && hasSections) {
+    throw new Error("กรุณาเลือกกลุ่มงานก่อนเพิ่มผู้ครอบครองใหม่");
+  }
+
   /* =======================================================
      GFMIS ซ้ำ
      ======================================================= */
@@ -696,8 +707,22 @@ export async function updateAsset(
      ทั้งสอง Field แยกจากกัน
      ======================================================= */
 
-  const updatedAsset =
-    await prisma.asset.update({
+  const updatedAsset = await prisma.$transaction(async (tx) => {
+    const resolvedOfficerId = newOfficerName ? null : officerId;
+    const previousOfficer = asset.officerId
+      ? await tx.officer.findUnique({ where: { id: asset.officerId }, select: { firstName: true, lastName: true } })
+      : null;
+    const nextOfficer = resolvedOfficerId
+      ? await tx.officer.findUnique({ where: { id: resolvedOfficerId }, select: { firstName: true, lastName: true } })
+      : null;
+    const oldOwnerName = previousOfficer
+      ? `${previousOfficer.firstName} ${previousOfficer.lastName}`.trim()
+      : (asset.responsibleName ?? "");
+    const nextOwnerName = newOfficerName || (nextOfficer
+      ? `${nextOfficer.firstName} ${nextOfficer.lastName}`.trim()
+      : (responsibleName || ""));
+    const ownerChanged = oldOwnerName !== nextOwnerName || asset.officerId !== resolvedOfficerId;
+    const updated = await tx.asset.update({
       where: {
         id: assetId,
       },
@@ -740,7 +765,7 @@ export async function updateAsset(
          *
          * Optional
          */
-        officerId,
+        officerId: resolvedOfficerId,
 
         /*
          * ผู้รับผิดชอบเดิม /
@@ -752,7 +777,7 @@ export async function updateAsset(
          * ไม่เกี่ยวกับ officerId
          */
         responsibleName:
-          responsibleName || null,
+          nextOwnerName || (resolvedOfficerId === null && !newOfficerName ? responsibleName : "") || null,
 
         status:
           assetStatus,
@@ -780,6 +805,20 @@ export async function updateAsset(
         category: true,
       },
     });
+    if (ownerChanged) {
+      await tx.assetOwnerHistory.create({
+        data: {
+          assetId,
+          previousOfficerId: asset.officerId,
+          nextOfficerId: resolvedOfficerId,
+          previousName: oldOwnerName || null,
+          nextName: nextOwnerName || null,
+          changedById: currentUser.id,
+        },
+      });
+    }
+    return updated;
+  });
 
   /* =======================================================
      REVALIDATE
