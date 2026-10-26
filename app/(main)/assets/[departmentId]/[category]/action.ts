@@ -588,60 +588,15 @@ export async function updateAsset(
   }
 
   /* =======================================================
-     GFMIS ซ้ำ
+     เลขครุภัณฑ์ / GFMIS ในหน้าแก้ไข
+
+     อนุญาตให้แก้เลขเดิมที่บันทึกผิดเป็นเลขที่ผู้ใช้ระบุ
+     โดยไม่บล็อกการบันทึกจากการพบเลขซ้ำในรายการอื่น
+     (ไม่แก้ไขเลขของครุภัณฑ์รายการอื่น)
+
+     หมายเหตุ: หากฐานข้อมูลกำหนด UNIQUE constraint ไว้
+     Prisma ยังอาจปฏิเสธเลขซ้ำด้วย P2002
      ======================================================= */
-
-  // ตรวจเลขซ้ำเฉพาะเมื่อเปลี่ยนจากเลขเดิม เพื่อให้แก้ไขข้อมูลอื่นได้
-  if (governmentAssetNo && governmentAssetNo !== (asset.governmentAssetNo ?? "").trim()) {
-    const existingGovernment =
-      await prisma.asset.findFirst({
-        where: {
-          governmentAssetNo,
-
-          NOT: {
-            id: assetId,
-          },
-        },
-
-        select: {
-          id: true,
-        },
-      });
-
-    if (existingGovernment) {
-      throw new Error(
-        `เลขครุภัณฑ์กรม "${governmentAssetNo}" มีอยู่แล้ว`
-      );
-    }
-  }
-
-  /* =======================================================
-     รหัสครุภัณฑ์ซ้ำ
-     ======================================================= */
-
-  // เลขเดิมที่นำเข้ามาแม้ซ้ำอยู่แล้ว ต้องไม่ขัดขวางการแก้ไขข้อมูลอื่น
-  if (officeAssetNo && officeAssetNo !== (asset.officeAssetNo ?? "").trim()) {
-    const existingOffice =
-      await prisma.asset.findFirst({
-        where: {
-          officeAssetNo,
-
-          NOT: {
-            id: assetId,
-          },
-        },
-
-        select: {
-          id: true,
-        },
-      });
-
-    if (existingOffice) {
-      throw new Error(
-        `เลขครุภัณฑ์ประจำสำนัก "${officeAssetNo}" มีอยู่แล้ว`
-      );
-    }
-  }
 
   /* =======================================================
      วันที่จัดซื้อ
