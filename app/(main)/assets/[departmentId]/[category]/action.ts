@@ -856,11 +856,7 @@ export async function updateAsset(
   const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
     ? `?fiscalYear=${rawFiscalYear}`
     : "";
-  // หมวดทั่วไป: กลับไปยังหน้ารายละเอียดของครุภัณฑ์รายการที่แก้ไข
-  // หมวดอื่น: กลับไปยังหน้ารายการของหมวดเดิมตามพฤติกรรมที่กำหนดไว้
+  // หลังบันทึกสำเร็จ กลับไปยังหน้ารายการของหมวดครุภัณฑ์นั้นเสมอ
   const categoryPath = `/assets/${updatedAsset.departmentId}/${updatedAsset.category.toLowerCase()}`;
-  const destination = updatedAsset.category === "OTHER"
-    ? `${categoryPath}/${updatedAsset.id}`
-    : categoryPath;
-  redirect(`${destination}${fiscalYearQuery}`);
+  redirect(`${categoryPath}${fiscalYearQuery}`);
 }
