@@ -388,19 +388,22 @@ export default function Sidebar({
      ACTIVE GROUP
   ======================================================= */
 
+  const isItemActive = (href: string) => {
+    if (
+      href === "/stock-card" &&
+      (pathname === "/stock-card/inspection-history" ||
+        pathname.startsWith("/stock-card/inspection-history/"))
+    ) {
+      return false;
+    }
+
+    return pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  };
+
   const isGroupActive = (
     group: MenuGroup
   ) => {
-    return group.items.some(
-      (item) =>
-        pathname ===
-          item.href ||
-        (item.href !==
-          "/" &&
-          pathname.startsWith(
-            item.href
-          ))
-    );
+    return group.items.some((item) => isItemActive(item.href));
   };
 
   /* =======================================================
@@ -1288,14 +1291,7 @@ export default function Sidebar({
                         (
                           item
                         ) => {
-                          const itemActive =
-                            pathname ===
-                              item.href ||
-                            (item.href !==
-                              "/" &&
-                              pathname.startsWith(
-                                item.href
-                              ));
+                          const itemActive = isItemActive(item.href);
 
                           const Icon =
                             item.icon;
