@@ -766,14 +766,14 @@ export default async function AssetCategoryPage({
           "
         >
           <table
-            className={assetCategory === "TELEPHONE"
+            className={(assetCategory === "TELEPHONE" || assetCategory === "CABINET")
               ? "w-max min-w-full table-auto border-collapse bg-white text-sm [&_th]:!whitespace-nowrap [&_th]:!break-normal [&_td]:!whitespace-nowrap [&_td]:!break-normal [&_td]:!overflow-visible"
               : "w-full min-w-0 table-fixed border-collapse bg-white text-sm"}
           >
             {/* =================================================
                 COLUMN WIDTHS
             ================================================= */}
-            {assetCategory !== "TELEPHONE" && (
+            {assetCategory !== "TELEPHONE" && assetCategory !== "CABINET" && (
               <colgroup>
                 <col style={{ width: "4%" }} />
                 <col style={{ width: "9%" }} />
