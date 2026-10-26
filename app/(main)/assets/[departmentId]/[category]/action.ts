@@ -75,6 +75,7 @@ export async function updateAsset(
       select: {
         id: true,
         departmentId: true,
+        category: true,
         governmentAssetNo: true,
         officeAssetNo: true,
         sectionId: true,
@@ -780,42 +781,31 @@ export async function updateAsset(
   });
 
   /* =======================================================
-     REVALIDATE
+     REVALIDATE: หมวดเดิมและหมวดใหม่
      ======================================================= */
 
-  revalidatePath(
-    "/assets"
-  );
+  const basePath = `/assets/${updatedAsset.departmentId}`;
+  const previousCategorySlug = asset.category.toLowerCase();
+  const newCategorySlug = updatedAsset.category.toLowerCase();
 
-  revalidatePath(
-    `/assets/${updatedAsset.departmentId}`
-  );
-
-  revalidatePath(
-    `/assets/${updatedAsset.departmentId}/all`
-  );
-
-  revalidatePath(
-    `/assets/${updatedAsset.departmentId}/${updatedAsset.category}`
-  );
-
-  revalidatePath(
-    `/assets/${updatedAsset.departmentId}/${updatedAsset.category}/${updatedAsset.id}`
-  );
-
-  revalidatePath(
-    `/assets/${updatedAsset.departmentId}/${updatedAsset.category}/${updatedAsset.id}/edit`
-  );
+  revalidatePath("/assets");
+  revalidatePath(basePath);
+  revalidatePath(`${basePath}/all`);
+  revalidatePath(`${basePath}/${previousCategorySlug}`);
+  revalidatePath(`${basePath}/${newCategorySlug}`);
+  revalidatePath(`${basePath}/${previousCategorySlug}/${updatedAsset.id}`);
+  revalidatePath(`${basePath}/${previousCategorySlug}/${updatedAsset.id}/edit`);
+  revalidatePath(`${basePath}/${newCategorySlug}/${updatedAsset.id}`);
+  revalidatePath(`${basePath}/${newCategorySlug}/${updatedAsset.id}/edit`);
 
   /* =======================================================
-     REDIRECT
+     REDIRECT: กลับไปหมวดใหม่ พร้อมปีงบประมาณที่เลือก
      ======================================================= */
 
   const rawFiscalYear = String(formData.get("fiscalYear") ?? "").trim();
   const fiscalYearQuery = /^\d{4}$/.test(rawFiscalYear)
     ? `?fiscalYear=${rawFiscalYear}`
     : "";
-  // หลังบันทึกสำเร็จ กลับไปยังหน้ารายการของหมวดครุภัณฑ์นั้นเสมอ
-  const categoryPath = `/assets/${updatedAsset.departmentId}/${updatedAsset.category.toLowerCase()}`;
-  redirect(`${categoryPath}${fiscalYearQuery}`);
+
+  redirect(`${basePath}/${newCategorySlug}${fiscalYearQuery}`);
 }
