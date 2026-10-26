@@ -502,6 +502,16 @@ export default function StockCardHome() {
 
   /* =======================================================
 
+     URL
+
+  ======================================================= */
+
+  const inspectionHref =
+
+    `/stock-card/inspection?fiscalYear=${selectedFiscalYear}`;
+
+  /* =======================================================
+
      CHANGE FISCAL YEAR
 
      เลือกแล้วเปลี่ยนข้อมูลทันที
@@ -622,7 +632,49 @@ export default function StockCardHome() {
 
         subtitle="เลือกหมวดหมู่เพื่อดูประวัติการเคลื่อนไหวพัสดุ"
 
-        actions={<ExportAllStockCardPdf fiscalYear={selectedFiscalYear} />}
+        actions={
+
+          <>
+
+            {/* ===============================================
+
+                INSPECTION HISTORY
+
+                ใช้ปุ่มตัวกลาง
+
+                สีเขียว
+
+            =============================================== */}
+
+            <ExportAllStockCardPdf fiscalYear={selectedFiscalYear} />
+
+            {/* ===============================================
+
+                NEW INSPECTION
+
+            =============================================== */}
+
+            <AppButton
+
+              href={
+
+                inspectionHref
+
+              }
+
+              variant="primary"
+
+              size="md"
+
+            >
+
+              ตรวจสอบบัญชีพัสดุประจำปี
+
+            </AppButton>
+
+          </>
+
+        }
 
         className="
 
