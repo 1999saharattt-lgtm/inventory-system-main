@@ -552,6 +552,69 @@ export default async function CategoryPage({
     );
 
   /* =======================================================
+     CURRENT STOCK CARD LATEST PRICE
+
+     ใช้ราคาจากรายการรับเข้าล่าสุดตาม receiveDate
+     (ถ้าวันเดียวกันใช้ id ล่าสุด) ภายใน FY ปัจจุบัน
+     เหมือนหน้า Stock Card รายวัสดุ
+  ======================================================= */
+
+  const stockCardPriceEndDate =
+    new Date(
+      Date.UTC(
+        currentFiscalYear - 543,
+        8,
+        30,
+        17,
+        0,
+        0,
+        0
+      )
+    );
+
+  const latestPriceReceives =
+    materialIds.length > 0
+      ? await prisma.receiveItem.findMany({
+          where: {
+            materialId: {
+              in: materialIds,
+            },
+            receive: {
+              receiveDate: {
+                lt: stockCardPriceEndDate,
+              },
+            },
+          },
+          select: {
+            materialId: true,
+            unitPrice: true,
+          },
+          orderBy: [
+            {
+              receive: {
+                receiveDate: "desc",
+              },
+            },
+            {
+              id: "desc",
+            },
+          ],
+        })
+      : [];
+
+  const currentPriceMap =
+    new Map<number, number>();
+
+  for (const item of latestPriceReceives) {
+    if (!currentPriceMap.has(item.materialId)) {
+      currentPriceMap.set(
+        item.materialId,
+        Number(item.unitPrice ?? 0)
+      );
+    }
+  }
+
+  /* =======================================================
      STOCK CARD CURRENT MOVEMENTS
 
      ดึงข้อมูลตาม Logic หน้า Stock Card:
@@ -1268,9 +1331,13 @@ export default async function CategoryPage({
                       ) ??
                       0;
 
+                    const currentPrice =
+                      currentPriceMap.get(material.id) ??
+                      safeNumber(material.latestPrice);
+
                     const inventoryValue =
                       safeNumber(currentBalance) *
-                      safeNumber(material.latestPrice);
+                      safeNumber(currentPrice);
 
                     return (
                       <tr
@@ -1412,7 +1479,7 @@ export default async function CategoryPage({
                           "
                         >
                           {Number(
-                            material.latestPrice
+                            currentPrice
                           ).toLocaleString(
                             "th-TH",
                             {
