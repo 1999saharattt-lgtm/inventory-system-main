@@ -96,6 +96,13 @@ const categoryIcon: Record<string, string> = {
 /* =========================================================
    CATEGORY UNIT
 ========================================================= */
+const assetStatusName: Record<string, string> = {
+  IN_USE: "ใช้งานอยู่",
+  DAMAGED: "ชำรุด",
+  WAITING_DISPOSAL: "รอจำหน่าย",
+  DISPOSED: "จำหน่ายแล้ว",
+};
+
 const categoryUnit: Record<string, string> = {
   DESK: "ตัว",
   CHAIR: "ตัว",
@@ -731,15 +738,17 @@ export default async function AssetCategoryPage({
             ================================================= */}
                           <colgroup>
                 <col style={{ width: "4%" }} />
+                <col style={{ width: "9%" }} />
                 <col style={{ width: "10%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "14%" }} />
                 <col style={{ width: "12%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "14%" }} />
                 <col style={{ width: "9%" }} />
-                <col style={{ width: "16%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "6%" }} />
                 <col style={{ width: "5%" }} />
-                <col style={{ width: "9%" }} />
+                <col style={{ width: "7%" }} />
+                <col style={{ width: "5%" }} />
               </colgroup>
             {/* =================================================
                 HEADER
@@ -755,7 +764,9 @@ export default async function AssetCategoryPage({
                   "หมวด/ชนิด",
                   "ชื่อเรียก/คุณลักษณะครุภัณฑ์",
                   "ยี่ห้อ/รุ่น",
+                  "ยอดคงเหลือ",
                   "หน่วยนับ",
+                  "สถานะ",
                   "จัดการ",
                 ].map(
                   (
@@ -929,9 +940,19 @@ export default async function AssetCategoryPage({
                           {[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}
                         </td>
 
+                        {/* ยอดคงเหลือ: ข้อมูลจาก Asset.quantity */}
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold tabular-nums !text-slate-700">
+                          {asset.quantity.toLocaleString("th-TH")}
+                        </td>
+
                         {/* หน่วยนับ */}
                         <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700">
                           {unit}
+                        </td>
+
+                        {/* สถานะ: ข้อมูลจาก Asset.status */}
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
+                          {assetStatusName[asset.status] ?? asset.status}
                         </td>
 
 {/* ===================================
@@ -1041,7 +1062,7 @@ export default async function AssetCategoryPage({
                 <tr>
                   <td
                     colSpan={
-                      10
+                      12
                     }
                     className="
                       border
