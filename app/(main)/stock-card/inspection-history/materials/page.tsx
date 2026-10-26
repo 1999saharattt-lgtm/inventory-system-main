@@ -4,7 +4,7 @@ import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
 import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
-import DeleteAssetInspectionButton from "@/app/assets/inspection-history/DeleteAssetInspectionButton";
+import DeleteAssetInspectionButton from "../../../assets/inspection-history/DeleteAssetInspectionButton";
 
 /* =========================================================
    THAI DATE
