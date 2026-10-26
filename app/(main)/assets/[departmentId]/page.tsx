@@ -192,6 +192,7 @@ export default async function DepartmentAssetsPage({
         id: true,
         category: true,
         categoryDetail: true,
+        remark: true,
         name: true,
       },
     });
@@ -204,40 +205,34 @@ export default async function DepartmentAssetsPage({
      SHELF / UPS แยกจากหมวดอื่น และ MONITOR รวม COMPUTER
   ======================================================= */
 
-  function resolveDisplayCategory(asset: {
-    category: string;
-    categoryDetail: string | null;
-    name: string;
-  }): string {
-    const original = asset.category === "MONITOR"
-      ? "COMPUTER"
-      : asset.category;
-    const detail = (asset.categoryDetail ?? "").trim();
-    const normalized = detail.replace(/\s+/g, " ");
-
-    // ใช้หมวด/ชนิดที่ระบุไว้โดยตรงก่อน เพื่อให้รายการที่เคยแก้ไขย้ายหมวดได้
-    if (normalized) {
-      if (/เครื่องสำรองไฟฟ้า|เครื่องสำรองไฟ|\bUPS\b/i.test(normalized)) return "UPS";
-      if (/คอมพิวเตอร์|โน้ตบุ๊ก|โน้ตบุ๊ค|\bcomputer\b|\bnotebook\b|\bmonitor\b|จอภาพ/i.test(normalized)) return "COMPUTER";
-      if (/เครื่องพิมพ์|ปริ้นเตอร์|พรินเตอร์|\bprinter\b/i.test(normalized)) return "PRINTER";
-      if (/เครื่องปรับอากาศ|แอร์คอนดิชัน|แอร์คอนดิชั่น/i.test(normalized)) return "AIR_CONDITIONER";
-      if (/โทรศัพท์|\btelephone\b|\bphone\b/i.test(normalized)) return "TELEPHONE";
-      if (/เก้าอี้|\bchair\b/i.test(normalized)) return "CHAIR";
-      if (/ตู้|\bcabinet\b/i.test(normalized)) return "CABINET";
-      if (/^ชั้น(?:วาง|เหล็ก|ไม้|เอกสาร|หนังสือ|เก็บ|$)|ชั้นวาง/i.test(normalized)) return "SHELF";
-      if (/โต๊ะ|\bdesk\b|\btable\b/i.test(normalized)) return "DESK";
-      if (/^(ทั่วไป|อื่น ๆ|อื่นๆ)$/i.test(normalized)) return "OTHER";
+  // ใช้กฎจัดหมวดเดียวกับหน้า /assets/[departmentId]/[category]
+  // เพื่อให้จำนวนหน้าการ์ดตรงกับจำนวนรายการในหมวดนั้น
+  const resolveDisplayCategory = (asset: (typeof assets)[number]): string => {
+    const savedDetail = (asset.categoryDetail ?? "").trim();
+    const oldRemarkLine = (asset.remark ?? "").split("\n")[0]?.trim() ?? "";
+    const detail = savedDetail || (oldRemarkLine.startsWith("หมวด/ชนิด:")
+      ? oldRemarkLine.slice("หมวด/ชนิด:".length).trim()
+      : "");
+    // A deliberately selected category/ชนิด takes precedence over the old category.
+    // Match only at the beginning to avoid e.g. "โต๊ะวางคอมพิวเตอร์" becoming COMPUTER.
+    if (detail) {
+      if (/^(เครื่องสำรองไฟฟ้า|UPS\b)/i.test(detail)) return "UPS";
+      if (/^ชั้น(?:$|\s|วาง|เหล็ก|ไม้)/.test(detail)) return "SHELF";
+      if (/^(เครื่องคอมพิวเตอร์|คอมพิวเตอร์|โน้ตบุ๊ก|โน๊ตบุ๊ค|Notebook\b|Laptop\b|All\s*in\s*one\b|จอภาพ|จอมอนิเตอร์|Monitor\b)/i.test(detail)) return "COMPUTER";
+      if (/^(เครื่องพิมพ์|ปริ้นเตอร์|Printer\b)/i.test(detail)) return "PRINTER";
+      if (/^(เครื่องโทรศัพท์|โทรศัพท์|IP\s*PHONE\b)/i.test(detail)) return "TELEPHONE";
+      if (/^(เครื่องปรับอากาศ|แอร์(?:$|\s))/i.test(detail)) return "AIR_CONDITIONER";
+      if (/^เก้าอี้/.test(detail)) return "CHAIR";
+      if (/^โต๊ะ/.test(detail)) return "DESK";
+      if (/^ตู้/.test(detail)) return "CABINET";
+      if (/^(ทั่วไป|รถเข็น|เครื่องเล่นเทป)/.test(detail)) return "OTHER";
     }
-
-    // รองรับข้อมูลนำเข้าเดิมที่ยังไม่ได้ระบุหมวด/ชนิด
-    if (original === "OTHER") {
-      const name = asset.name.trim();
-      if (/เครื่องสำรองไฟฟ้า|เครื่องสำรองไฟ|\bUPS\b/i.test(name)) return "UPS";
-      if (/^ชั้น(?:วาง|เหล็ก|ไม้|เอกสาร|หนังสือ|เก็บ|$)|ชั้นวาง/i.test(name)) return "SHELF";
+    if (asset.category === "OTHER") {
+      if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(asset.name)) return "UPS";
+      if (/^(ชั้น|ชั้นวาง)/.test(asset.name)) return "SHELF";
     }
-
-    return original;
-  }
+    return asset.category === "MONITOR" ? "COMPUTER" : asset.category;
+  };
 
   const categoryCounts = new Map<string, number>();
 
