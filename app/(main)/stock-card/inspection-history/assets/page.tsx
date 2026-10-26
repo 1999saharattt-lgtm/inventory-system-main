@@ -1,22 +1,964 @@
+import { prisma } from "@/lib/prisma";
 
-import { redirect } from "next/navigation";
+import AppPage from "@/components/AppPage";
+import AppPageHeader from "@/components/AppPageHeader";
+import AppButton from "@/components/AppButton";
+import AppTableCard from "@/components/AppTableCard";
+import DeleteAssetInspectionButton from "../../../assets/inspection-history/DeleteAssetInspectionButton";
 
-type PageProps = {
-  searchParams: Promise<{
-    fiscalYear?: string;
+/* =========================================================
+   THAI DATE
+========================================================= */
+
+function formatThaiDate(
+  value:
+    | Date
+    | string
+    | null
+    | undefined
+) {
+  if (!value) {
+    return "-";
+  }
+
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "-";
+  }
+
+  const months = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
+  ];
+
+  return `${date.getDate()} ${
+    months[date.getMonth()]
+  } ${
+    date.getFullYear() + 543
+  }`;
+}
+
+/* =========================================================
+   INSPECTOR COUNT
+========================================================= */
+
+function getInspectorCount(
+  value: unknown
+) {
+  if (!value) {
+    return 0;
+  }
+
+  if (
+    Array.isArray(value)
+  ) {
+    return value.filter(
+      Boolean
+    ).length;
+  }
+
+  if (
+    typeof value ===
+    "string"
+  ) {
+    try {
+      const parsed =
+        JSON.parse(value);
+
+      if (
+        Array.isArray(
+          parsed
+        )
+      ) {
+        return parsed.filter(
+          Boolean
+        ).length;
+      }
+    } catch {
+      return value
+        .split(",")
+        .map(
+          (item) =>
+            item.trim()
+        )
+        .filter(Boolean)
+        .length;
+    }
+  }
+
+  return 0;
+}
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+type HistoryItem = {
+  departmentId: number;
+
+  departmentName: string;
+
+  year: string;
+
+  inspectionStartDate:
+    | Date
+    | string
+    | null;
+
+  inspectionEndDate:
+    | Date
+    | string
+    | null;
+
+  assetIds: Set<number>;
+
+  inspectorCount: number;
+};
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+type Props = {
+  searchParams?: Promise<{
+    fiscalYear?: string | string[];
   }>;
 };
 
-export default async function AssetInspectionHistoryPage({
+export default async function InspectionHistoryPage({
   searchParams,
-}: PageProps) {
-  const params = await searchParams;
+}: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawFiscalYear = resolvedSearchParams.fiscalYear;
+  const fiscalYearValue = Array.isArray(rawFiscalYear)
+    ? rawFiscalYear[0]
+    : rawFiscalYear;
+  const parsedFiscalYear = fiscalYearValue
+    ? Number(fiscalYearValue)
+    : null;
+  const selectedFiscalYear =
+    parsedFiscalYear !== null &&
+    Number.isInteger(parsedFiscalYear) &&
+    parsedFiscalYear >= 2400 &&
+    parsedFiscalYear <= 3000
+      ? parsedFiscalYear
+      : null;
+  const fiscalYearQuery = selectedFiscalYear
+    ? `?fiscalYear=${selectedFiscalYear}`
+    : "";
 
-  const fiscalYear = params.fiscalYear;
+  /* =======================================================
+     INSPECTIONS
+  ======================================================= */
 
-  const destination = fiscalYear
-    ? `/assets/inspection-history?fiscalYear=${encodeURIComponent(fiscalYear)}`
-    : "/assets/inspection-history";
+  const inspections =
+    await prisma.assetInspection.findMany({
+      ...(selectedFiscalYear !== null ? { where: { year: selectedFiscalYear } } : {}),
+      include: {
+        asset: {
+          include: {
+            department:
+              true,
+          },
+        },
+      },
 
-  redirect(destination);
+      orderBy: {
+        year:
+          "desc",
+      },
+    });
+
+  /* =======================================================
+     GROUP HISTORY
+     กลุ่มงาน + ปีงบประมาณ
+  ======================================================= */
+
+  const historyMap =
+    new Map<
+      string,
+      HistoryItem
+    >();
+
+  for (
+    const inspection of
+    inspections
+  ) {
+    const department =
+      inspection.asset
+        ?.department;
+
+    if (!department) {
+      continue;
+    }
+
+    const year =
+      String(
+        inspection.year
+      );
+
+    const key =
+      `${department.id}-${year}`;
+
+    const existing =
+      historyMap.get(
+        key
+      );
+
+    /* =====================================================
+       FIRST ITEM
+    ===================================================== */
+
+    if (!existing) {
+      historyMap.set(
+        key,
+        {
+          departmentId:
+            department.id,
+
+          departmentName:
+            department.name,
+
+          year,
+
+          inspectionStartDate:
+            inspection.inspectionStartDate,
+
+          inspectionEndDate:
+            inspection.inspectionEndDate,
+
+          assetIds:
+            new Set([
+              inspection.assetId,
+            ]),
+
+          inspectorCount:
+            getInspectorCount(
+              inspection.inspectorIds
+            ),
+        }
+      );
+
+      continue;
+    }
+
+    /* =====================================================
+       ASSET COUNT
+    ===================================================== */
+
+    existing.assetIds.add(
+      inspection.assetId
+    );
+
+    /* =====================================================
+       INSPECTOR COUNT
+    ===================================================== */
+
+    const inspectorCount =
+      getInspectorCount(
+        inspection.inspectorIds
+      );
+
+    if (
+      inspectorCount >
+      existing.inspectorCount
+    ) {
+      existing.inspectorCount =
+        inspectorCount;
+    }
+
+    /* =====================================================
+       EARLIEST START DATE
+    ===================================================== */
+
+    if (
+      inspection.inspectionStartDate &&
+      (
+        !existing.inspectionStartDate ||
+        new Date(
+          inspection.inspectionStartDate
+        ) <
+          new Date(
+            existing.inspectionStartDate
+          )
+      )
+    ) {
+      existing.inspectionStartDate =
+        inspection.inspectionStartDate;
+    }
+
+    /* =====================================================
+       LATEST END DATE
+    ===================================================== */
+
+    if (
+      inspection.inspectionEndDate &&
+      (
+        !existing.inspectionEndDate ||
+        new Date(
+          inspection.inspectionEndDate
+        ) >
+          new Date(
+            existing.inspectionEndDate
+          )
+      )
+    ) {
+      existing.inspectionEndDate =
+        inspection.inspectionEndDate;
+    }
+  }
+
+  /* =======================================================
+     SORT HISTORY
+
+     1. ปีล่าสุด
+     2. ชื่อกลุ่มงาน
+  ======================================================= */
+
+  const history =
+    Array.from(
+      historyMap.values()
+    ).sort(
+      (a, b) => {
+        const yearCompare =
+          Number(
+            b.year.replace(
+              /\D/g,
+              ""
+            )
+          ) -
+          Number(
+            a.year.replace(
+              /\D/g,
+              ""
+            )
+          );
+
+        if (
+          yearCompare !==
+          0
+        ) {
+          return yearCompare;
+        }
+
+        return a.departmentName.localeCompare(
+          b.departmentName,
+          "th"
+        );
+      }
+    );
+
+  /* =========================================================
+     UI
+  ========================================================= */
+
+  return (
+    <AppPage>
+      {/* =====================================================
+          HEADER
+
+          ใช้ AppPageHeader ตัวกลาง
+          แบบเดียวกับหน้า assets อื่น
+      ===================================================== */}
+
+      <AppPageHeader
+        icon="📋"
+        title="ประวัติการตรวจสอบครุภัณฑ์ประจำปี"
+        subtitle="แสดงประวัติการตรวจสอบครุภัณฑ์แยกตามกลุ่มงานและปีงบประมาณ"
+        actions={
+          <AppButton
+            href={`/stock-card/inspection-history${fiscalYearQuery}`}
+            variant="back"
+            size="md"
+          >
+            กลับ
+          </AppButton>
+        }
+      />
+
+      {/* =====================================================
+          TABLE CARD
+
+          ใช้ AppTableCard ตัวกลาง
+          จำนวนรายการอยู่ด้านขวา
+      ===================================================== */}
+
+      <AppTableCard
+        title="รายการประวัติการตรวจสอบ"
+        subtitle="ประวัติการตรวจสอบครุภัณฑ์ประจำปีของแต่ละกลุ่มงาน"
+        badge={`${history.length.toLocaleString(
+          "th-TH"
+        )} รายการ`}
+        className="
+          w-full
+          min-w-0
+          max-w-full
+        "
+      >
+        {/* =================================================
+            RESPONSIVE TABLE
+        ================================================= */}
+
+        <div
+          className="
+            w-full
+            min-w-0
+            max-w-full
+
+            overflow-x-auto
+            overscroll-x-contain
+
+            [-webkit-overflow-scrolling:touch]
+          "
+        >
+          <table
+            className="
+              w-full
+              min-w-[1300px]
+
+              border-collapse
+
+              bg-white
+
+              text-sm
+            "
+          >
+            {/* =================================================
+                COLUMN WIDTHS
+            ================================================= */}
+
+            <colgroup>
+              {/* ลำดับ */}
+              <col className="w-[5%]" />
+
+              {/* ชื่อกลุ่มงาน */}
+              <col className="w-[22%]" />
+
+              {/* ปีงบประมาณ */}
+              <col className="w-[11%]" />
+
+              {/* เริ่มตรวจ */}
+              <col className="w-[13%]" />
+
+              {/* แล้วเสร็จ */}
+              <col className="w-[13%]" />
+
+              {/* จำนวน */}
+              <col className="w-[10%]" />
+
+              {/* ผู้ตรวจ */}
+              <col className="w-[8%]" />
+
+              {/* รายละเอียด */}
+              <col className="w-[8%]" />
+
+              {/* จัดการ */}
+              <col className="w-[10%]" />
+            </colgroup>
+
+            {/* =================================================
+                TABLE HEADER
+            ================================================= */}
+
+            <thead>
+              <tr>
+                {[
+                  "ลำดับ",
+                  "ชื่อกลุ่มงาน",
+                  "ประจำปีงบประมาณ",
+                  "วันที่เริ่มตรวจสอบ",
+                  "วันที่ตรวจสอบแล้วเสร็จ",
+                  "จำนวนครุภัณฑ์",
+                  "ผู้ตรวจสอบ",
+                  "รายละเอียดข้อมูล",
+                  "จัดการ",
+                ].map(
+                  (
+                    tableTitle
+                  ) => (
+                    <th
+                      key={
+                        tableTitle
+                      }
+                      className="
+                        whitespace-nowrap
+
+                        border
+                        border-black
+
+                        bg-gradient-to-r
+                        from-slate-800
+                        to-slate-700
+
+                        px-3
+                        py-4
+
+                        text-center
+                        text-sm
+                        font-extrabold
+                        leading-none
+
+                        !text-white
+                      "
+                    >
+                      {
+                        tableTitle
+                      }
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+
+            {/* =================================================
+                TABLE BODY
+            ================================================= */}
+
+            <tbody>
+              {history.length >
+              0 ? (
+                history.map(
+                  (
+                    item,
+                    index
+                  ) => {
+                    /* =========================================
+                       ROUTES
+                    ========================================= */
+
+                    const detailHref =
+                      `/assets/${item.departmentId}/inspection-history/${item.year}`;
+
+                    const editHref =
+                      `${detailHref}/edit`;
+
+                    return (
+                      <tr
+                        key={`${item.departmentId}-${item.year}`}
+                        className={`
+                          ${
+                            index %
+                              2 ===
+                            0
+                              ? "bg-white"
+                              : "bg-slate-50/60"
+                          }
+
+                          transition-colors
+                          duration-200
+
+                          hover:bg-emerald-50/60
+                        `}
+                      >
+                        {/* ===================================
+                            ORDER
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-semibold
+                            tabular-nums
+
+                            !text-slate-700
+                          "
+                        >
+                          {(
+                            index +
+                            1
+                          ).toLocaleString(
+                            "th-TH"
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            DEPARTMENT
+                        =================================== */}
+
+                        <td
+                          title={
+                            item.departmentName
+                          }
+                          className="
+                            min-w-[260px]
+
+                            border
+                            border-black
+
+                            px-4
+                            py-3.5
+
+                            text-left
+
+                            font-extrabold
+
+                            !text-slate-900
+                          "
+                        >
+                          <div
+                            className="
+                              overflow-hidden
+                              text-ellipsis
+                              whitespace-nowrap
+                            "
+                          >
+                            {
+                              item.departmentName
+                            }
+                          </div>
+                        </td>
+
+                        {/* ===================================
+                            FISCAL YEAR
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-extrabold
+                            tabular-nums
+
+                            !text-slate-900
+                          "
+                        >
+                          พ.ศ.{" "}
+                          {
+                            item.year
+                          }
+                        </td>
+
+                        {/* ===================================
+                            START DATE
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-semibold
+
+                            !text-slate-700
+                          "
+                        >
+                          {formatThaiDate(
+                            item.inspectionStartDate
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            END DATE
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-semibold
+
+                            !text-slate-700
+                          "
+                        >
+                          {formatThaiDate(
+                            item.inspectionEndDate
+                          )}
+                        </td>
+
+                        {/* ===================================
+                            ASSET COUNT
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-semibold
+                            tabular-nums
+
+                            !text-slate-700
+                          "
+                        >
+                          {item.assetIds.size.toLocaleString(
+                            "th-TH"
+                          )}{" "}
+                          รายการ
+                        </td>
+
+                        {/* ===================================
+                            INSPECTOR COUNT
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-3.5
+
+                            text-center
+
+                            font-semibold
+                            tabular-nums
+
+                            !text-slate-700
+                          "
+                        >
+                          {item.inspectorCount.toLocaleString(
+                            "th-TH"
+                          )}{" "}
+                          คน
+                        </td>
+
+                        {/* ===================================
+                            DETAIL
+
+                            ใช้ AppButton ตัวกลาง
+                            สีเขียว
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-2.5
+
+                            text-center
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+                            "
+                          >
+                            <AppButton
+                              href={
+                                detailHref
+                              }
+                              variant="primary"
+                              size="sm"
+                            >
+                              เปิด
+                            </AppButton>
+                          </div>
+                        </td>
+
+                        {/* ===================================
+                            ACTIONS
+
+                            แก้ไข = เขียว
+                            ลบ = แดง
+
+                            ใช้ขนาดจาก AppButton ตัวกลาง
+                        =================================== */}
+
+                        <td
+                          className="
+                            whitespace-nowrap
+
+                            border
+                            border-black
+
+                            px-3
+                            py-2.5
+
+                            text-center
+                          "
+                        >
+                          <div
+                            className="
+                              flex
+                              items-center
+                              justify-center
+
+                              gap-2
+                            "
+                          >
+                            {/* =============================
+                                EDIT
+                            ============================= */}
+
+                            <AppButton
+                              href={
+                                editHref
+                              }
+                              variant="primary"
+                              size="sm"
+                              icon={
+                                <span
+                                  aria-hidden="true"
+                                >
+                                  ✏️
+                                </span>
+                              }
+                            >
+                              แก้ไข
+                            </AppButton>
+
+                            {/* DELETE: ลบเฉพาะกลุ่มงานและปีงบประมาณนี้ */}
+                            <DeleteAssetInspectionButton
+                              departmentId={item.departmentId}
+                              departmentName={item.departmentName}
+                              year={item.year}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+                )
+              ) : (
+                /* ===========================================
+                    EMPTY STATE
+                =========================================== */
+
+                <tr>
+                  <td
+                    colSpan={
+                      9
+                    }
+                    className="
+                      border
+                      border-black
+
+                      bg-white
+
+                      px-6
+                      py-16
+
+                      text-center
+                    "
+                  >
+                    <div
+                      className="
+                        mx-auto
+
+                        flex
+                        max-w-md
+                        flex-col
+
+                        items-center
+                        justify-center
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          h-16
+                          w-16
+
+                          place-items-center
+
+                          text-3xl
+                        "
+                        aria-hidden="true"
+                      >
+                        📋
+                      </div>
+
+                      <p
+                        className="
+                          mt-4
+
+                          text-lg
+                          font-extrabold
+                          tracking-tight
+
+                          !text-slate-900
+                        "
+                      >
+                        ยังไม่มีประวัติการตรวจสอบครุภัณฑ์ประจำปี
+                      </p>
+
+                      <p
+                        className="
+                          mt-1
+
+                          text-sm
+                          font-semibold
+                          leading-relaxed
+
+                          !text-slate-500
+                        "
+                      >
+                        เมื่อมีการบันทึกการตรวจสอบครุภัณฑ์
+                        ประวัติการตรวจสอบจะแสดงในตารางนี้
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </AppTableCard>
+    </AppPage>
+  );
 }
