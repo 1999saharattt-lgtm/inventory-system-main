@@ -17,6 +17,7 @@ import {
   PackagePlus,
   PackageMinus,
   ClipboardList,
+  History,
   MonitorCog,
   Truck,
   Building2,
@@ -277,6 +278,17 @@ export default function Sidebar({
 
           icon:
             MonitorCog,
+        },
+
+        {
+          name:
+            "ประวัติการตรวจสอบ",
+
+          href:
+            "/stock-card/inspection-history",
+
+          icon:
+            History,
         },
       ],
     },
