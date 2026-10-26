@@ -724,19 +724,15 @@ export default async function AssetCategoryPage({
           "
         >
           <table
-            className="
-              w-full
-              min-w-0
-              table-fixed
-              border-collapse
-              bg-white
-              text-sm
-            "
+            className={assetCategory === "TELEPHONE"
+              ? "w-max min-w-full table-auto border-collapse bg-white text-sm [&_th]:!whitespace-nowrap [&_th]:!break-normal [&_td]:!whitespace-nowrap [&_td]:!break-normal [&_td]:!overflow-visible"
+              : "w-full min-w-0 table-fixed border-collapse bg-white text-sm"}
           >
             {/* =================================================
                 COLUMN WIDTHS
             ================================================= */}
-                          <colgroup>
+            {assetCategory !== "TELEPHONE" && (
+              <colgroup>
                 <col style={{ width: "4%" }} />
                 <col style={{ width: "9%" }} />
                 <col style={{ width: "10%" }} />
@@ -750,6 +746,7 @@ export default async function AssetCategoryPage({
                 <col style={{ width: "7%" }} />
                 <col style={{ width: "5%" }} />
               </colgroup>
+            )}
             {/* =================================================
                 HEADER
             ================================================= */}
