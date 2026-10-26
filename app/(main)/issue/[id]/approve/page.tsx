@@ -292,7 +292,7 @@ export default async function ApproveIssuePage({
                             step="1"
                             placeholder="กรอกจำนวน"
                             required
-                            className="h-[46px] w-full min-w-[120px] rounded-[12px] border-2 !border-black bg-white px-3 text-center text-base font-extrabold tabular-nums !text-slate-900 shadow-sm outline-none transition-all duration-200 placeholder:font-semibold placeholder:!text-slate-400 hover:bg-slate-50 focus:!border-emerald-600 focus:ring-4 focus:ring-emerald-100/70"
+                            className="h-[46px] w-full min-w-[120px] rounded-[12px] border border-slate-200 bg-white px-3 text-center text-base font-extrabold tabular-nums !text-slate-900 shadow-sm outline-none transition-all duration-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder:font-semibold placeholder:!text-slate-400 hover:bg-slate-50 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-100/70"
                           />
                         </td>
                         <td className="min-w-[120px] border border-black px-3 py-3 align-top">
