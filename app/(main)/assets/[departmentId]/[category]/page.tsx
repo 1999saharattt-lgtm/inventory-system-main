@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -298,6 +299,47 @@ export default async function AssetCategoryPage({
     ? rawFiscalYear[0]
     : rawFiscalYear;
   const fiscalYearNumber = Number(fiscalYearText);
+  // หากลิงก์หมวดไม่มีปีงบประมาณ ให้ใช้ปีที่เลือกจากหน้าก่อนหน้า
+  // และเติม fiscalYear ลงใน URL โดยไม่เปลี่ยนข้อมูลครุภัณฑ์
+  const validFiscalYear =
+    typeof fiscalYearText === "string" &&
+    /^\d{4}$/.test(fiscalYearText) &&
+    Number.isInteger(fiscalYearNumber) &&
+    fiscalYearNumber >= 2569 &&
+    fiscalYearNumber <= 3000;
+  if (!validFiscalYear) {
+    const requestHeaders = await headers();
+    const referer = requestHeaders.get("referer");
+    let selectedYear: number | null = null;
+    if (referer) {
+      try {
+        const previousUrl = new URL(referer);
+        const previousYearText = previousUrl.searchParams.get("fiscalYear");
+        const previousYear = Number(previousYearText);
+        if (
+          previousYearText &&
+          /^\d{4}$/.test(previousYearText) &&
+          Number.isInteger(previousYear) &&
+          previousYear >= 2569 &&
+          previousYear <= 3000
+        ) {
+          selectedYear = previousYear;
+        }
+      } catch {
+        // ไม่มี URL อ้างอิงที่อ่านได้
+      }
+    }
+    // เมื่อเปิด URL ตรงโดยไม่มีปีที่เลือก ให้ใช้ปีงบประมาณปัจจุบัน
+    const now = new Date();
+    const thaiYear = now.getFullYear() + 543;
+    const currentFiscalYear = thaiYear + (now.getMonth() >= 9 ? 1 : 0);
+    const year = selectedYear ?? currentFiscalYear;
+    const searchValue = resolvedSearchParams.search ?? resolvedSearchParams.q;
+    const queryText = Array.isArray(searchValue) ? searchValue[0] : searchValue;
+    const query = new URLSearchParams({ fiscalYear: String(year) });
+    if (queryText) query.set("search", queryText);
+    redirect(`/assets/${resolvedParams.departmentId}/${resolvedParams.category}?${query.toString()}`);
+  }
   const fiscalYearQuery =
     fiscalYearText &&
     /^\d{4}$/.test(fiscalYearText) &&
