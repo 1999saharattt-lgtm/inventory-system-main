@@ -423,6 +423,8 @@ export default async function AssetCategoryPage({
     department.id;
   const departmentNameForDisplay =
     department.name;
+  const assetCategoryForAction =
+    assetCategory;
   const categorySlug =
     assetCategory.toLowerCase();
   /* =======================================================
@@ -433,6 +435,15 @@ export default async function AssetCategoryPage({
       where: {
         departmentId:
           departmentIdForAction,
+        ...(assetCategory === "UPS"
+          ? { category: "OTHER" as any }
+          : assetCategory === "COMPUTER"
+            ? { category: { in: ["COMPUTER", "MONITOR"] as any } }
+            : assetCategory === "OTHER"
+              ? { category: "OTHER" as any }
+              : assetCategory === "SHELF"
+                ? { category: { in: ["SHELF", "OTHER"] as any } }
+                : { category: assetCategory as any }),
         ...(search
           ? {
               OR: [
@@ -542,40 +553,18 @@ export default async function AssetCategoryPage({
       },
     });
   /* =======================================================
-     DISPLAY CATEGORY FOR ALREADY-EDITED ASSETS
-     Uses the saved categoryDetail; does not change database records.
-     ======================================================= */
-  const resolveDisplayCategory = (asset: (typeof assetsFromDatabase)[number]): string => {
-    const savedDetail = (asset.categoryDetail ?? "").trim();
-    const oldRemarkLine = (asset.remark ?? "").split("\n")[0]?.trim() ?? "";
-    const detail = savedDetail || (oldRemarkLine.startsWith("หมวด/ชนิด:")
-      ? oldRemarkLine.slice("หมวด/ชนิด:".length).trim()
-      : "");
-    // A deliberately selected category/ชนิด takes precedence over the old category.
-    // Match only at the beginning to avoid e.g. "โต๊ะวางคอมพิวเตอร์" becoming COMPUTER.
-    if (detail) {
-      if (/^(เครื่องสำรองไฟฟ้า|UPS\b)/i.test(detail)) return "UPS";
-      if (/^ชั้น(?:$|\s|วาง|เหล็ก|ไม้)/.test(detail)) return "SHELF";
-      if (/^(เครื่องคอมพิวเตอร์|คอมพิวเตอร์|โน้ตบุ๊ก|โน๊ตบุ๊ค|Notebook\b|Laptop\b|All\s*in\s*one\b|จอภาพ|จอมอนิเตอร์|Monitor\b)/i.test(detail)) return "COMPUTER";
-      if (/^(เครื่องพิมพ์|ปริ้นเตอร์|Printer\b)/i.test(detail)) return "PRINTER";
-      if (/^(เครื่องโทรศัพท์|โทรศัพท์|IP\s*PHONE\b)/i.test(detail)) return "TELEPHONE";
-      if (/^(เครื่องปรับอากาศ|แอร์(?:$|\s))/i.test(detail)) return "AIR_CONDITIONER";
-      if (/^เก้าอี้/.test(detail)) return "CHAIR";
-      if (/^โต๊ะ/.test(detail)) return "DESK";
-      if (/^ตู้/.test(detail)) return "CABINET";
-      if (/^(ทั่วไป|รถเข็น|เครื่องเล่นเทป)/.test(detail)) return "OTHER";
-    }
-    if (asset.category === "OTHER") {
-      if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(asset.name)) return "UPS";
-      if (/^(ชั้น|ชั้นวาง)/.test(asset.name)) return "SHELF";
-    }
-    return asset.category === "MONITOR" ? "COMPUTER" : asset.category;
-  };
-  /* =======================================================
      SORT
   ======================================================= */
-  const belongsToPage = (asset: (typeof assetsFromDatabase)[number]) =>
-    resolveDisplayCategory(asset) === assetCategory;
+  const belongsToPage = (asset: (typeof assetsFromDatabase)[number]) => {
+    const detail = (asset.categoryDetail ?? "").trim();
+    const label = detail || asset.name;
+    const isUps = /เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(label);
+    const isShelf = detail === "ชั้น";
+    if (assetCategory === "UPS") return asset.category === "OTHER" && isUps;
+    if (assetCategory === "SHELF") return asset.category === "SHELF" || (asset.category === "OTHER" && isShelf);
+    if (assetCategory === "OTHER") return !isUps && !isShelf;
+    return true;
+  };
   const assets = [
     ...assetsFromDatabase.filter(belongsToPage),
   ].sort((a, b) => {
@@ -640,6 +629,9 @@ export default async function AssetCategoryPage({
             assetId,
           departmentId:
             departmentIdForAction,
+          ...(assetCategoryForAction === "UPS" || assetCategoryForAction === "SHELF" || assetCategoryForAction === "OTHER" || assetCategoryForAction === "COMPUTER"
+            ? {}
+            : { category: assetCategoryForAction as any }),
         },
         select: {
           id:
@@ -696,7 +688,7 @@ export default async function AssetCategoryPage({
                 ADD
                 สีเขียวตัวกลาง
             =============================================== */}
-            {canManage && assetCategory !== "UPS" && (
+            {canManage && (
               <AppButton
                 href={withFiscalYear(`/assets/${departmentIdForAction}/${categorySlug}/new`)}
                 variant="primary"

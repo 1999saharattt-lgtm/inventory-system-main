@@ -44,6 +44,7 @@ const categoryName = {
   COMPUTER: "คอมพิวเตอร์",
   PRINTER: "เครื่องพิมพ์",
   TELEPHONE: "เครื่องโทรศัพท์",
+  UPS: "เครื่องสำรองไฟฟ้า",
   OTHER: "ทั่วไป",
   NO_SYSTEM: "ไม่มีอยู่ในระบบ",
 } as const;
@@ -56,6 +57,7 @@ const categoryIcon = {
   COMPUTER: "💻",
   PRINTER: "🖨️",
   TELEPHONE: "☎️",
+  UPS: "🔋",
   OTHER: "📦",
   NO_SYSTEM: "📋",
 } as const;
@@ -68,6 +70,7 @@ const categoryUnit = {
   COMPUTER: "เครื่อง",
   PRINTER: "เครื่อง",
   TELEPHONE: "เครื่อง",
+  UPS: "เครื่อง",
   OTHER: "รายการ",
   NO_SYSTEM: "รายการ",
 } as const;
@@ -81,6 +84,7 @@ const validCategories = [
   "PRINTER",
   "TELEPHONE",
   "OTHER",
+  "UPS",
   "NO_SYSTEM",
 ] as const;
 
@@ -666,8 +670,8 @@ export default async function NewAssetPage({
         name,
 
         category:
-          assetCategory,
-        categoryDetail: categoryType || null,
+          assetCategory === "UPS" ? "OTHER" : assetCategory,
+        categoryDetail: categoryType || (assetCategory === "UPS" ? "เครื่องสำรองไฟฟ้า" : null),
 
         brand:
           brand || null,
@@ -917,7 +921,7 @@ export default async function NewAssetPage({
                 </label>
                 <AssetCategoryTypeDropdown
                   name="categoryType"
-                  initialValue=""
+                  initialValue={assetCategory === "UPS" ? "เครื่องสำรองไฟฟ้า" : ""}
                   options={typeOptions}
                 />
               </AppInfoCard>
