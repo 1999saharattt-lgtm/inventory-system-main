@@ -103,6 +103,7 @@ const MAX_ROWS_PER_PAGE = 6;
 const FIXED_FONT_SIZE = 8.5;
 // ลดลงประมาณ 2px = 1.5pt เฉพาะหัวตารางและข้อมูลทั่วไป
 const COMPACT_FONT_SIZE = 7;
+const TABLE_HEADER_FONT_SIZE = 6; // ลดเฉพาะหัวตารางลง 1 pt
 const MAX_BODY_HEIGHT = 125;
 
 
@@ -1121,19 +1122,22 @@ export default function ExportInspectionPdf({
           : accountEndDate;
 
         const accountStartHeaderLines = [
-          "ยอดคงเหลือตามบัญชี",
+          "ยอดคงเหลือ",
+          "ตามบัญชี",
           `ณ วันที่ ${formatThaiShortDate(
             headerStartDate
           )}`,
         ];
 
         const movementHeaderLines = [
-          "รายการเคลื่อนไหวระหว่าง",
-          `ปีงบประมาณ พ.ศ. ${movementFiscalYear}`,
+          "รายการเคลื่อนไหว",
+          "ระหว่างปีงบประมาณ",
+          `พ.ศ. ${movementFiscalYear}`,
         ];
 
         const accountEndHeaderLines = [
-          "ยอดคงเหลือตามบัญชี",
+          "ยอดคงเหลือ",
+          "ตามบัญชี",
           `ณ วันที่ ${formatThaiShortDate(
             headerEndDate
           )}`,
@@ -1155,7 +1159,7 @@ export default function ExportInspectionPdf({
           10: movementHeaderLines,
           12: accountEndHeaderLines,
           13: ["จำนวนที่", "ตรวจนับได้"],
-          14: ["ผลการตรวจนับถูกต้อง", "ตรงกับยอดคงเหลือตามบัญชี"],
+          14: ["ผลการตรวจนับถูกต้อง", "ตรงกับยอดคงเหลือ", "ตามบัญชี"],
           16: ["สภาพครุภัณฑ์ที่ตรวจนับ"],
         };
 
@@ -1191,7 +1195,7 @@ export default function ExportInspectionPdf({
               { content: movementHeaderLines.join("\n"), colSpan: 2 },
               { content: accountEndHeaderLines.join("\n"), rowSpan: 2 },
               { content: "จำนวนที่ตรวจนับได้", rowSpan: 2 },
-              { content: "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี", colSpan: 2 },
+              { content: "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือ\nตามบัญชี", colSpan: 2 },
               { content: "สภาพครุภัณฑ์ที่ตรวจนับ", colSpan: 4 },
             ],
             ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ใช้งานปกติ", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"],
@@ -1247,7 +1251,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: COMPACT_FONT_SIZE,
+            fontSize: TABLE_HEADER_FONT_SIZE,
 
             fillColor: [
               255,
@@ -1333,7 +1337,7 @@ export default function ExportInspectionPdf({
                 data.cell.text = [String(data.cell.raw ?? "")];
               }
 
-                             data.cell.styles.fontSize = COMPACT_FONT_SIZE;
+                             data.cell.styles.fontSize = TABLE_HEADER_FONT_SIZE;
                data.cell.styles.cellPadding = 0.35;
                data.cell.styles.minCellHeight = data.row.index === 0 ? 10 : 7;
                data.cell.styles.overflow = "linebreak";
