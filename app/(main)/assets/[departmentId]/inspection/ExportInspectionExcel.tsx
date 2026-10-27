@@ -130,10 +130,11 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
       // จัดหน้าแบบไหลตามความสูงจริง: ไม่จำกัดจำนวนรายการต่อหน้า
-      // ความสูงหน่วย pt สำหรับ A4 แนวนอน (มีพื้นที่เผื่อให้ Excel พิมพ์ไม่ล้น)
-      const PAGE_HEIGHT_PT = 455;
+      // พื้นที่พิมพ์ A4 แนวนอน สูง 595 pt หักขอบบน-ล่าง 0.2 นิ้ว รวม ~29 pt
+      // ใช้ 565 pt เพื่อเติมพื้นที่หน้าให้มากขึ้น โดยสงวนพื้นที่ลายเซ็นไว้คงที่
+      const PAGE_HEIGHT_PT = 565;
       const HEADER_HEIGHT_PT = 151;
-      const SIGNATURE_HEIGHT_PT = 96;
+      const SIGNATURE_HEIGHT_PT = 82;
       const BODY_BUDGET_PT = PAGE_HEIGHT_PT - HEADER_HEIGHT_PT - SIGNATURE_HEIGHT_PT;
       let assetIndex = 0;
       let page = 0;
@@ -205,14 +206,16 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           const lines = values.reduce<number>((max, v, col) => {
             const text = String(v ?? "");
             const width = ws.getColumn(col + 1).width ?? 12;
-            // TH SarabunPSK ใช้ความกว้างตัวอักษรไทยน้อยกว่าฟอนต์ Excel ทั่วไป
-            const charsPerLine = Math.max(5, Math.floor(width * (col <= 2 ? 1.12 : 1.65)));
+            // คำนวณจำนวนบรรทัดให้สอดคล้องกับฟอนต์ TH SarabunPSK ขนาดเล็กที่ใช้ในตาราง
+            // ลดการประเมินความสูงเกินจริงซึ่งทำให้พิมพ์ได้เพียง 4 แถวต่อหน้า
+            const charsPerLine = Math.max(5, Math.floor(width * (col <= 2 ? 1.35 : 2.35)));
             const count = text.split("\n").reduce((sum, part) =>
               sum + Math.max(1, Math.ceil(Array.from(part).length / charsPerLine)), 0);
             return Math.max(max, count);
           }, 1);
-          // เผื่อพื้นที่บนและล่างของตัวอักษรอย่างน้อย 8 pt ไม่ให้ชิดเส้นตาราง
-          const rowHeight = Math.max(24, Math.min(145, lines * 12 + 12));
+          // ให้แถวกระชับขึ้น แต่ยังมีพื้นที่เหนือ-ใต้ตัวอักษร 12 pt
+          // จำนวนแถวต่อหน้าขึ้นอยู่กับความสูงรวม ไม่ล็อก 7 แถว
+          const rowHeight = Math.max(26, Math.min(120, lines * 10 + 12));
           if (bodyHeight + rowHeight > BODY_BUDGET_PT && bodyHeight > 0) break;
           const rr = ++lastData;
           ws.getRow(rr).height = rowHeight;
