@@ -780,7 +780,7 @@ export default async function AssetCategoryPage({
                       key={
                         tableTitle
                       }
-                      className="
+                      className={`
                         whitespace-normal
                         break-words
                         border
@@ -795,7 +795,8 @@ export default async function AssetCategoryPage({
                         font-extrabold
                         leading-snug
                         !text-white
-                      "
+                        ${tableTitle === "จัดการ" ? "min-w-[180px]" : ""}
+                      `}
                     >
                       {
                         tableTitle
@@ -850,7 +851,7 @@ export default async function AssetCategoryPage({
                         =================================== */}
                         <td
                           className="
-                            overflow-hidden
+                            min-w-[180px]
                             whitespace-nowrap
                             border
                             border-black
@@ -985,9 +986,10 @@ export default async function AssetCategoryPage({
                                 w-full
                                 min-w-0
                                 items-center
-                                flex-col
+                                flex-row
+                                flex-nowrap
                                 justify-center
-                                gap-1
+                                gap-2
                               "
                             >
                               {/* =============================
