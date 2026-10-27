@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
@@ -7,6 +8,7 @@ import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 
 import ExportDepartmentAssetsPdf from "../ExportDepartmentAssetsPdf";
+import AssetHorizontalScroll from "../[category]/AssetHorizontalScroll";
 
 export const dynamic = "force-dynamic";
 
@@ -377,615 +379,122 @@ export default async function AllAssetsPage({
     return a.id - b.id;
   });
 
-  /* =========================================================
-     UI
-  ========================================================= */
+  // จัดกลุ่มตามหมวดที่ปรากฏในหน้ารายการจริง โดยไม่แก้ไขข้อมูลฐานข้อมูล
+  const categoryOrder = ["DESK", "CHAIR", "CABINET", "SHELF", "COMPUTER", "PRINTER", "AIR_CONDITIONER", "TELEPHONE", "UPS", "OTHER", "NO_SYSTEM"];
+  const categoryLabels: Record<string, string> = {
+    DESK: "โต๊ะ", CHAIR: "เก้าอี้", CABINET: "ตู้", SHELF: "ชั้น",
+    COMPUTER: "คอมพิวเตอร์", PRINTER: "เครื่องพิมพ์คอมพิวเตอร์",
+    AIR_CONDITIONER: "เครื่องปรับอากาศ", TELEPHONE: "เครื่องโทรศัพท์",
+    UPS: "เครื่องสำรองไฟฟ้า (UPS)", OTHER: "ทั่วไป", NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+  };
+  const categoryDefault: Record<string, string> = {
+    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+    SHELF: "ชั้น", COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย", UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+  };
+  const displayedType = (asset: (typeof assets)[number], group: string) => {
+    const saved = asset.categoryDetail?.trim();
+    if (saved) return saved;
+    const firstLine = (asset.remark ?? "").split("\n")[0]?.trim() ?? "";
+    if (firstLine.startsWith("หมวด/ชนิด:")) {
+      const legacy = firstLine.slice("หมวด/ชนิด:".length).trim();
+      if (legacy) return legacy;
+    }
+    if (group === "OTHER") {
+      if (/เครื่องเล่นเทปคาสเซ็ท/i.test(asset.name)) return "เครื่องเล่นเทปคาสเซ็ท";
+      if (/รถเข็น/i.test(asset.name)) return "รถเข็น";
+      return "ทั่วไป";
+    }
+    return categoryDefault[group] ?? categoryLabels[group] ?? group;
+  };
+  const getGroup = (asset: (typeof assets)[number]) => {
+    if (asset.category === "OTHER") {
+      const type = asset.categoryDetail?.trim() || asset.name;
+      if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(type)) return "UPS";
+      if (asset.categoryDetail?.trim() === "ชั้น") return "SHELF";
+    }
+    if (asset.category === "MONITOR") return "COMPUTER";
+    return asset.category;
+  };
+  const groupedAssets = categoryOrder.map((key) => ({
+    key, name: categoryLabels[key], items: assets.filter((asset) => getGroup(asset) === key),
+  })).filter((group) => group.items.length > 0);
+  const extraGroups = [...new Set(assets.map(getGroup))].filter((key) => !categoryOrder.includes(key));
+  for (const key of extraGroups) groupedAssets.push({ key, name: categoryLabels[key] ?? key, items: assets.filter((asset) => getGroup(asset) === key) });
 
   return (
     <AppPage>
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
-
       <AppPageHeader
         icon="📋"
         title="ทะเบียนครุภัณฑ์ทั้งหมด"
-        subtitle={
-          departmentNameForPage
-        }
-        actions={
-          <>
-            {/* ===============================================
-                EXPORT PDF
-            =============================================== */}
-
-            <ExportDepartmentAssetsPdf
-              departmentName={
-                departmentNameForPage
-              }
-              assets={
-                assets
-              }
-            />
-
-            {/* ===============================================
-                BACK
-            =============================================== */}
-
-            <AppButton
-              href={`/assets/${departmentIdForPage}?${fiscalYearQuery}`}
-              variant="back"
-              size="md"
-            >
-              กลับ
-            </AppButton>
-          </>
-        }
+        subtitle={departmentNameForPage}
+        actions={<>
+          <ExportDepartmentAssetsPdf departmentName={departmentNameForPage} assets={assets} />
+          <AppButton href={`/assets/${departmentIdForPage}?${fiscalYearQuery}`} variant="back" size="md">กลับ</AppButton>
+        </>}
       />
-
-      {/* =====================================================
-          TABLE
-      ===================================================== */}
-
       <AppTableCard
         title="ทะเบียนครุภัณฑ์ทั้งหมด"
         subtitle={`${departmentNameForPage} • ทะเบียนคุมครุภัณฑ์`}
-        badge={`${assets.length.toLocaleString(
-          "th-TH"
-        )} รายการ`}
-        className="
-          w-full
-          min-w-0
-        "
+        badge={`${assets.length.toLocaleString("th-TH")} รายการ`}
+        className="w-full min-w-0 max-w-full"
       >
-        <div
-          className="
-            w-full
-            min-w-0
-            overflow-hidden
-          "
-        >
-          <table
-            className="
-              w-full
-              table-fixed
-              border-collapse
-              bg-white
-              text-base
-            "
-          >
-            {/* =================================================
-                COLUMN WIDTH
-            ================================================= */}
-
-            <colgroup>
-              <col className="w-[5%]" />
-              <col className="w-[12%]" />
-              <col className="w-[14%]" />
-              <col className="w-[21%]" />
-              <col className="w-[6%]" />
-              <col className="w-[6%]" />
-              <col className="w-[18%]" />
-              <col className="w-[9%]" />
-              <col className="w-[9%]" />
-            </colgroup>
-
-            {/* =================================================
-                TABLE HEADER
-            ================================================= */}
-
+        <AssetHorizontalScroll>
+          <table className="w-max min-w-full table-auto border-collapse bg-white text-sm [&_th]:!whitespace-nowrap [&_th]:!break-normal [&_td]:!whitespace-nowrap [&_td]:!break-normal [&_td]:!overflow-visible">
             <thead>
               <tr>
                 {[
-                  "ลำดับ",
-                  "รหัส GFMIS",
-                  "รหัสครุภัณฑ์",
-                  "รายการครุภัณฑ์",
-                  "จำนวน",
-                  "หน่วย",
-                  "ผู้รับผิดชอบ",
-                  "สถานะ",
-                  "รายละเอียด",
-                ].map(
-                  (
-                    tableTitle
-                  ) => (
-                    <th
-                      key={
-                        tableTitle
-                      }
-                      className="
-                        whitespace-nowrap
-                        border
-                        border-black
-
-                        bg-gradient-to-r
-                        from-slate-800
-                        to-slate-700
-
-                        px-2
-                        py-4
-
-                        text-center
-                        text-base
-                        font-extrabold
-                        !text-white
-                      "
-                    >
-                      {
-                        tableTitle
-                      }
-                    </th>
-                  )
-                )}
+                  "ลำดับ", "รหัส GFMIS", "รหัสครุภัณฑ์", "สถานที่ใช้งาน", "ผู้รับผิดชอบ",
+                  "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น", "ยอดคงเหลือ",
+                  "หน่วยนับ", "สถานะ", "จัดการ",
+                ].map((heading) => (
+                  <th key={heading} className="whitespace-normal break-words border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-3 text-center text-xs font-extrabold leading-snug !text-white">{heading}</th>
+                ))}
               </tr>
             </thead>
-
-            {/* =================================================
-                TABLE BODY
-            ================================================= */}
-
             <tbody>
-              {assets.length > 0 ? (
-                assets.map(
-                  (
-                    asset,
-                    index
-                  ) => {
-                    /*
-                     * ส่ง from=all ไปยังหน้า Detail
-                     * เพื่อให้ปุ่มกลับในหน้า Detail
-                     * กลับมายัง /assets/[departmentId]/all
-                     */
-
-                    const detailPath =
-                      `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all&${fiscalYearQuery}`;
-
-                    const responsible =
-                      getResponsibleName(
-                        asset
-                      );
-
+              {assets.length ? groupedAssets.map((group) => (
+                <Fragment key={group.key}>
+                  <tr><td colSpan={12} className="border border-black bg-slate-200 px-4 py-3 text-left text-sm font-extrabold !text-slate-900">{group.name} ({group.items.length.toLocaleString("th-TH")} รายการ)</td></tr>
+                  {group.items.map((asset, index) => {
+                    const number = groupedAssets.slice(0, groupedAssets.findIndex((entry) => entry.key === group.key)).reduce((sum, entry) => sum + entry.items.length, 0) + index + 1;
+                    const detailPath = `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all&${fiscalYearQuery}`;
+                    const editPath = `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}/edit?${fiscalYearQuery}`;
+                    const location = asset.section?.name?.trim() || departmentNameForPage;
+                    const officer = asset.officer ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : asset.responsibleName?.trim() || "-";
+                    const unit = getAssetUnit(asset);
+                    const td = "border border-black px-2 py-2.5 text-center font-semibold !text-slate-700";
                     return (
-                      <tr
-                        key={
-                          asset.id
-                        }
-                        className={`
-                          ${
-                            index % 2 === 0
-                              ? "bg-white"
-                              : "bg-slate-50/60"
-                          }
-
-                          transition-colors
-                          duration-200
-
-                          hover:bg-blue-50/70
-                        `}
-                      >
-                        {/* ===================================
-                            ORDER
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-1.5
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            tabular-nums
-                            !text-slate-900
-                          "
-                        >
-                          {(
-                            index + 1
-                          ).toLocaleString(
-                            "th-TH"
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            GFMIS
-                        =================================== */}
-
-                        <td
-                          className="
-                            overflow-hidden
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-2
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            !text-slate-900
-                          "
-                          title={
-                            asset.governmentAssetNo ??
-                            "-"
-                          }
-                        >
-                          <span
-                            className="
-                              block
-                              overflow-hidden
-                              text-ellipsis
-                              whitespace-nowrap
-                            "
-                          >
-                            {asset.governmentAssetNo ??
-                              "-"}
-                          </span>
-                        </td>
-
-                        {/* ===================================
-                            ASSET CODE
-                        =================================== */}
-
-                        <td
-                          className="
-                            overflow-hidden
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-2
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            !text-slate-900
-                          "
-                          title={
-                            asset.officeAssetNo ??
-                            "-"
-                          }
-                        >
-                          <span
-                            className="
-                              block
-                              overflow-hidden
-                              text-ellipsis
-                              whitespace-nowrap
-                            "
-                          >
-                            {asset.officeAssetNo ??
-                              "-"}
-                          </span>
-                        </td>
-
-                        {/* ===================================
-                            NAME
-                        =================================== */}
-
-                        <td
-                          className="
-                            overflow-hidden
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-2.5
-                            py-3.5
-
-                            text-base
-                            font-extrabold
-                            !text-slate-900
-                          "
-                          title={
-                            [
-                              asset.name,
-                              asset.brand,
-                              asset.model,
-                            ]
-                              .filter(Boolean)
-                              .join(" / ")
-                          }
-                        >
-                          <div
-                            className="
-                              overflow-hidden
-                              text-ellipsis
-                              whitespace-nowrap
-
-                              text-base
-                              font-extrabold
-                              !text-slate-900
-                            "
-                          >
-                            {
-                              asset.name
-                            }
-                          </div>
-
-                          {(asset.brand ||
-                            asset.model) && (
-                            <div
-                              className="
-                                mt-1
-
-                                overflow-hidden
-                                text-ellipsis
-                                whitespace-nowrap
-
-                                text-base
-                                font-semibold
-                                !text-slate-500
-                              "
-                            >
-                              {[
-                                asset.brand,
-                                asset.model,
-                              ]
-                                .filter(
-                                  Boolean
-                                )
-                                .join(
-                                  " / "
-                                )}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            QUANTITY
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-1
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            tabular-nums
-                            !text-slate-900
-                          "
-                        >
-                          {Number(
-                            asset.quantity ??
-                              1
-                          ).toLocaleString(
-                            "th-TH"
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            UNIT
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-1
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            !text-slate-900
-                          "
-                        >
-                          {getAssetUnit(
-                            asset
-                          )}
-                        </td>
-
-                        {/* ===================================
-                            RESPONSIBLE
-                        =================================== */}
-
-                        <td
-                          className="
-                            overflow-hidden
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-2
-                            py-3.5
-
-                            text-center
-                            text-base
-                            font-extrabold
-                            !text-slate-900
-                          "
-                          title={
-                            responsible
-                          }
-                        >
-                          <span
-                            className="
-                              block
-                              overflow-hidden
-                              text-ellipsis
-                              whitespace-nowrap
-                            "
-                          >
-                            {
-                              responsible
-                            }
-                          </span>
-                        </td>
-
-                        {/* ===================================
-                            STATUS
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-1
-                            py-3.5
-
-                            text-center
-                            text-base
-                          "
-                        >
-                          <span
-                            className={`
-                              inline-flex
-                              max-w-full
-
-                              items-center
-                              justify-center
-
-                              whitespace-nowrap
-
-                              rounded-full
-
-                              px-2
-                              py-1.5
-
-                              text-base
-                              font-extrabold
-                              leading-none
-
-                              ${getStatusClass(
-                                asset.status
-                              )}
-                            `}
-                          >
-                            {statusName[
-                              asset.status
-                            ] ??
-                              asset.status}
-                          </span>
-                        </td>
-
-                        {/* ===================================
-                            DETAIL
-                        =================================== */}
-
-                        <td
-                          className="
-                            whitespace-nowrap
-                            border
-                            border-black
-
-                            px-1.5
-                            py-3
-
-                            text-center
-                            text-base
-                          "
-                        >
-                          <AppButton
-                            href={
-                              detailPath
-                            }
-                            variant="primary"
-                            size="sm"
-                          >
-                            เปิด
-                          </AppButton>
-                        </td>
+                      <tr key={asset.id} className={`${index % 2 === 0 ? "bg-white" : "bg-slate-50/60"} transition-colors duration-200 hover:bg-emerald-50/60`}>
+                        <td className={td}>{number.toLocaleString("th-TH")}</td>
+                        <td className={td}>{asset.governmentAssetNo || "-"}</td>
+                        <td className={td}>{asset.officeAssetNo || "-"}</td>
+                        <td className={td}>{location}</td>
+                        <td className={td}>{officer}</td>
+                        <td className={td}>{displayedType(asset, group.key)}</td>
+                        <td className={`${td} text-left`} title={asset.name}>{asset.name || "-"}</td>
+                        <td className={td}>{[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}</td>
+                        <td className={td}>{asset.quantity.toLocaleString("th-TH")}</td>
+                        <td className={td}>{unit}</td>
+                        <td className={td}>{statusName[asset.status] ?? asset.status}</td>
+                        <td className={td}><div className="flex flex-col items-center justify-center gap-1">
+                          <AppButton href={editPath} variant="primary" size="sm">✏️ แก้ไข</AppButton>
+                          <AppButton href={detailPath} variant="secondary" size="sm">เปิด</AppButton>
+                        </div></td>
                       </tr>
                     );
-                  }
-                )
-              ) : (
-                /* ===========================================
-                    EMPTY STATE
-                =========================================== */
-
-                <tr>
-                  <td
-                    colSpan={9}
-                    className="
-                      border
-                      border-black
-
-                      bg-white
-
-                      px-6
-                      py-16
-
-                      text-center
-                    "
-                  >
-                    <div
-                      className="
-                        mx-auto
-
-                        flex
-                        max-w-md
-                        flex-col
-
-                        items-center
-                        justify-center
-                      "
-                    >
-                      <div
-                        className="
-                          grid
-                          h-16
-                          w-16
-
-                          place-items-center
-
-                          text-3xl
-                        "
-                        aria-hidden="true"
-                      >
-                        📋
-                      </div>
-
-                      <p
-                        className="
-                          mt-4
-
-                          text-lg
-                          font-extrabold
-                          tracking-tight
-                          !text-slate-900
-                        "
-                      >
-                        ยังไม่มีข้อมูลครุภัณฑ์
-                      </p>
-
-                      <p
-                        className="
-                          mt-1
-
-                          text-base
-                          font-semibold
-                          leading-relaxed
-                          !text-slate-500
-                        "
-                      >
-                        เมื่อมีข้อมูลครุภัณฑ์
-                        รายการจะแสดงในตารางนี้
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                  })}
+                </Fragment>
+              )) : (
+                <tr><td colSpan={12} className="border border-black px-6 py-16 text-center font-semibold text-slate-500">ยังไม่มีข้อมูลครุภัณฑ์ในหน่วยงานนี้</td></tr>
               )}
             </tbody>
           </table>
-        </div>
+        </AssetHorizontalScroll>
       </AppTableCard>
     </AppPage>
   );
