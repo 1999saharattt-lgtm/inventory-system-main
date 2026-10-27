@@ -70,7 +70,34 @@ function sourceOrder(a: Asset, index: number) {
   const match = a.remark?.match(/SOURCE:DEPARTMENT_1:(\d+)/);
   return match ? Number(match[1]) : index + 1;
 }
+// ความกว้างคอลัมน์สำหรับ A4 แนวนอน: คงหมวด/ชนิด และรายการเคลื่อนไหวเดิม
 const COLS = [6, 17, 19, 24, 21, 18, 34, 16, 9, 15, 8, 8, 15, 12, 9, 11, 10, 9, 11, 13];
+const MAX_COLUMN_WIDTHS = [7, 20, 25, 26, 24, 18, 34, 19, 9, 15, 8, 8, 15, 12, 9, 11, 10, 9, 11, 13];
+const WIDTH_EXCEPTIONS = new Set([5, 10, 11]);
+function fitColumnWidths(assets: Asset[], department: Department, officers: Officer[]) {
+  const widths = COLS.map((base, index) => {
+    if (WIDTH_EXCEPTIONS.has(index)) return base;
+    const samples: string[] = [];
+    if (index === 1) samples.push("รหัส GFMIS");
+    if (index === 2) samples.push("รหัสครุภัณฑ์");
+    if (index === 3) samples.push("สถานที่ใช้งาน", department.name);
+    if (index === 4) samples.push("ผู้รับผิดชอบ");
+    if (index === 6) samples.push("ชื่อเรียก/คุณลักษณะครุภัณฑ์");
+    if (index === 7) samples.push("ยี่ห้อ/รุ่น");
+    if (index === 8) samples.push("หน่วยนับ");
+    for (const a of assets) {
+      const owner = a.responsibleName?.trim() || (a.officer ? `${a.officer.firstName} ${a.officer.lastName}`.trim() : "");
+      const fields = ["", a.governmentAssetNo ?? "", a.officeAssetNo ?? "", department.name,
+        owner, "", a.name ?? "", [a.brand, a.model].filter(Boolean).join(" / "), unitName(a)];
+      if (index < fields.length && fields[index]) samples.push(fields[index]);
+    }
+    // ข้อความยาวมากให้ตัดบรรทัดแทนการขยายคอลัมน์จนกระดาษล้น
+    const longest = samples.reduce((max, v) => Math.max(max, Array.from(v).length), 0);
+    return Math.max(index === 0 ? 6 : 9, Math.min(MAX_COLUMN_WIDTHS[index], Math.max(base * 0.72, longest * 0.8 + 2)));
+  });
+  // ความกว้างคอลัมน์ที่พิมพ์ได้จริงถูกย่อรวมให้พอดี A4 แนวนอน
+  return widths;
+}
 
 export default function ExportInspectionExcel({ department, assets, rows, inspectionStartDate, inspectionEndDate, inspectorIds, accountStartDate, accountEndDate, movementFiscalYear, officers = [] }: Props) {
   const [busy, setBusy] = useState(false);
@@ -96,7 +123,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       ws.pageSetup.horizontalCentered = true;
       ws.pageSetup.verticalCentered = false;
       // ความกว้างเทียบสัดส่วน PDF: ปรับขนาดให้พอดีหน้ากระดาษแนวนอน
-      COLS.forEach((width, i) => { ws.getColumn(i + 1).width = width * 0.85 + 1.6; });
+      fitColumnWidths(assets, department, officers).forEach((width, i) => { ws.getColumn(i + 1).width = width * 0.85 + 1.6; });
       const border = { style: "thin" as const, color: { argb: "FF000000" } };
       const rowMap = new Map(rows.map(r => [r.assetId, r]));
       const fy = Number(movementFiscalYear);
@@ -121,15 +148,17 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       for (let page = 0; page < pages; page++) {
         if (page > 0) ws.getRow(rowNo - 1).addPageBreak();
         const first = rowNo;
-        writeMerged(first, 1, first, 17, `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`, 15);
-        writeMerged(first, 18, first, 20, `แผ่นที่ ${page + 1}`, 15);
-        ws.getRow(first).height = 24;
-        writeMerged(first + 1, 1, first + 1, 20, "สำนักอนามัยการเจริญพันธุ์", 15);
-        ws.getRow(first + 1).height = 24;
-        writeMerged(first + 2, 1, first + 2, 20, `เริ่มดำเนินการตรวจสอบวันที่ ${thaiDate(inspectionStartDate)} และตรวจสอบ แล้วเสร็จวันที่ ${thaiDate(inspectionEndDate)}`, 15);
-        ws.getRow(first + 2).height = 24;
-        ws.getRow(first + 3).height = 8;
-        const h = first + 4;
+        // แผ่นที่แยกเหนือหัวกระดาษตามภาพอ้างอิง; หัวเรื่องผสานเต็ม A:T
+        writeMerged(first, 18, first, 20, `แผ่นที่ ${page + 1}`, 14);
+        ws.getRow(first).height = 19;
+        writeMerged(first + 1, 1, first + 1, 20, `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`, 15);
+        ws.getRow(first + 1).height = 23;
+        writeMerged(first + 2, 1, first + 2, 20, "สำนักอนามัยการเจริญพันธุ์", 15);
+        ws.getRow(first + 2).height = 23;
+        writeMerged(first + 3, 1, first + 3, 20, `เริ่มดำเนินการตรวจสอบวันที่ ${thaiDate(inspectionStartDate)} และตรวจสอบ แล้วเสร็จวันที่ ${thaiDate(inspectionEndDate)}`, 15);
+        ws.getRow(first + 3).height = 23;
+        ws.getRow(first + 4).height = 7;
+        const h = first + 5;
         outline(h, h + 1);
         const h1: Array<[number, number, string, boolean]> = [
           [1, 1, "ลำดับ", true], [2, 2, "รหัส GFMIS", true], [3, 3, "รหัสครุภัณฑ์", true],
@@ -169,12 +198,13 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           const lines = values.reduce<number>((max, v, col) => {
             const text = String(v ?? "");
             const width = ws.getColumn(col + 1).width ?? 12;
-            const charsPerLine = Math.max(4, Math.floor(width * (col <= 2 ? 0.95 : 1.12)));
+            // TH SarabunPSK ใช้ความกว้างตัวอักษรไทยน้อยกว่าฟอนต์ Excel ทั่วไป
+            const charsPerLine = Math.max(5, Math.floor(width * (col <= 2 ? 1.12 : 1.65)));
             const count = text.split("\n").reduce((sum, part) =>
               sum + Math.max(1, Math.ceil(Array.from(part).length / charsPerLine)), 0);
             return Math.max(max, count);
           }, 1);
-          ws.getRow(rr).height = Math.max(20, Math.min(78, lines * 11.5 + 5));
+          ws.getRow(rr).height = Math.max(19, Math.min(66, lines * 10.5 + 4));
           values.forEach((v, col) => {
             const cell = ws.getCell(rr, col + 1);
             cell.value = v;
@@ -183,12 +213,12 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             cell.border = { top: border, bottom: border, left: border, right: border };
           });
         }
-        // ส่วนลงชื่อกรรมการ: จัดเป็นกล่องข้อความด้วยเซลล์ผสานแบบไร้เส้นตาราง
-        // 5 กล่องเท่ากัน แต่ละกล่องกินพื้นที่ 4 คอลัมน์ (รวม 20 คอลัมน์)
+        // ส่วนลงชื่อกรรมการ: พื้นที่ไร้เส้นตารางแยกจากข้อมูล 5 ส่วนเท่ากัน
+        // ExcelJS ไม่รองรับ floating Text Box; ใช้เซลล์ผสานเพื่อให้พิมพ์ไม่เลื่อน
         const signRow = lastData + 2;
-        ws.getRow(lastData + 1).height = 8;
+        ws.getRow(lastData + 1).height = 13;
         const signLines = [signRow, signRow + 1, signRow + 2];
-        signLines.forEach((r) => { ws.getRow(r).height = 19; });
+        signLines.forEach((r) => { ws.getRow(r).height = 17; });
         for (let i = 0; i < 5; i++) {
           const c1 = i * 4 + 1;
           const c2 = c1 + 3;
@@ -204,6 +234,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             cell.border = {}; // กล่องข้อความไม่มีกรอบตาราง
           }
         }
+        ws.getRow(signRow + 3).height = 9;
         rowNo = signRow + 4;
       }
       ws.pageSetup.printArea = `A1:T${rowNo - 2}`;
