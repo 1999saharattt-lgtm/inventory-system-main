@@ -16,6 +16,7 @@ import AppSearchInput from "@/components/AppSearchInput";
 import AppTableCard from "@/components/AppTableCard";
 
 import ExportInspectionPdf from "./ExportInspectionPdf";
+import ExportInspectionExcel from "./ExportInspectionExcel";
 
 /* =========================================================
    TYPES
@@ -1827,9 +1828,10 @@ export default function InspectionForm({
       today
   );
 
-  // ต้องรับปีงบประมาณที่เลือกอย่างชัดเจน ห้ามเดาจากวันที่ปัจจุบัน
   const [movementFiscalYear] = useState(
-    fiscalYear || initialData?.movementFiscalYear || ""
+    fiscalYear ||
+      initialData?.movementFiscalYear ||
+      getFiscalYear(initialData?.inspectionStartDate || today)
   );
 
   // วันที่หัวตารางยึดปีงบประมาณที่เลือกเสมอ
@@ -2341,16 +2343,6 @@ export default function InspectionForm({
       return;
     }
 
-    // ป้องกันการบันทึกผิดปีเมื่อ URL ไม่ได้ส่ง fiscalYear มา
-    if (
-      !/^\d{4}$/.test(movementFiscalYear) ||
-      Number(movementFiscalYear) < 2500 ||
-      Number(movementFiscalYear) > 2700
-    ) {
-      alert("ไม่พบปีงบประมาณที่เลือก กรุณากลับไปเลือกปีงบประมาณแล้วเปิดแบบฟอร์มใหม่");
-      return;
-    }
-
     if (
       !inspectionStartDate ||
       !inspectionEndDate
@@ -2635,8 +2627,40 @@ export default function InspectionForm({
             ข้อมูลการตรวจสอบ
           </h2>
 
-          <div className="shrink-0">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <ExportInspectionPdf
+              department={
+                department
+              }
+              assets={
+                assets
+              }
+              rows={
+                rows
+              }
+              inspectorIds={
+                inspectorIds
+              }
+              inspectionStartDate={
+                inspectionStartDate
+              }
+              inspectionEndDate={
+                inspectionEndDate
+              }
+              accountStartDate={
+                accountStartDate
+              }
+              accountEndDate={
+                accountEndDate
+              }
+              movementFiscalYear={
+                movementFiscalYear
+              }
+              officers={
+                officers
+              }
+            />
+            <ExportInspectionExcel
               department={
                 department
               }
