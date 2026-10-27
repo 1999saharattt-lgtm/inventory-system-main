@@ -40,8 +40,8 @@ const defaultCategoryDetail: Record<string, string> = {
   UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
 };
 
-const labelClass = "mb-1.5 block text-sm font-extrabold !text-slate-700";
-const valueClass = "flex min-h-[42px] w-full items-center rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-bold !text-slate-900 shadow-sm whitespace-pre-wrap break-words sm:text-base";
+const labelClass = "mb-2 block text-sm font-extrabold !text-slate-700 sm:text-base";
+const valueClass = "flex min-h-[50px] w-full items-center rounded-[14px] border border-slate-300 bg-slate-100 px-4 py-3 text-base font-bold !text-slate-900 shadow-sm whitespace-pre-wrap break-words";
 
 function ReadonlyField({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
@@ -102,13 +102,12 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
         actions={<AppButton href={backPath} variant="back" size="md" icon={<span aria-hidden="true">←</span>}>กลับ</AppButton>}
       />
 
-      <div className="mx-auto w-full max-w-5xl">
       <AppCard className="relative w-full !overflow-visible">
         <div className="mb-4">
           <h2 className="text-lg font-extrabold !text-slate-900">ข้อมูลครุภัณฑ์</h2>
           <p className="mt-1 text-sm font-semibold !text-slate-500">แสดงรายละเอียดข้อมูลครุภัณฑ์ (ไม่สามารถแก้ไขได้)</p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ReadonlyField label="ชื่อเรียก/คุณลักษณะครุภัณฑ์" value={asset.name} />
           <ReadonlyField label="สถานะการใช้งาน" value={statusNames[asset.status] ?? asset.status} />
           <ReadonlyField label="หมวด/ชนิด" value={categoryType} />
@@ -117,24 +116,24 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
           <ReadonlyField label="หน่วย" value={asset.unit} />
         </div>
 
-        <section className="mt-5 border-t border-slate-200 pt-4">
+        <section className="mt-6 border-t border-slate-200 pt-5">
           <div className="mb-4">
             <h3 className="text-base font-extrabold !text-slate-900 sm:text-lg">เลขทะเบียนครุภัณฑ์</h3>
             <p className="mt-1 text-sm font-semibold !text-slate-500">ข้อมูลรหัสทะเบียนของครุภัณฑ์</p>
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ReadonlyField label="รหัส GFMIS" value={asset.governmentAssetNo} />
             <ReadonlyField label="รหัสครุภัณฑ์" value={asset.officeAssetNo} />
           </div>
         </section>
 
-        <section className="mt-5 border-t border-slate-200 pt-4">
+        <section className="mt-6 border-t border-slate-200 pt-5">
           <div className="mb-4">
             <h3 className="text-base font-extrabold !text-slate-900 sm:text-lg">ผู้ครอบครอง</h3>
             <p className="mt-1 text-sm font-semibold !text-slate-500">ข้อมูลกลุ่มงานและผู้รับผิดชอบครุภัณฑ์</p>
           </div>
           <AppInfoCard className="!overflow-visible">
-            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <div><p className={labelClass}>หน่วยงาน</p><div className={valueClass}>{asset.department.name}</div></div>
               <div><p className={labelClass}>กลุ่มงาน</p><div className={valueClass}>{asset.section?.name || "-"}</div></div>
               <div><p className={labelClass}>ผู้ครอบครอง</p><div className={valueClass}>{officerName}</div></div>
@@ -164,13 +163,12 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
           </div>
         </section>
 
-        <section className="mt-5 border-t border-slate-200 pt-4">
+        <section className="mt-6 border-t border-slate-200 pt-5">
           <h3 className="mb-4 text-base font-extrabold !text-slate-900 sm:text-lg">หมายเหตุ</h3>
           <ReadonlyField label="หมายเหตุ" value={cleanRemark} />
         </section>
 
       </AppCard>
-      </div>
     </AppPage>
   );
 }
