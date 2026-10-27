@@ -129,8 +129,14 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const fy = Number(movementFiscalYear);
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
-      const ROWS_PER_PAGE = 7;
-      const pages = Math.max(1, Math.ceil(assets.length / ROWS_PER_PAGE));
+      // จัดหน้าแบบไหลตามความสูงจริง: ไม่จำกัดจำนวนรายการต่อหน้า
+      // ความสูงหน่วย pt สำหรับ A4 แนวนอน (มีพื้นที่เผื่อให้ Excel พิมพ์ไม่ล้น)
+      const PAGE_HEIGHT_PT = 455;
+      const HEADER_HEIGHT_PT = 151;
+      const SIGNATURE_HEIGHT_PT = 96;
+      const BODY_BUDGET_PT = PAGE_HEIGHT_PT - HEADER_HEIGHT_PT - SIGNATURE_HEIGHT_PT;
+      let assetIndex = 0;
+      let page = 0;
       let rowNo = 1;
       const writeMerged = (r1: number, c1: number, r2: number, c2: number, value: string, size = 12) => {
         if (r1 !== r2 || c1 !== c2) ws.mergeCells(r1, c1, r2, c2);
@@ -145,7 +151,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           cell.border = { top: border, bottom: border, left: border, right: border };
         }
       };
-      for (let page = 0; page < pages; page++) {
+      while (assetIndex < assets.length || page === 0) {
         if (page > 0) ws.getRow(rowNo - 1).addPageBreak();
         const first = rowNo;
         // แผ่นที่แยกเหนือหัวกระดาษตามภาพอ้างอิง; หัวเรื่องผสานเต็ม A:T
@@ -179,7 +185,9 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         ws.getRow(h).height = 35;
         ws.getRow(h + 1).height = 21;
         let lastData = h + 1;
-        for (let i = page * ROWS_PER_PAGE; i < Math.min(assets.length, (page + 1) * ROWS_PER_PAGE); i++) {
+        let bodyHeight = 0;
+        while (assetIndex < assets.length) {
+          const i = assetIndex;
           const a = assets[i];
           const r = rowMap.get(a.id) ?? { countedQty: "", accuracy: "", status: "", remark: "" };
           const owner = a.responsibleName?.trim() || (a.officer ? `${a.officer.firstName} ${a.officer.lastName}`.trim() : "");
@@ -192,7 +200,6 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             r.status === "IN_USE" ? "✓" : "", r.status === "DAMAGED" ? "✓" : "",
             r.status === "DETERIORATED" ? "✓" : "", r.status === "UNUSABLE" ? "✓" : "",
           ];
-          const rr = ++lastData;
           // ความสูงแถวแยกตามข้อความจริง ไม่บังคับให้ทุกแถวสูงเท่ากัน
           // คิดความกว้างเป็นอักขระโดยประมาณตามความกว้างคอลัมน์ Excel
           const lines = values.reduce<number>((max, v, col) => {
@@ -204,7 +211,13 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
               sum + Math.max(1, Math.ceil(Array.from(part).length / charsPerLine)), 0);
             return Math.max(max, count);
           }, 1);
-          ws.getRow(rr).height = Math.max(19, Math.min(66, lines * 10.5 + 4));
+          // เผื่อพื้นที่บนและล่างของตัวอักษรอย่างน้อย 8 pt ไม่ให้ชิดเส้นตาราง
+          const rowHeight = Math.max(24, Math.min(145, lines * 12 + 12));
+          if (bodyHeight + rowHeight > BODY_BUDGET_PT && bodyHeight > 0) break;
+          const rr = ++lastData;
+          ws.getRow(rr).height = rowHeight;
+          bodyHeight += rowHeight;
+          assetIndex++;
           values.forEach((v, col) => {
             const cell = ws.getCell(rr, col + 1);
             cell.value = v;
@@ -215,8 +228,9 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         }
         // ส่วนลงชื่อกรรมการ: พื้นที่ไร้เส้นตารางแยกจากข้อมูล 5 ส่วนเท่ากัน
         // ExcelJS ไม่รองรับ floating Text Box; ใช้เซลล์ผสานเพื่อให้พิมพ์ไม่เลื่อน
+        // พื้นที่ว่างยืดตามจำนวนแถว เพื่อให้กรรมการอยู่ตำแหน่งคงที่ทุกหน้า
         const signRow = lastData + 2;
-        ws.getRow(lastData + 1).height = 13;
+        ws.getRow(lastData + 1).height = Math.max(13, BODY_BUDGET_PT - bodyHeight + 13);
         const signLines = [signRow, signRow + 1, signRow + 2];
         signLines.forEach((r) => { ws.getRow(r).height = 17; });
         for (let i = 0; i < 5; i++) {
@@ -236,6 +250,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         }
         ws.getRow(signRow + 3).height = 9;
         rowNo = signRow + 4;
+        page++;
       }
       ws.pageSetup.printArea = `A1:T${rowNo - 2}`;
       // กำหนดการพิมพ์ให้ย่อพอดีความกว้าง A4 แนวนอน
