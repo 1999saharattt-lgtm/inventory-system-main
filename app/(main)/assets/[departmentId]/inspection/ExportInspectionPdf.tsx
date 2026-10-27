@@ -99,7 +99,7 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 5;
+const MAX_ROWS_PER_PAGE = 3;
 const FIXED_FONT_SIZE = 8.5;
 const MAX_BODY_HEIGHT = 125;
 
@@ -946,7 +946,7 @@ export default function ExportInspectionPdf({
       doc.setFontSize(FIXED_FONT_SIZE);
       const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
-      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 5 รายการต่อแผ่น
+      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 3 รายการต่อแผ่น
 
       const totalPages =
         Math.max(
@@ -987,7 +987,7 @@ export default function ExportInspectionPdf({
               rowsPerPage
           );
 
-        // คำนวณความสูงแถวจากข้อความของ 5 รายการในแผ่นนี้จริง ๆ
+        // คำนวณความสูงแถวจากข้อความของ 3 รายการในแผ่นนี้จริง ๆ
         // ไม่ลดขนาดตัวอักษรและไม่ตัดข้อความทิ้ง
         const maxLineCount = Math.max(1, ...pageAssets.map(asset => {
           const row = rowMap.get(asset.id);
@@ -1005,7 +1005,7 @@ export default function ExportInspectionPdf({
             wrapCellText(doc, String(text ?? ""), measuredWidths[index]).length
           ));
         }));
-        const rowHeight = Math.max(23, maxLineCount * 3.65 + 2);
+        const rowHeight = Math.max(9, maxLineCount * 3.65 + 2);
 
         const body =
           pageAssets.map(
