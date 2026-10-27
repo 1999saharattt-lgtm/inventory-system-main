@@ -125,18 +125,16 @@ function wrapThai(doc: jsPDF, value: string, width: number): string[] {
   return lines.length ? lines : ["-"];
 }
 
-// ใช้ฟอนต์เล็กลงเฉพาะช่องที่ข้อความยาว เพื่อรักษาข้อความครบทุกตัวอักษร
-function fitText(doc: jsPDF, value: string, width: number, maxLines: number): { text: string; size: number } {
-  for (let size = 12; size >= 5; size -= 0.5) {
-    doc.setFontSize(size);
-    const lines = wrapThai(doc, value, width);
-    if (lines.length <= maxLines && lines.every((line) => doc.getTextWidth(line) <= width)) {
-      return { text: lines.join("\n"), size };
-    }
-  }
-  // กรณีข้อความยาวผิดปกติ ไม่ตัดข้อมูลทิ้ง: เพิ่มบรรทัดในช่องนั้น
-  doc.setFontSize(5);
-  return { text: wrapThai(doc, value, width).join("\n"), size: 5 };
+// คงขนาดฟอนต์ 12 pt ทุกช่อง และให้ autoTable เพิ่มความสูงแถวตามข้อความจริง
+// ไม่ลดขนาดตัวอักษรหรือใช้เครื่องหมายตัดข้อความ
+function fitText(doc: jsPDF, value: string, width: number): string {
+  doc.setFontSize(12);
+  const lines = wrapThai(doc, value, width);
+  // รองรับคำ/รหัสที่ยาวกว่าคอลัมน์โดยไม่ให้ล้นช่องข้างเคียง
+  const safeLines = lines.flatMap((line) =>
+    doc.getTextWidth(line) <= width ? [line] : doc.splitTextToSize(line, width)
+  );
+  return safeLines.join("\n");
 }
 
 export default function ExportDepartmentAssetsPdf({ departmentName, assets, fiscalYear }: Props) {
@@ -155,7 +153,7 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
       const top = 39;
       const bottom = 10;
       const headHeight = 13;
-      const rowHeight = 12;
+      const rowHeight = 12; // ความสูงขั้นต่ำ; เพิ่มอัตโนมัติตามจำนวนบรรทัด
       const rowsPerPage = 8; // ทุกหน้า 8 แถว (ยกเว้นหน้าสุดท้าย)
       const ordered = [...assets].sort((a, b) => {
         const aa = CATEGORY_ORDER.indexOf(groupOf(a));
@@ -180,7 +178,6 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
         const pageAssets = ordered.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
         doc.setFont(FONT, "normal");
         doc.setFontSize(11);
-        const fontSizes: number[][] = [];
         const body = pageAssets.map((a, i) => {
           const group = groupOf(a);
           const location = a.section?.name?.trim() || departmentName;
@@ -193,18 +190,16 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             [a.brand, a.model].filter(Boolean).join(" / ") || "-",
             Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), STATUS[a.status] || a.status,
           ];
-          const fitted = raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.6, [1, 2, 3, 4].includes(col) ? 1 : 3));
-          fontSizes[i] = fitted.map((cell) => cell.size);
-          return fitted.map((cell) => cell.text);
+          return raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.6));
         });
         autoTable(doc, {
           startY: top, margin: { left, right: left, top, bottom }, tableWidth,
           head: [HEAD.map((h, i) => HEADER_WRAP[i] || h)], body, theme: "grid", showHead: "everyPage",
           pageBreak: "avoid", rowPageBreak: "avoid",
           styles: {
-            font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 0.8,
+            font: FONT, fontStyle: "normal", fontSize: 12, cellPadding: 0.8,
             halign: "center", valign: "middle", lineColor: [0, 0, 0],
-            lineWidth: 0.18, textColor: [0, 0, 0], overflow: "hidden", minCellHeight: rowHeight,
+            lineWidth: 0.18, textColor: [0, 0, 0], overflow: "linebreak", minCellHeight: rowHeight,
           },
           headStyles: {
             font: FONT, fontStyle: "normal", fontSize: 10, cellPadding: 0.8,
@@ -215,8 +210,11 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
           columnStyles: colStyles,
           didParseCell: (data) => {
             if (data.section === "body") {
-              data.cell.styles.fontSize = fontSizes[data.row.index]?.[data.column.index] ?? 11;
-              if ([5, 6, 7].includes(data.column.index)) data.cell.styles.halign = "left";
+              // หมวด/ชนิด (คอลัมน์ 5) จัดกึ่งกลางแนวนอนและแนวตั้งเสมอ
+              data.cell.styles.fontSize = 12;
+              data.cell.styles.valign = "middle";
+              if ([6, 7].includes(data.column.index)) data.cell.styles.halign = "left";
+              if (data.column.index === 5) data.cell.styles.halign = "center";
             }
           },
         });
