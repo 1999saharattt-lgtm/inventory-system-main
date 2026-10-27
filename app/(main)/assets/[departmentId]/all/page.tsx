@@ -463,7 +463,6 @@ export default async function AllAssetsPage({
                   {group.items.map((asset, index) => {
                     const number = groupedAssets.slice(0, groupedAssets.findIndex((entry) => entry.key === group.key)).reduce((sum, entry) => sum + entry.items.length, 0) + index + 1;
                     const detailPath = `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}?from=all&${fiscalYearQuery}`;
-                    const editPath = `/assets/${asset.departmentId}/${asset.category.toLowerCase()}/${asset.id}/edit?${fiscalYearQuery}`;
                     const location = asset.section?.name?.trim() || departmentNameForPage;
                     const officer = asset.officer ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : asset.responsibleName?.trim() || "-";
                     const unit = getAssetUnit(asset);
@@ -481,10 +480,9 @@ export default async function AllAssetsPage({
                         <td className={td}>{asset.quantity.toLocaleString("th-TH")}</td>
                         <td className={td}>{unit}</td>
                         <td className={td}>{statusName[asset.status] ?? asset.status}</td>
-                        <td className={td}><div className="flex flex-col items-center justify-center gap-1">
-                          <AppButton href={editPath} variant="primary" size="sm">✏️ แก้ไข</AppButton>
-                          <AppButton href={detailPath} variant="secondary" size="sm">เปิด</AppButton>
-                        </div></td>
+                        <td className={td}>
+                          <AppButton href={detailPath} variant="primary" size="sm">เปิด</AppButton>
+                        </td>
                       </tr>
                     );
                   })}
