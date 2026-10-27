@@ -42,7 +42,7 @@ const HEAD = [
   "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น",
   "ยอดคงเหลือ", "หน่วยนับ", "สถานะ",
 ];
-const HEADER_WRAP: Record<number, string> = { 1: "รหัส\nGFMIS", 2: "รหัส\nครุภัณฑ์", 3: "สถานที่\nใช้งาน", 4: "ชื่อผู้\nครอบครอง", 6: "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", 8: "ยอด\nคงเหลือ", 9: "หน่วย\nนับ" };
+const HEADER_WRAP: Record<number, string> = { 1: "รหัส\nGFMIS", 2: "รหัส\nครุภัณฑ์", 3: "สถานที่\nใช้งาน", 4: "ผู้รับ\nผิดชอบ", 6: "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", 8: "ยอด\nคงเหลือ", 9: "หน่วย\nนับ" };
 const WIDTHS = [9, 29, 31, 28, 29, 34, 48, 30, 13, 12, 16]; // 279 mm; ขอบซ้าย-ขวา 9 mm
 const CATEGORY_ORDER = ["DESK", "CHAIR", "CABINET", "SHELF", "COMPUTER", "PRINTER", "AIR_CONDITIONER", "TELEPHONE", "UPS", "OTHER", "NO_SYSTEM"];
 const CATEGORY_NAME: Record<string, string> = {
@@ -156,7 +156,7 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
       const bottom = 10;
       const headHeight = 13;
       const rowHeight = 12;
-      const rowsPerPage = 12; // ทุกหน้า 12 แถว (ยกเว้นหน้าสุดท้าย)
+      const rowsPerPage = 8; // ทุกหน้า 8 แถว (ยกเว้นหน้าสุดท้าย)
       const ordered = [...assets].sort((a, b) => {
         const aa = CATEGORY_ORDER.indexOf(groupOf(a));
         const bb = CATEGORY_ORDER.indexOf(groupOf(b));
@@ -199,7 +199,7 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
         });
         autoTable(doc, {
           startY: top, margin: { left, right: left, top, bottom }, tableWidth,
-          head: [HEAD.map((h, i) => HEADER_WRAP[i] || h)], body, theme: "grid", showHead: "firstPage",
+          head: [HEAD.map((h, i) => HEADER_WRAP[i] || h)], body, theme: "grid", showHead: "everyPage",
           pageBreak: "avoid", rowPageBreak: "avoid",
           styles: {
             font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 0.8,
@@ -220,7 +220,14 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             }
           },
         });
-        drawHeader(page + 1);
+
+      }
+      // วาดหัวกระดาษทุกหน้าจริง รวมหน้าแรกและหน้าที่เกิดจากการแบ่งตารางอัตโนมัติ
+      // นับเลขแผ่นจากจำนวนหน้าจริงของ PDF เพื่อให้ต่อเนื่องเสมอ
+      const actualPages = doc.internal.getNumberOfPages();
+      for (let sheet = 1; sheet <= actualPages; sheet++) {
+        doc.setPage(sheet);
+        drawHeader(sheet);
       }
       const url = URL.createObjectURL(doc.output("blob"));
       const popup = window.open(url, "_blank", "noopener,noreferrer");
