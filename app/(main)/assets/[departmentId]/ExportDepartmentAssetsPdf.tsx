@@ -106,61 +106,36 @@ function getFiscalYearBangkok() {
   return year + 543 + (month >= 10 ? 1 : 0);
 }
 
-// Word segmentation prevents splitting Thai vowels/combining marks in the middle of a word.
-function segments(text: string): string[] {
-  const value = text.replace(/\s+/g, " ").trim();
-  if (!value) return ["-"];
-  if (typeof Intl.Segmenter === "function") {
-    const segmenter = new Intl.Segmenter("th", { granularity: "word" });
-    return Array.from(segmenter.segment(value), (s) => s.segment);
-  }
-  return value.match(/[^\s,\/]+[\s,\/]*/g) || [value];
-}
-function safeLines(doc: jsPDF, text: string, width: number, maxLines: number): string {
-  const tokens = segments(text);
+// ตัดคำไทยตามขอบเขตคำ ไม่ตัดกลางสระหรือวรรณยุกต์ และไม่ละทิ้งข้อความ
+function wrapThai(doc: jsPDF, value: string, width: number): string[] {
+  const text = String(value || "-").replace(/\s+/g, " ").trim();
+  const parts = typeof Intl.Segmenter !== "undefined"
+    ? Array.from(new Intl.Segmenter("th", { granularity: "word" }).segment(text), (item) => item.segment)
+    : text.split(/(?<=\s|[,/])/u);
   const lines: string[] = [];
-  let current = "";
-  const fits = (v: string) => doc.getTextWidth(v) <= width;
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i];
-    const next = current + token;
-    if (fits(next)) { current = next; continue; }
-    if (current.trim()) {
-      lines.push(current.trim());
-      current = "";
-      if (lines.length >= maxLines) break;
-    }
-    // Never break a Thai word into combining characters: truncate a too-wide token.
-    if (fits(token)) { current = token.trimStart(); continue; }
-    let cut = "";
-    for (const cp of Array.from(token)) {
-      if (!fits(cut + cp + "…")) break;
-      cut += cp;
-    }
-    // Do not end on a combining mark.
-    cut = cut.replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]+$/u, "");
-    current = cut ? cut + "…" : "…";
-    if (i < tokens.length - 1) {
-      lines.push(current);
-      current = "";
-      break;
+  let line = "";
+  for (const part of parts) {
+    if (doc.getTextWidth(line + part) <= width) { line += part; continue; }
+    if (line.trim()) { lines.push(line.trim()); line = ""; }
+    // คำยาวกว่าความกว้างคอลัมน์: เก็บทั้งคำไว้ แล้วลดขนาดฟอนต์ภายหลัง
+    line = part.trimStart();
+  }
+  if (line.trim()) lines.push(line.trim());
+  return lines.length ? lines : ["-"];
+}
+
+// ใช้ฟอนต์เล็กลงเฉพาะช่องที่ข้อความยาว เพื่อรักษาข้อความครบทุกตัวอักษร
+function fitText(doc: jsPDF, value: string, width: number, maxLines: number): { text: string; size: number } {
+  for (let size = 12; size >= 6; size -= 0.5) {
+    doc.setFontSize(size);
+    const lines = wrapThai(doc, value, width);
+    if (lines.length <= maxLines && lines.every((line) => doc.getTextWidth(line) <= width)) {
+      return { text: lines.join("\n"), size };
     }
   }
-  if (current.trim() && lines.length < maxLines) lines.push(current.trim());
-  if (!lines.length) lines.push("-");
-  const consumed = lines.join("").replace(/\s/g, "");
-  const original = text.replace(/\s/g, "");
-  if (consumed !== original && !lines[lines.length - 1].endsWith("…")) {
-    const last = lines.length - 1;
-    while (lines[last].length > 1 && !fits(lines[last] + "…")) {
-      const words = segments(lines[last]);
-      if (words.length <= 1) break;
-      words.pop();
-      lines[last] = words.join("").trimEnd();
-    }
-    if (fits(lines[last] + "…")) lines[last] += "…";
-  }
-  return lines.slice(0, maxLines).join("\n");
+  // กรณีข้อความยาวผิดปกติ ไม่ตัดข้อมูลทิ้ง: เพิ่มบรรทัดในช่องนั้น
+  doc.setFontSize(6);
+  return { text: wrapThai(doc, value, width).join("\n"), size: 6 };
 }
 
 export default function ExportDepartmentAssetsPdf({ departmentName, assets, fiscalYear }: Props) {
@@ -204,6 +179,7 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
         const pageAssets = ordered.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
         doc.setFont(FONT, "normal");
         doc.setFontSize(11);
+        const fontSizes: number[][] = [];
         const body = pageAssets.map((a, i) => {
           const group = groupOf(a);
           const location = a.section?.name?.trim() || departmentName;
@@ -216,7 +192,9 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             [a.brand, a.model].filter(Boolean).join(" / ") || "-",
             Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), STATUS[a.status] || a.status,
           ];
-          return raw.map((value, col) => safeLines(doc, String(value), WIDTHS[col] - 2.4, [1, 2, 3, 4].includes(col) ? 1 : 2));
+          const fitted = raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.8, [1, 2, 3, 4].includes(col) ? 1 : 2));
+          fontSizes[i] = fitted.map((cell) => cell.size);
+          return fitted.map((cell) => cell.text);
         });
         autoTable(doc, {
           startY: top, margin: { left, right: left, top, bottom }, tableWidth,
@@ -225,26 +203,19 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
           styles: {
             font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 1.1,
             halign: "center", valign: "middle", lineColor: [0, 0, 0],
-            lineWidth: 0.18, textColor: [20, 28, 40], overflow: "hidden", minCellHeight: rowHeight,
+            lineWidth: 0.18, textColor: [0, 0, 0], overflow: "hidden", minCellHeight: rowHeight,
           },
           headStyles: {
             font: FONT, fontStyle: "normal", fontSize: 11,
-            fillColor: [45, 55, 72], textColor: [255, 255, 255],
+            fillColor: [255, 255, 255], textColor: [0, 0, 0],
             halign: "center", valign: "middle", minCellHeight: headHeight,
             lineColor: [0, 0, 0], lineWidth: 0.18,
           },
           columnStyles: colStyles,
           didParseCell: (data) => {
-            if (data.section === "body" && data.column.index === 6) data.cell.styles.halign = "left";
             if (data.section === "body") {
-              const absolute = page * rowsPerPage + data.row.index;
-              const isFirst = absolute === 0 || groupOf(ordered[absolute]) !== groupOf(ordered[absolute - 1]);
-              if (isFirst) {
-                data.cell.styles.fillColor = [226, 232, 240];
-                data.cell.styles.fontStyle = "normal";
-              } else if (data.row.index % 2 === 1) {
-                data.cell.styles.fillColor = [248, 250, 252];
-              }
+              data.cell.styles.fontSize = fontSizes[data.row.index]?.[data.column.index] ?? 11;
+              if ([5, 6, 7].includes(data.column.index)) data.cell.styles.halign = "left";
             }
           },
         });
