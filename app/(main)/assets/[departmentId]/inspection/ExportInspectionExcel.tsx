@@ -90,6 +90,11 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         views: [{ state: "normal", showGridLines: false }],
       });
       ws.properties.defaultRowHeight = 15;
+      ws.pageSetup.fitToPage = true;
+      ws.pageSetup.fitToWidth = 1;
+      ws.pageSetup.fitToHeight = 0;
+      ws.pageSetup.horizontalCentered = true;
+      ws.pageSetup.verticalCentered = false;
       // ความกว้างเทียบสัดส่วน PDF: ปรับขนาดให้พอดีหน้ากระดาษแนวนอน
       COLS.forEach((width, i) => { ws.getColumn(i + 1).width = width * 0.85 + 1.6; });
       const border = { style: "thin" as const, color: { argb: "FF000000" } };
@@ -97,7 +102,8 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const fy = Number(movementFiscalYear);
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
-      const pages = Math.max(1, Math.ceil(assets.length / 4));
+      const ROWS_PER_PAGE = 6;
+      const pages = Math.max(1, Math.ceil(assets.length / ROWS_PER_PAGE));
       let rowNo = 1;
       const writeMerged = (r1: number, c1: number, r2: number, c2: number, value: string, size = 12) => {
         if (r1 !== r2 || c1 !== c2) ws.mergeCells(r1, c1, r2, c2);
@@ -115,8 +121,8 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       for (let page = 0; page < pages; page++) {
         if (page > 0) ws.getRow(rowNo - 1).addPageBreak();
         const first = rowNo;
-        writeMerged(first, 1, first, 18, `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`, 15);
-        writeMerged(first, 19, first, 20, `แผ่นที่ ${page + 1}`, 15);
+        writeMerged(first, 1, first, 17, `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${movementFiscalYear}`, 15);
+        writeMerged(first, 18, first, 20, `แผ่นที่ ${page + 1}`, 15);
         ws.getRow(first).height = 24;
         writeMerged(first + 1, 1, first + 1, 20, "สำนักอนามัยการเจริญพันธุ์", 15);
         ws.getRow(first + 1).height = 24;
@@ -129,22 +135,22 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           [1, 1, "ลำดับ", true], [2, 2, "รหัส GFMIS", true], [3, 3, "รหัสครุภัณฑ์", true],
           [4, 4, "สถานที่ใช้งาน", true], [5, 5, "ผู้รับผิดชอบ", true], [6, 6, "หมวด/ชนิด", true],
           [7, 7, "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", true], [8, 8, "ยี่ห้อ/รุ่น", true],
-          [9, 9, "หน่วย\nนับ", true], [10, 10, `ยอดคงเหลือตามบัญชี\nณ วันที่ ${thaiDate(start, true)}`, true],
-          [11, 12, `รายการเคลื่อนไหวระหว่าง\nปีงบประมาณ พ.ศ. ${movementFiscalYear}`, false],
-          [13, 13, `ยอดคงเหลือตามบัญชี\nณ วันที่ ${thaiDate(end, true)}`, true],
+          [9, 9, "หน่วย\nนับ", true], [10, 10, `ยอดคงเหลือ\nตามบัญชี\nณ วันที่ ${thaiDate(start, true)}`, true],
+          [11, 12, `รายการเคลื่อนไหว\nระหว่างปีงบประมาณ\nพ.ศ. ${movementFiscalYear}`, false],
+          [13, 13, `ยอดคงเหลือ\nตามบัญชี\nณ วันที่ ${thaiDate(end, true)}`, true],
           [14, 14, "จำนวนที่\nตรวจนับได้", true],
-          [15, 16, "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือตามบัญชี", false],
+          [15, 16, "ผลการตรวจนับถูกต้อง\nตรงกับยอดคงเหลือ\nตามบัญชี", false],
           [17, 20, "สภาพครุภัณฑ์ที่ตรวจนับ", false],
         ];
-        for (const [a, b, label, full] of h1) writeMerged(h, a, full ? h + 1 : h, b, label, 9.5);
+        for (const [a, b, label, full] of h1) writeMerged(h, a, full ? h + 1 : h, b, label, 8.5);
         ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ใช้งานปกติ", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].forEach((label, i) => {
           const col = [11, 12, 15, 16, 17, 18, 19, 20][i];
-          writeMerged(h + 1, col, h + 1, col, label, 9.5);
+          writeMerged(h + 1, col, h + 1, col, label, 8.5);
         });
-        ws.getRow(h).height = 38;
-        ws.getRow(h + 1).height = 24;
+        ws.getRow(h).height = 35;
+        ws.getRow(h + 1).height = 21;
         let lastData = h + 1;
-        for (let i = page * 4; i < Math.min(assets.length, (page + 1) * 4); i++) {
+        for (let i = page * ROWS_PER_PAGE; i < Math.min(assets.length, (page + 1) * ROWS_PER_PAGE); i++) {
           const a = assets[i];
           const r = rowMap.get(a.id) ?? { countedQty: "", accuracy: "", status: "", remark: "" };
           const owner = a.responsibleName?.trim() || (a.officer ? `${a.officer.firstName} ${a.officer.lastName}`.trim() : "");
@@ -158,13 +164,17 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             r.status === "DETERIORATED" ? "✓" : "", r.status === "UNUSABLE" ? "✓" : "",
           ];
           const rr = ++lastData;
-          // ประมาณจำนวนบรรทัดเพื่อให้ Excel ขยายแถวตามข้อความ ไม่เหลือช่องว่างมากเกินไป
+          // ความสูงแถวแยกตามข้อความจริง ไม่บังคับให้ทุกแถวสูงเท่ากัน
+          // คิดความกว้างเป็นอักขระโดยประมาณตามความกว้างคอลัมน์ Excel
           const lines = values.reduce<number>((max, v, col) => {
-            const text = String(v);
-            const usable = Math.max(3, COLS[col] * 0.85);
-            return Math.max(max, Math.ceil(Array.from(text).length / usable));
+            const text = String(v ?? "");
+            const width = ws.getColumn(col + 1).width ?? 12;
+            const charsPerLine = Math.max(4, Math.floor(width * (col <= 2 ? 0.95 : 1.12)));
+            const count = text.split("\n").reduce((sum, part) =>
+              sum + Math.max(1, Math.ceil(Array.from(part).length / charsPerLine)), 0);
+            return Math.max(max, count);
           }, 1);
-          ws.getRow(rr).height = Math.max(24, Math.min(96, lines * 14 + 8));
+          ws.getRow(rr).height = Math.max(20, Math.min(78, lines * 11.5 + 5));
           values.forEach((v, col) => {
             const cell = ws.getCell(rr, col + 1);
             cell.value = v;
@@ -173,22 +183,33 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             cell.border = { top: border, bottom: border, left: border, right: border };
           });
         }
+        // ส่วนลงชื่อกรรมการ: จัดเป็นกล่องข้อความด้วยเซลล์ผสานแบบไร้เส้นตาราง
+        // 5 กล่องเท่ากัน แต่ละกล่องกินพื้นที่ 4 คอลัมน์ (รวม 20 คอลัมน์)
         const signRow = lastData + 2;
-        ws.getRow(lastData + 1).height = 14;
-        // กรรมการ 5 คน ระยะห่างเท่ากัน ใช้พื้นที่คอลัมน์ 1–20 แบ่งกลุ่มละ 4
+        ws.getRow(lastData + 1).height = 8;
+        const signLines = [signRow, signRow + 1, signRow + 2];
+        signLines.forEach((r) => { ws.getRow(r).height = 19; });
         for (let i = 0; i < 5; i++) {
-          const c1 = i * 4 + 1; const c2 = c1 + 3;
+          const c1 = i * 4 + 1;
+          const c2 = c1 + 3;
           const officer = officers.find(o => String(o.id) === (inspectorIds[i] ?? ""));
-          writeMerged(signRow, c1, signRow, c2, "ลงชื่อ ........................................", 11);
-          writeMerged(signRow + 1, c1, signRow + 1, c2, `(${officer ? `${officer.firstName} ${officer.lastName}` : "................................"})`, 11);
-          writeMerged(signRow + 2, c1, signRow + 2, c2, officer?.position || "................................", 11);
+          const name = officer ? `${officer.firstName} ${officer.lastName}`.trim() : "................................";
+          const position = officer?.position?.trim() || "................................";
+          const texts = ["ลงชื่อ ................................", `(${name})`, position];
+          for (let line = 0; line < 3; line++) {
+            const r = signRow + line;
+            writeMerged(r, c1, r, c2, texts[line], 11);
+            const cell = ws.getCell(r, c1);
+            cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true, shrinkToFit: true };
+            cell.border = {}; // กล่องข้อความไม่มีกรอบตาราง
+          }
         }
-        ws.getRow(signRow).height = 20;
-        ws.getRow(signRow + 1).height = 20;
-        ws.getRow(signRow + 2).height = 20;
         rowNo = signRow + 4;
       }
       ws.pageSetup.printArea = `A1:T${rowNo - 2}`;
+      // กำหนดการพิมพ์ให้ย่อพอดีความกว้าง A4 แนวนอน
+      ws.pageSetup.paperSize = 9;
+      ws.pageSetup.orientation = "landscape";
       const bytes = await wb.xlsx.writeBuffer();
       const blob = new Blob([bytes as BlobPart], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
