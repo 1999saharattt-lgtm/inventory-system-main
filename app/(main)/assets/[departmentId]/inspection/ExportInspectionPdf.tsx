@@ -689,8 +689,8 @@ export default function ExportInspectionPdf({
       0
     );
 
-    // เลขแผ่นที่ใช้ฟอนต์เท่าหัวตาราง
-    doc.setFontSize(FIXED_FONT_SIZE);
+    // เลขแผ่นที่ใช้ขนาดเดียวกับหัวกระดาษ/ชื่อกลุ่มงาน
+    doc.setFontSize(15);
     doc.text(`แผ่นที่ ${pageNumber}`, PAGE_WIDTH - MARGIN_X, 9, { align: "right" });
 
     doc.setFontSize(15);
@@ -987,25 +987,8 @@ export default function ExportInspectionPdf({
               rowsPerPage
           );
 
-        // คำนวณความสูงแถวจากข้อความของ 3 รายการในแผ่นนี้จริง ๆ
-        // ไม่ลดขนาดตัวอักษรและไม่ตัดข้อความทิ้ง
-        const maxLineCount = Math.max(1, ...pageAssets.map(asset => {
-          const row = rowMap.get(asset.id);
-          const texts = [
-            String(getSourceOrder(asset.remark) ?? ""),
-            asset.governmentAssetNo ?? "", asset.officeAssetNo ?? "",
-            department.name, getResponsibleName(asset, department),
-            getDisplayCategory(asset), asset.name,
-            [asset.brand, asset.model].filter(Boolean).join(" / "),
-            asset.unit?.trim() || getCategoryUnit(asset.category),
-            String(asset.quantity ?? 1), "", "", String(asset.quantity ?? 1),
-            row?.countedQty ?? "", "", "", "", "", "", "",
-          ];
-          return Math.max(...texts.map((text, index) =>
-            wrapCellText(doc, String(text ?? ""), measuredWidths[index]).length
-          ));
-        }));
-        const rowHeight = Math.max(9, maxLineCount * 3.65 + 2);
+        // ให้ autoTable คำนวณความสูงแยกแต่ละแถวจากข้อความจริง
+        // ไม่ใช้ความสูงสูงสุดของทั้งหน้า เพราะทำให้แถวสั้นมีช่องว่างมาก
 
         const body =
           pageAssets.map(
@@ -1123,16 +1106,7 @@ export default function ExportInspectionPdf({
             }
           );
 
-        while (
-          body.length <
-          rowsPerPage
-        ) {
-          body.push(
-            Array(20).fill(
-              ""
-            )
-          );
-        }
+        // หน้าสุดท้ายแสดงเฉพาะรายการจริง ไม่เติมแถวเปล่า
 
         const fiscalYear = Number(movementFiscalYear);
         const headerStartDate = Number.isInteger(fiscalYear)
@@ -1246,10 +1220,10 @@ export default function ExportInspectionPdf({
               0.25,
 
             cellPadding:
-              0.6,
+              0.5,
 
             minCellHeight:
-              rowHeight,
+              0,
 
             halign:
               "center",
@@ -1330,10 +1304,10 @@ export default function ExportInspectionPdf({
               0.25,
 
             cellPadding:
-              0.6,
+              0.5,
 
             minCellHeight:
-              rowHeight,
+              0,
 
             halign:
               "center",
@@ -1361,7 +1335,7 @@ export default function ExportInspectionPdf({
                data.cell.styles.overflow = "linebreak";
             }
             if (data.section === "body") {
-              data.cell.styles.minCellHeight = rowHeight;
+              data.cell.styles.minCellHeight = 0;
               if (data.column.index === 6) {
                 data.cell.styles.halign = "center";
                 data.cell.styles.valign = "middle";
