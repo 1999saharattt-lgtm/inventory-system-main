@@ -186,8 +186,9 @@ export default async function EditAssetPage({
      SECTIONS
   ======================================================= */
 
-  const sections =
-    await prisma.section.findMany({
+  // Independent lookups execute concurrently; preserve the same filters and results.
+  const [sections, officers, savedOwners] = await Promise.all([
+    prisma.section.findMany({
       where: {
         departmentId:
           departmentIdForPage,
@@ -201,14 +202,8 @@ export default async function EditAssetPage({
       orderBy: {
         id: "asc",
       },
-    });
-
-  /* =======================================================
-     OFFICERS
-  ======================================================= */
-
-  const officers =
-    await prisma.officer.findMany({
+    }),
+    prisma.officer.findMany({
       where: {
         OR: [
           {
@@ -244,11 +239,8 @@ export default async function EditAssetPage({
           lastName: "asc",
         },
       ],
-    });
-
-  // รายชื่อผู้ครอบครองที่เคยบันทึกไว้ในครุภัณฑ์ทุกหมวดของหน่วยงานนี้
-  // รองรับข้อมูลเก่าที่บันทึกเพียง responsibleName โดยไม่ได้สร้าง Officer
-  const savedOwners = await prisma.asset.findMany({
+    }),
+    prisma.asset.findMany({
     where: {
       departmentId: departmentIdForPage,
       officerId: null,
@@ -256,27 +248,29 @@ export default async function EditAssetPage({
     },
     select: { responsibleName: true, sectionId: true },
     distinct: ["responsibleName", "sectionId"],
-  });
+  }),
+  ]);
   const savedOwnerNames = savedOwners
     .map((item) => ({ name: (item.responsibleName ?? "").trim(), sectionId: item.sectionId }))
     .filter((item) => item.name.length > 0);
 
   // รวมตัวเลือกที่ผู้ใช้เคยบันทึกลง categoryDetail เพื่อให้ค้นหาใช้ซ้ำได้
-  const savedCategoryTypes = await prisma.asset.findMany({
+  const [savedCategoryTypes, ownerHistory] = await Promise.all([
+    prisma.asset.findMany({
     where: { categoryDetail: { not: null } },
     select: { categoryDetail: true },
     distinct: ["categoryDetail"],
-  });
+  }),
+    prisma.assetOwnerHistory.findMany({
+     where: { assetId: asset.id },
+     orderBy: { changedAt: "desc" },
+     take: 50,
+   }),
+  ]);
   const categoryTypeOptions = Array.from(new Set([
     ...predefinedCategoryTypes,
     ...savedCategoryTypes.map((item) => item.categoryDetail?.trim() ?? "").filter(Boolean),
   ]));
-
-   const ownerHistory = await prisma.assetOwnerHistory.findMany({
-     where: { assetId: asset.id },
-     orderBy: { changedAt: "desc" },
-     take: 50,
-   });
 
   /* =======================================================
      UPDATE

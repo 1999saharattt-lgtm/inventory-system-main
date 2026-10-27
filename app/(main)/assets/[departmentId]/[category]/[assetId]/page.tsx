@@ -65,18 +65,20 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
   if (!Number.isInteger(departmentIdNumber) || departmentIdNumber <= 0 || !Number.isInteger(assetIdNumber) || assetIdNumber <= 0 || !Object.prototype.hasOwnProperty.call(categoryNames, pageCategory)) notFound();
 
   // ใช้รหัสรายการและหน่วยงานตรวจสอบ เพื่อรองรับหมวดเสมือน เช่น UPS ที่เก็บใน OTHER
-  const asset = await prisma.asset.findFirst({
+  const [asset, ownerHistory] = await Promise.all([
+    prisma.asset.findFirst({
     where: { id: assetIdNumber, departmentId: departmentIdNumber },
     include: { department: true, section: true, officer: true },
-  });
+  }),
+    prisma.assetOwnerHistory.findMany({
+      where: { assetId: assetIdNumber }, orderBy: { changedAt: "desc" }, take: 50,
+    }),
+  ]);
   if (!asset) notFound();
   if (asset.category !== pageCategory && !(
     (pageCategory === "UPS" || pageCategory === "SHELF") && asset.category === "OTHER"
   ) && !(pageCategory === "COMPUTER" && asset.category === "MONITOR")) notFound();
 
-  const ownerHistory = await prisma.assetOwnerHistory.findMany({
-    where: { assetId: asset.id }, orderBy: { changedAt: "desc" }, take: 50,
-  });
   const categoryPath = `/assets/${departmentIdNumber}/${pageCategory.toLowerCase()}`;
   const backPath = (from === "all" ? `/assets/${departmentIdNumber}/all` : categoryPath) + fiscalYearQuery;
   const remarkLines = (asset.remark ?? "").split("\n");
