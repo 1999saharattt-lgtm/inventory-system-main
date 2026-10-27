@@ -99,8 +99,10 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 3;
+const MAX_ROWS_PER_PAGE = 4;
 const FIXED_FONT_SIZE = 8.5;
+// ลดลงประมาณ 2px = 1.5pt เฉพาะหัวตารางและข้อมูลทั่วไป
+const COMPACT_FONT_SIZE = 7;
 const MAX_BODY_HEIGHT = 125;
 
 
@@ -946,7 +948,7 @@ export default function ExportInspectionPdf({
       doc.setFontSize(FIXED_FONT_SIZE);
       const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
-      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 3 รายการต่อแผ่น
+      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 4 รายการต่อแผ่น
 
       const totalPages =
         Math.max(
@@ -1146,7 +1148,7 @@ export default function ExportInspectionPdf({
           5: ["หมวด/ชนิด"],
           6: ["ชื่อเรียก/คุณลักษณะ", "ครุภัณฑ์"],
           7: ["ยี่ห้อ/รุ่น"],
-          8: ["หน่วยนับ"],
+          8: ["หน่วย", "นับ"],
           9: accountStartHeaderLines,
           10: movementHeaderLines,
           12: accountEndHeaderLines,
@@ -1182,7 +1184,7 @@ export default function ExportInspectionPdf({
               { content: "หมวด/ชนิด", rowSpan: 2 },
               { content: "ชื่อเรียก/คุณลักษณะครุภัณฑ์", rowSpan: 2 },
               { content: "ยี่ห้อ/รุ่น", rowSpan: 2 },
-              { content: "หน่วยนับ", rowSpan: 2 },
+              { content: "หน่วย\nนับ", rowSpan: 2 },
               { content: accountStartHeaderLines.join("\n"), rowSpan: 2 },
               { content: movementHeaderLines.join("\n"), colSpan: 2 },
               { content: accountEndHeaderLines.join("\n"), rowSpan: 2 },
@@ -1202,7 +1204,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: FIXED_FONT_SIZE,
+            fontSize: COMPACT_FONT_SIZE,
 
             textColor: [
               0,
@@ -1243,7 +1245,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: FIXED_FONT_SIZE,
+            fontSize: COMPACT_FONT_SIZE,
 
             fillColor: [
               255,
@@ -1286,7 +1288,7 @@ export default function ExportInspectionPdf({
             fontStyle:
               "normal",
 
-            fontSize: FIXED_FONT_SIZE,
+            fontSize: COMPACT_FONT_SIZE,
 
             textColor: [
               0,
@@ -1329,13 +1331,16 @@ export default function ExportInspectionPdf({
                 data.cell.text = [String(data.cell.raw ?? "")];
               }
 
-                             data.cell.styles.fontSize = FIXED_FONT_SIZE;
+                             data.cell.styles.fontSize = COMPACT_FONT_SIZE;
                data.cell.styles.cellPadding = 0.35;
                data.cell.styles.minCellHeight = data.row.index === 0 ? 10 : 7;
                data.cell.styles.overflow = "linebreak";
             }
             if (data.section === "body") {
               data.cell.styles.minCellHeight = 0;
+              // ลำดับ, รหัส GFMIS, รหัสครุภัณฑ์ คงฟอนต์เดิม 8.5pt
+              const bodyFontSize = data.column.index <= 2 ? FIXED_FONT_SIZE : COMPACT_FONT_SIZE;
+              data.cell.styles.fontSize = bodyFontSize;
               if (data.column.index === 6) {
                 data.cell.styles.halign = "center";
                 data.cell.styles.valign = "middle";
@@ -1344,12 +1349,14 @@ export default function ExportInspectionPdf({
                 data.cell.text = [""];
               } else {
                 const raw = String(data.cell.raw ?? "");
+                doc.setFont("2.3.2 THSarabunNew", "normal");
+                doc.setFontSize(bodyFontSize);
                 data.cell.text = wrapCellText(doc, raw, measuredWidths[data.column.index]);
                 data.cell.styles.overflow = "linebreak";
               }
             }
           },
-          // Uniform 8.5pt font throughout: wrap long text rather than shrinking it.
+          // Keep identifier columns at 8.5pt; other cells and headings use 7pt.
           columnStyles: {
             0: { cellWidth: measuredWidths[0] },
             1: { cellWidth: measuredWidths[1] },
