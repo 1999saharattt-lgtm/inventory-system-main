@@ -224,7 +224,7 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
       }
       // วาดหัวกระดาษทุกหน้าจริง รวมหน้าแรกและหน้าที่เกิดจากการแบ่งตารางอัตโนมัติ
       // นับเลขแผ่นจากจำนวนหน้าจริงของ PDF เพื่อให้ต่อเนื่องเสมอ
-      const actualPages = doc.internal.getNumberOfPages();
+      const actualPages = doc.getNumberOfPages();
       for (let sheet = 1; sheet <= actualPages; sheet++) {
         doc.setPage(sheet);
         drawHeader(sheet);
