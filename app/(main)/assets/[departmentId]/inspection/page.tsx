@@ -1,14 +1,6 @@
-import {
-  notFound,
-} from "next/navigation";
-
-import {
-  prisma,
-} from "@/lib/prisma";
-
-import {
-  requireLogin,
-} from "@/lib/auth";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { requireLogin } from "@/lib/auth";
 
 import AppPage from "@/components/AppPage";
 import AppPageHeader from "@/components/AppPageHeader";
@@ -16,8 +8,7 @@ import AppButton from "@/components/AppButton";
 
 import InspectionForm from "./InspectionForm";
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 /* =========================================================
    TYPES
@@ -36,39 +27,67 @@ type Props = {
    SOURCE ORDER
 ========================================================= */
 
-function getSourceOrder(
-  remark:
-    | string
-    | null
-): number | null {
+function getSourceOrder(remark: string | null): number | null {
   if (!remark) {
     return null;
   }
 
-  const match =
-    remark.match(
-      /SOURCE:DEPARTMENT_1:(\d+)/
-    );
-
+  const match = remark.match(/SOURCE:DEPARTMENT_1:(\d+)/);
   if (!match) {
     return null;
   }
 
-  const sourceOrder =
-    Number(
-      match[1]
-    );
-
-  if (
-    !Number.isInteger(
-      sourceOrder
-    ) ||
-    sourceOrder <= 0
-  ) {
+  const sourceOrder = Number(match[1]);
+  if (!Number.isInteger(sourceOrder) || sourceOrder <= 0) {
     return null;
   }
 
   return sourceOrder;
+}
+
+/* =========================================================
+   CATEGORY ORDER
+   เรียงหมวดเหมือนหน้าทะเบียนครุภัณฑ์รวม
+========================================================= */
+
+const categoryOrder = [
+  "DESK",
+  "CHAIR",
+  "CABINET",
+  "SHELF",
+  "COMPUTER",
+  "PRINTER",
+  "AIR_CONDITIONER",
+  "TELEPHONE",
+  "UPS",
+  "OTHER",
+  "NO_SYSTEM",
+] as const;
+
+const categoryPosition = new Map<string, number>(
+  categoryOrder.map((category, index) => [category, index])
+);
+
+function getDisplayCategory(asset: {
+  category: string;
+  categoryDetail: string | null;
+  name: string;
+}): string {
+  if (asset.category === "MONITOR") {
+    return "COMPUTER";
+  }
+
+  if (asset.category === "OTHER") {
+    const detail = asset.categoryDetail?.trim() ?? "";
+    if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(detail || asset.name)) {
+      return "UPS";
+    }
+    if (detail === "ชั้น") {
+      return "SHELF";
+    }
+  }
+
+  return asset.category;
 }
 
 /* =========================================================
@@ -83,28 +102,16 @@ export default async function AssetInspectionPage({
      USER
   ======================================================= */
 
-  const user =
-    await requireLogin();
+  const user = await requireLogin();
 
   /* =======================================================
      PARAMS
   ======================================================= */
 
-  const {
-    departmentId,
-  } = await params;
+  const { departmentId } = await params;
+  const id = Number(departmentId);
 
-  const id =
-    Number(
-      departmentId
-    );
-
-  if (
-    !Number.isInteger(
-      id
-    ) ||
-    id <= 0
-  ) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 
@@ -120,10 +127,7 @@ export default async function AssetInspectionPage({
      ADMIN ONLY
   ======================================================= */
 
-  if (
-    user.role !==
-    "ADMIN"
-  ) {
+  if (user.role !== "ADMIN") {
     notFound();
   }
 
@@ -131,34 +135,21 @@ export default async function AssetInspectionPage({
      DEPARTMENTS
   ======================================================= */
 
-  const departments =
-    await prisma.department.findMany({
-      select: {
-        id:
-          true,
-
-        name:
-          true,
-      },
-
-      orderBy: {
-        id:
-          "asc",
-      },
-    });
+  const departments = await prisma.department.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
 
   /* =======================================================
      CURRENT DEPARTMENT
   ======================================================= */
 
-  const department =
-    departments.find(
-      (
-        item
-      ) =>
-        item.id ===
-        id
-    );
+  const department = departments.find((item) => item.id === id);
 
   if (!department) {
     notFound();
@@ -168,156 +159,78 @@ export default async function AssetInspectionPage({
      ASSETS
   ======================================================= */
 
-  const assetsFromDatabase =
-    await prisma.asset.findMany({
-      where: {
-        departmentId:
-          id,
-      },
-
-      select: {
-        id:
-          true,
-
-        name:
-          true,
-
-        category:
-          true,
-
-        categoryDetail:
-          true,
-
-        brand:
-          true,
-
-        model:
-          true,
-
-        serialNumber:
-          true,
-
-        governmentAssetNo:
-          true,
-
-        officeAssetNo:
-          true,
-
-        quantity:
-          true,
-
-        unit:
-          true,
-
-        responsibleName:
-          true,
-
-        departmentId:
-          true,
-
-        sectionId:
-          true,
-
-        officerId:
-          true,
-
-        status:
-          true,
-
-        purchaseDate:
-          true,
-
-        price:
-          true,
-
-        location:
-          true,
-
-        remark:
-          true,
-
-        section: {
-          select: {
-            id:
-              true,
-
-            name:
-              true,
-          },
-        },
-
-        officer: {
-          select: {
-            id:
-              true,
-
-            firstName:
-              true,
-
-            lastName:
-              true,
-
-            position:
-              true,
-          },
+  const assetsFromDatabase = await prisma.asset.findMany({
+    where: {
+      departmentId: id,
+    },
+    select: {
+      id: true,
+      name: true,
+      category: true,
+      categoryDetail: true,
+      brand: true,
+      model: true,
+      serialNumber: true,
+      governmentAssetNo: true,
+      officeAssetNo: true,
+      quantity: true,
+      unit: true,
+      responsibleName: true,
+      departmentId: true,
+      sectionId: true,
+      officerId: true,
+      status: true,
+      purchaseDate: true,
+      price: true,
+      location: true,
+      remark: true,
+      section: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-    });
+      officer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          position: true,
+        },
+      },
+    },
+  });
 
   /* =======================================================
      SORT
+     เรียงหมวดก่อน แล้วคงลำดับเดิมในแต่ละหมวด
   ======================================================= */
 
-  const sortedAssets =
-    [
-      ...assetsFromDatabase,
-    ].sort(
-      (
-        a,
-        b
-      ) => {
-        const orderA =
-          getSourceOrder(
-            a.remark
-          );
+  const sortedAssets = [...assetsFromDatabase].sort((a, b) => {
+    const categoryA = getDisplayCategory(a);
+    const categoryB = getDisplayCategory(b);
+    const positionA = categoryPosition.get(categoryA) ?? categoryOrder.length;
+    const positionB = categoryPosition.get(categoryB) ?? categoryOrder.length;
 
-        const orderB =
-          getSourceOrder(
-            b.remark
-          );
+    if (positionA !== positionB) {
+      return positionA - positionB;
+    }
 
-        if (
-          orderA !==
-            null &&
-          orderB !==
-            null
-        ) {
-          return (
-            orderA -
-            orderB
-          );
-        }
+    const orderA = getSourceOrder(a.remark);
+    const orderB = getSourceOrder(b.remark);
 
-        if (
-          orderA !==
-          null
-        ) {
-          return -1;
-        }
+    if (orderA !== null && orderB !== null) {
+      return orderA - orderB;
+    }
+    if (orderA !== null) {
+      return -1;
+    }
+    if (orderB !== null) {
+      return 1;
+    }
 
-        if (
-          orderB !==
-          null
-        ) {
-          return 1;
-        }
-
-        return (
-          a.id -
-          b.id
-        );
-      }
-    );
+    return a.id - b.id;
+  });
 
   /* =======================================================
      DISPLAY DATA
@@ -327,10 +240,7 @@ export default async function AssetInspectionPage({
     const groupName = department.name.trim();
 
     const officerName = asset.officer
-      ? [
-          asset.officer.firstName,
-          asset.officer.lastName,
-        ]
+      ? [asset.officer.firstName, asset.officer.lastName]
           .filter(Boolean)
           .join(" ")
           .trim()
@@ -347,62 +257,33 @@ export default async function AssetInspectionPage({
      OFFICERS
   ======================================================= */
 
-  const officers =
-    await prisma.officer.findMany({
-      select: {
-        id:
-          true,
-
-        firstName:
-          true,
-
-        lastName:
-          true,
-
-        position:
-          true,
-
-        type:
-          true,
-
-        departmentId:
-          true,
-
-        sectionId:
-          true,
-
-        department: {
-          select: {
-            id:
-              true,
-
-            name:
-              true,
-          },
-        },
-
-        section: {
-          select: {
-            id:
-              true,
-
-            name:
-              true,
-          },
+  const officers = await prisma.officer.findMany({
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      position: true,
+      type: true,
+      departmentId: true,
+      sectionId: true,
+      department: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-
-      orderBy: [
-        {
-          firstName:
-            "asc",
+      section: {
+        select: {
+          id: true,
+          name: true,
         },
-        {
-          lastName:
-            "asc",
-        },
-      ],
-    });
+      },
+    },
+    orderBy: [
+      { firstName: "asc" },
+      { lastName: "asc" },
+    ],
+  });
 
   /* =======================================================
      UI
@@ -415,11 +296,7 @@ export default async function AssetInspectionPage({
         title="ตรวจสอบรายการครุภัณฑ์ประจำปี"
         subtitle="บันทึกผลการตรวจสอบครุภัณฑ์ประจำปีของแต่ละกลุ่มงาน"
         actions={
-          <AppButton
-            href="/assets"
-            variant="back"
-            size="md"
-          >
+          <AppButton href="/assets" variant="back" size="md">
             กลับ
           </AppButton>
         }
