@@ -42,7 +42,8 @@ const HEAD = [
   "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น",
   "ยอดคงเหลือ", "หน่วยนับ", "สถานะ",
 ];
-const WIDTHS = [9, 28, 31, 26, 27, 35, 47, 28, 12, 11, 13]; // 267 mm
+const HEADER_WRAP: Record<number, string> = { 1: "รหัส\nGFMIS", 2: "รหัส\nครุภัณฑ์", 3: "สถานที่\nใช้งาน", 4: "ชื่อผู้\nครอบครอง", 6: "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", 8: "ยอด\nคงเหลือ", 9: "หน่วย\nนับ" };
+const WIDTHS = [9, 29, 31, 28, 29, 34, 48, 30, 13, 12, 16]; // 279 mm; ขอบซ้าย-ขวา 9 mm
 const CATEGORY_ORDER = ["DESK", "CHAIR", "CABINET", "SHELF", "COMPUTER", "PRINTER", "AIR_CONDITIONER", "TELEPHONE", "UPS", "OTHER", "NO_SYSTEM"];
 const CATEGORY_NAME: Record<string, string> = {
   DESK: "โต๊ะ", CHAIR: "เก้าอี้", CABINET: "ตู้", SHELF: "ชั้น",
@@ -126,7 +127,7 @@ function wrapThai(doc: jsPDF, value: string, width: number): string[] {
 
 // ใช้ฟอนต์เล็กลงเฉพาะช่องที่ข้อความยาว เพื่อรักษาข้อความครบทุกตัวอักษร
 function fitText(doc: jsPDF, value: string, width: number, maxLines: number): { text: string; size: number } {
-  for (let size = 12; size >= 6; size -= 0.5) {
+  for (let size = 12; size >= 5; size -= 0.5) {
     doc.setFontSize(size);
     const lines = wrapThai(doc, value, width);
     if (lines.length <= maxLines && lines.every((line) => doc.getTextWidth(line) <= width)) {
@@ -134,8 +135,8 @@ function fitText(doc: jsPDF, value: string, width: number, maxLines: number): { 
     }
   }
   // กรณีข้อความยาวผิดปกติ ไม่ตัดข้อมูลทิ้ง: เพิ่มบรรทัดในช่องนั้น
-  doc.setFontSize(6);
-  return { text: wrapThai(doc, value, width).join("\n"), size: 6 };
+  doc.setFontSize(5);
+  return { text: wrapThai(doc, value, width).join("\n"), size: 5 };
 }
 
 export default function ExportDepartmentAssetsPdf({ departmentName, assets, fiscalYear }: Props) {
@@ -151,11 +152,11 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
       const pageHeight = doc.internal.pageSize.getHeight();
       const tableWidth = WIDTHS.reduce((a, b) => a + b, 0);
       const left = (pageWidth - tableWidth) / 2;
-      const top = 37;
-      const bottom = 11;
-      const headHeight = 11;
-      const rowHeight = 10;
-      const rowsPerPage = Math.floor((pageHeight - top - bottom - headHeight) / rowHeight); // 15 on A4 landscape
+      const top = 39;
+      const bottom = 10;
+      const headHeight = 13;
+      const rowHeight = 12;
+      const rowsPerPage = 12; // ทุกหน้า 12 แถว (ยกเว้นหน้าสุดท้าย)
       const ordered = [...assets].sort((a, b) => {
         const aa = CATEGORY_ORDER.indexOf(groupOf(a));
         const bb = CATEGORY_ORDER.indexOf(groupOf(b));
@@ -171,8 +172,8 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
         doc.setFontSize(15);
         doc.text(departmentName, pageWidth / 2, 22, { align: "center" });
         doc.text(`ประจำปีงบประมาณ พ.ศ. ${year}`, pageWidth / 2, 29, { align: "center" });
-        doc.setFontSize(12);
-        doc.text(`หน้า ${page} / ${totalPages}`, pageWidth - left, pageHeight - 5, { align: "right" });
+        doc.setFontSize(15);
+        doc.text(`แผ่นที่ ${page}`, pageWidth - left, 22, { align: "right" });
       }
       for (let page = 0; page < totalPages; page++) {
         if (page > 0) doc.addPage();
@@ -192,21 +193,21 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             [a.brand, a.model].filter(Boolean).join(" / ") || "-",
             Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), STATUS[a.status] || a.status,
           ];
-          const fitted = raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.8, [1, 2, 3, 4].includes(col) ? 1 : 2));
+          const fitted = raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.6, [1, 2, 3, 4].includes(col) ? 1 : 3));
           fontSizes[i] = fitted.map((cell) => cell.size);
           return fitted.map((cell) => cell.text);
         });
         autoTable(doc, {
           startY: top, margin: { left, right: left, top, bottom }, tableWidth,
-          head: [HEAD], body, theme: "grid", showHead: "firstPage",
+          head: [HEAD.map((h, i) => HEADER_WRAP[i] || h)], body, theme: "grid", showHead: "firstPage",
           pageBreak: "avoid", rowPageBreak: "avoid",
           styles: {
-            font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 1.1,
+            font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 0.8,
             halign: "center", valign: "middle", lineColor: [0, 0, 0],
             lineWidth: 0.18, textColor: [0, 0, 0], overflow: "hidden", minCellHeight: rowHeight,
           },
           headStyles: {
-            font: FONT, fontStyle: "normal", fontSize: 11,
+            font: FONT, fontStyle: "normal", fontSize: 10, cellPadding: 0.8,
             fillColor: [255, 255, 255], textColor: [0, 0, 0],
             halign: "center", valign: "middle", minCellHeight: headHeight,
             lineColor: [0, 0, 0], lineWidth: 0.18,
