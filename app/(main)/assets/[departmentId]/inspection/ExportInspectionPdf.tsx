@@ -226,6 +226,20 @@ function formatThaiDate(
   return `${day} ${month} ${year}`;
 }
 
+/** ใช้เฉพาะวันที่ในหัวคอลัมน์ตาราง (ไม่เปลี่ยนวันที่บนหัวกระดาษ) */
+function formatThaiShortDate(value: string): string {
+  if (!value) return "........";
+  const date = parseDateOnly(value);
+  if (Number.isNaN(date.getTime())) return "........";
+  const shortMonths = [
+    "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+    "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+  ];
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = String((date.getFullYear() + 543) % 100).padStart(2, "0");
+  return `${day} ${shortMonths[date.getMonth()]} ${year}`;
+}
+
 /* =========================================================
    SOURCE ORDER
 
@@ -508,7 +522,7 @@ function getDisplayCategory(asset: Asset): string {
 // แบ่งบรรทัดตามวลีที่คั่นด้วยจุลภาคหรือเครื่องหมายทับก่อน
 // แล้วจึงให้ jsPDF ตัดตามความกว้างจริง โดยไม่ย่อฟอนต์และไม่ตัดข้อความทิ้ง
 // ตัดข้อความตามขอบเขตคำภาษาไทย ไม่แยกสระหรือวรรณยุกต์จากพยัญชนะ
-// และคงรหัส GFMIS / รหัสครุภัณฑ์เป็นบรรทัดเดียวเสมอ
+// รหัส GFMIS / รหัสครุภัณฑ์สามารถขึ้นบรรทัดใหม่ได้เมื่อจำเป็น
 function wrapCellText(doc: jsPDF, value: string, width: number): string[] {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   if (!text || text === "-") return [""];
@@ -518,6 +532,22 @@ function wrapCellText(doc: jsPDF, value: string, width: number): string[] {
   const lines: string[] = [];
   let current = "";
   for (const word of words) {
+    // ข้อความติดกันยาวมาก เช่น รหัสครุภัณฑ์: แบ่งตามกราฟีมเพื่อไม่ให้ล้นช่อง
+    if (doc.getTextWidth(word) > available) {
+      if (current.trim()) { lines.push(current.trim()); current = ""; }
+      const graphemes = Array.from(new Intl.Segmenter("th", { granularity: "grapheme" }).segment(word), x => x.segment);
+      let part = "";
+      for (const grapheme of graphemes) {
+        if (part && doc.getTextWidth(part + grapheme) > available) {
+          lines.push(part);
+          part = grapheme;
+        } else {
+          part += grapheme;
+        }
+      }
+      current = part;
+      continue;
+    }
     const candidate = current + word;
     if (current && doc.getTextWidth(candidate) > available) {
       lines.push(current.trim());
@@ -659,6 +689,7 @@ export default function ExportInspectionPdf({
       0
     );
 
+    // เลขแผ่นที่ใช้ฟอนต์เท่าหัวตาราง
     doc.setFontSize(FIXED_FONT_SIZE);
     doc.text(`แผ่นที่ ${pageNumber}`, PAGE_WIDTH - MARGIN_X, 9, { align: "right" });
 
@@ -909,30 +940,13 @@ export default function ExportInspectionPdf({
         "normal"
       );
 
-      // ใช้ความสูงแถวเดียวกันทั้งเอกสาร คำนวณจากข้อความที่ยาวที่สุด
-      // เพื่อให้ทุกหน้ามีขนาดตารางเท่ากันโดยไม่ลดขนาดตัวอักษร
+      // คงขนาดฟอนต์เดิม และวัดความสูงข้อความแยกเป็นรายหน้า
+      // เพื่อไม่ให้หน้าที่มีข้อความสั้นถูกขยายตามหน้าที่มีข้อความยาว
       doc.setFont("2.3.2 THSarabunNew", "normal");
       doc.setFontSize(FIXED_FONT_SIZE);
       const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
-      const maxLineCount = Math.max(1, ...assets.map(asset => {
-        const responsible = getResponsibleName(asset, department);
-        const officer = asset.officer
-          ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim() : "";
-        const texts = [
-          String(getSourceOrder(asset.remark) ?? ""),
-          asset.governmentAssetNo ?? "", asset.officeAssetNo ?? "",
-          department.name, responsible, getDisplayCategory(asset), asset.name,
-          [asset.brand, asset.model].filter(Boolean).join(" / "),
-          asset.unit?.trim() || getCategoryUnit(asset.category),
-          String(asset.quantity ?? 1), "", "", String(asset.quantity ?? 1),
-          (Number(rowMap.get(asset.id)?.countedQty) === 0 ? "" : (rowMap.get(asset.id)?.countedQty ?? "")), "", "", "", "", "", "",
-        ];
-        return Math.max(...texts.map((t, i) => ([1, 2].includes(i) ? 1 : wrapCellText(doc, t, measuredWidths[i]).length)));
-      }));
-      const rowHeight = Math.max(23, maxLineCount * 3.65 + 1.2);
-      const rowsPerPage = Math.max(1, Math.min(MAX_ROWS_PER_PAGE,
-        Math.floor(MAX_BODY_HEIGHT / rowHeight)));
+      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 5 รายการต่อแผ่น
 
       const totalPages =
         Math.max(
@@ -972,6 +986,26 @@ export default function ExportInspectionPdf({
             startIndex +
               rowsPerPage
           );
+
+        // คำนวณความสูงแถวจากข้อความของ 5 รายการในแผ่นนี้จริง ๆ
+        // ไม่ลดขนาดตัวอักษรและไม่ตัดข้อความทิ้ง
+        const maxLineCount = Math.max(1, ...pageAssets.map(asset => {
+          const row = rowMap.get(asset.id);
+          const texts = [
+            String(getSourceOrder(asset.remark) ?? ""),
+            asset.governmentAssetNo ?? "", asset.officeAssetNo ?? "",
+            department.name, getResponsibleName(asset, department),
+            getDisplayCategory(asset), asset.name,
+            [asset.brand, asset.model].filter(Boolean).join(" / "),
+            asset.unit?.trim() || getCategoryUnit(asset.category),
+            String(asset.quantity ?? 1), "", "", String(asset.quantity ?? 1),
+            row?.countedQty ?? "", "", "", "", "", "", "",
+          ];
+          return Math.max(...texts.map((text, index) =>
+            wrapCellText(doc, String(text ?? ""), measuredWidths[index]).length
+          ));
+        }));
+        const rowHeight = Math.max(23, maxLineCount * 3.65 + 2);
 
         const body =
           pageAssets.map(
@@ -1110,7 +1144,7 @@ export default function ExportInspectionPdf({
 
         const accountStartHeaderLines = [
           "ยอดคงเหลือตามบัญชี",
-          `ณ วันที่ ${formatThaiDate(
+          `ณ วันที่ ${formatThaiShortDate(
             headerStartDate
           )}`,
         ];
@@ -1122,7 +1156,7 @@ export default function ExportInspectionPdf({
 
         const accountEndHeaderLines = [
           "ยอดคงเหลือตามบัญชี",
-          `ณ วันที่ ${formatThaiDate(
+          `ณ วันที่ ${formatThaiShortDate(
             headerEndDate
           )}`,
         ];
@@ -1336,12 +1370,8 @@ export default function ExportInspectionPdf({
                 data.cell.text = [""];
               } else {
                 const raw = String(data.cell.raw ?? "");
-                data.cell.text = [1, 2].includes(data.column.index)
-                  ? [raw.trim() === "-" ? "" : raw.trim()]
-                  : wrapCellText(doc, raw, measuredWidths[data.column.index]);
-                if ([1, 2].includes(data.column.index)) {
-                  data.cell.styles.overflow = "visible";
-                }
+                data.cell.text = wrapCellText(doc, raw, measuredWidths[data.column.index]);
+                data.cell.styles.overflow = "linebreak";
               }
             }
           },
