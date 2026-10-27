@@ -433,7 +433,7 @@ export default async function AllAssetsPage({
         title="ทะเบียนครุภัณฑ์ทั้งหมด"
         subtitle={departmentNameForPage}
         actions={<>
-          <ExportDepartmentAssetsPdf departmentName={departmentNameForPage} assets={assets} />
+          <ExportDepartmentAssetsPdf departmentName={departmentNameForPage} assets={groupedAssets.flatMap((group) => group.items)} fiscalYear={selectedFiscalYear} />
           <AppButton href={`/assets/${departmentIdForPage}?${fiscalYearQuery}`} variant="back" size="md">กลับ</AppButton>
         </>}
       />

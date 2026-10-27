@@ -1,53 +1,29 @@
 "use client";
 
 import "@/lib/fonts/THSarabunNew-normal";
-
 import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-
 import AppButton from "@/components/AppButton";
-
-/* =========================================================
-   TYPES
-========================================================= */
 
 type Asset = {
   id: number;
   name: string;
   category: string;
+  categoryDetail?: string | null;
   brand: string | null;
   model: string | null;
-  serialNumber: string | null;
   governmentAssetNo: string | null;
   officeAssetNo: string | null;
-
   departmentName?: string | null;
   sectionName?: string | null;
   officerName?: string | null;
-
   responsibleName?: string | null;
-
-  department?: {
-    name: string;
-  } | null;
-
-  section?: {
-    name: string;
-  } | null;
-
-  officer?: {
-    firstName: string;
-    lastName: string;
-  } | null;
-
+  department?: { name: string } | null;
+  section?: { name: string } | null;
+  officer?: { firstName: string; lastName: string } | null;
   status: string;
-
-  purchaseDate?: string | Date | null;
-  price?: number | null;
-  location?: string | null;
   remark?: string | null;
-
   quantity?: number | null;
   unit?: string | null;
 };
@@ -55,1065 +31,247 @@ type Asset = {
 type Props = {
   departmentName: string;
   assets: Asset[];
-
-  /*
-   * รองรับ props เดิมจากหน้า
-   * /assets/[departmentId]/all
-   */
+  fiscalYear?: number;
   departmentId?: number;
-
-  department?: {
-    id: number;
-    name: string;
-  };
+  department?: { id: number; name: string };
 };
 
-/* =========================================================
-   CATEGORY NAME
-
-   เก็บไว้รองรับข้อมูลเดิม
-========================================================= */
-
-const categoryName: Record<
-  string,
-  string
-> = {
-  DESK: "โต๊ะ",
-  CHAIR: "เก้าอี้",
-
-  AIR_CONDITIONER:
-    "เครื่องปรับอากาศ",
-
-  TELEPHONE:
-    "เครื่องโทรศัพท์",
-
-  CABINET:
-    "ตู้และชั้นวาง",
-
-  SHELF:
-    "ตู้และชั้นวาง",
-
-  COMPUTER:
-    "คอมพิวเตอร์",
-
-  MONITOR:
-    "คอมพิวเตอร์",
-
-  PRINTER:
-    "เครื่องพิมพ์",
-
-  OTHER:
-    "ทั่วไป",
-
-  NO_SYSTEM:
-    "ไม่มีอยู่ในระบบ",
+const FONT = "2.3.2 THSarabunNew";
+const HEAD = [
+  "ลำดับ", "รหัส GFMIS", "รหัสครุภัณฑ์", "สถานที่ใช้งาน", "ผู้รับผิดชอบ",
+  "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น",
+  "ยอดคงเหลือ", "หน่วยนับ", "สถานะ",
+];
+const WIDTHS = [9, 28, 31, 26, 27, 35, 47, 28, 12, 11, 13]; // 267 mm
+const CATEGORY_ORDER = ["DESK", "CHAIR", "CABINET", "SHELF", "COMPUTER", "PRINTER", "AIR_CONDITIONER", "TELEPHONE", "UPS", "OTHER", "NO_SYSTEM"];
+const CATEGORY_NAME: Record<string, string> = {
+  DESK: "โต๊ะ", CHAIR: "เก้าอี้", CABINET: "ตู้", SHELF: "ชั้น",
+  COMPUTER: "คอมพิวเตอร์", PRINTER: "เครื่องพิมพ์คอมพิวเตอร์",
+  AIR_CONDITIONER: "เครื่องปรับอากาศ", TELEPHONE: "เครื่องโทรศัพท์",
+  UPS: "เครื่องสำรองไฟฟ้า (UPS)", OTHER: "ทั่วไป", NO_SYSTEM: "ไม่มีอยู่ในระบบ",
+};
+const CATEGORY_DEFAULT: Record<string, string> = {
+  DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
+  CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
+  CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
+  SHELF: "ชั้น",
+  COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
+  PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
+  AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
+  TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย",
+  UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
+};
+const UNIT: Record<string, string> = {
+  DESK: "ตัว", CHAIR: "ตัว", CABINET: "ตู้", SHELF: "ตัว",
+  COMPUTER: "เครื่อง", MONITOR: "เครื่อง", PRINTER: "เครื่อง",
+  AIR_CONDITIONER: "เครื่อง", TELEPHONE: "เครื่อง", UPS: "เครื่อง",
+  OTHER: "รายการ", NO_SYSTEM: "รายการ",
+};
+const STATUS: Record<string, string> = {
+  IN_USE: "ยังใช้งาน", ACTIVE: "ยังใช้งาน", INACTIVE: "ไม่ใช้งาน",
+  DAMAGED: "ชำรุด", WAITING_DISPOSAL: "รอจำหน่าย",
+  DISPOSED: "จำหน่ายแล้ว", LOST: "สูญหาย",
 };
 
-/* =========================================================
-   CATEGORY UNIT
-
-   ใช้เมื่อข้อมูลไม่มี unit
-========================================================= */
-
-const categoryUnit: Record<
-  string,
-  string
-> = {
-  DESK: "ตัว",
-  CHAIR: "ตัว",
-
-  AIR_CONDITIONER:
-    "เครื่อง",
-
-  TELEPHONE:
-    "เครื่อง",
-
-  CABINET:
-    "ตัว",
-
-  SHELF:
-    "ตัว",
-
-  COMPUTER:
-    "เครื่อง",
-
-  MONITOR:
-    "เครื่อง",
-
-  PRINTER:
-    "เครื่อง",
-
-  OTHER:
-    "รายการ",
-
-  NO_SYSTEM:
-    "รายการ",
-};
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-const statusName: Record<
-  string,
-  string
-> = {
-  IN_USE:
-    "ยังใช้งาน",
-
-  ACTIVE:
-    "ยังใช้งาน",
-
-  INACTIVE:
-    "ไม่ใช้งาน",
-
-  DAMAGED:
-    "ชำรุด",
-
-  WAITING_DISPOSAL:
-    "รอจำหน่าย",
-
-  DISPOSED:
-    "จำหน่ายแล้ว",
-
-  LOST:
-    "สูญหาย",
-};
-
-/* =========================================================
-   FISCAL YEAR
-
-   ปีงบประมาณราชการ
-   ต.ค. - ก.ย.
-========================================================= */
-
-function getFiscalYear(
-  date: Date
-) {
-  const month =
-    date.getMonth() + 1;
-
-  const year =
-    date.getFullYear();
-
-  if (month >= 10) {
-    return year + 1 + 543;
+function groupOf(a: Asset) {
+  if (a.category === "OTHER") {
+    const type = a.categoryDetail?.trim() || a.name;
+    if (/เครื่องสำรองไฟฟ้า|\bUPS\b/i.test(type)) return "UPS";
+    if (a.categoryDetail?.trim() === "ชั้น") return "SHELF";
   }
-
-  return year + 543;
+  if (a.category === "MONITOR") return "COMPUTER";
+  return a.category;
+}
+function typeOf(a: Asset, group: string) {
+  if (a.categoryDetail?.trim()) return a.categoryDetail.trim();
+  const first = (a.remark || "").split("\n")[0].trim();
+  if (first.startsWith("หมวด/ชนิด:") && first.slice("หมวด/ชนิด:".length).trim()) {
+    return first.slice("หมวด/ชนิด:".length).trim();
+  }
+  if (group === "OTHER") {
+    if (/เครื่องเล่นเทปคาสเซ็ท/i.test(a.name)) return "เครื่องเล่นเทปคาสเซ็ท";
+    if (/รถเข็น/i.test(a.name)) return "รถเข็น";
+    return "ทั่วไป";
+  }
+  return CATEGORY_DEFAULT[group] || CATEGORY_NAME[group] || group;
+}
+function unitOf(a: Asset) {
+  if (a.unit?.trim() && a.unit.trim() !== "-") return a.unit.trim();
+  return UNIT[a.category] || "รายการ";
+}
+function getFiscalYearBangkok() {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Bangkok", year: "numeric", month: "numeric" }).formatToParts(new Date());
+  const year = Number(parts.find((p) => p.type === "year")?.value);
+  const month = Number(parts.find((p) => p.type === "month")?.value);
+  return year + 543 + (month >= 10 ? 1 : 0);
 }
 
-/* =========================================================
-   CURRENT QUARTER
-
-   ต.ค. - ธ.ค. = 1
-   ม.ค. - มี.ค. = 2
-   เม.ย. - มิ.ย. = 3
-   ก.ค. - ก.ย. = 4
-========================================================= */
-
-function getCurrentQuarter(
-  date: Date
-) {
-  const month =
-    date.getMonth() + 1;
-
-  if (
-    month >= 10 &&
-    month <= 12
-  ) {
-    return 1;
+// Word segmentation prevents splitting Thai vowels/combining marks in the middle of a word.
+function segments(text: string): string[] {
+  const value = text.replace(/\s+/g, " ").trim();
+  if (!value) return ["-"];
+  if (typeof Intl.Segmenter === "function") {
+    const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+    return Array.from(segmenter.segment(value), (s) => s.segment);
   }
-
-  if (
-    month >= 1 &&
-    month <= 3
-  ) {
-    return 2;
+  return value.match(/[^\s,\/]+[\s,\/]*/g) || [value];
+}
+function safeLines(doc: jsPDF, text: string, width: number, maxLines: number): string {
+  const tokens = segments(text);
+  const lines: string[] = [];
+  let current = "";
+  const fits = (v: string) => doc.getTextWidth(v) <= width;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    const next = current + token;
+    if (fits(next)) { current = next; continue; }
+    if (current.trim()) {
+      lines.push(current.trim());
+      current = "";
+      if (lines.length >= maxLines) break;
+    }
+    // Never break a Thai word into combining characters: truncate a too-wide token.
+    if (fits(token)) { current = token.trimStart(); continue; }
+    let cut = "";
+    for (const cp of Array.from(token)) {
+      if (!fits(cut + cp + "…")) break;
+      cut += cp;
+    }
+    // Do not end on a combining mark.
+    cut = cut.replace(/[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]+$/u, "");
+    current = cut ? cut + "…" : "…";
+    if (i < tokens.length - 1) {
+      lines.push(current);
+      current = "";
+      break;
+    }
   }
-
-  if (
-    month >= 4 &&
-    month <= 6
-  ) {
-    return 3;
+  if (current.trim() && lines.length < maxLines) lines.push(current.trim());
+  if (!lines.length) lines.push("-");
+  const consumed = lines.join("").replace(/\s/g, "");
+  const original = text.replace(/\s/g, "");
+  if (consumed !== original && !lines[lines.length - 1].endsWith("…")) {
+    const last = lines.length - 1;
+    while (lines[last].length > 1 && !fits(lines[last] + "…")) {
+      const words = segments(lines[last]);
+      if (words.length <= 1) break;
+      words.pop();
+      lines[last] = words.join("").trimEnd();
+    }
+    if (fits(lines[last] + "…")) lines[last] += "…";
   }
-
-  return 4;
+  return lines.slice(0, maxLines).join("\n");
 }
 
-/* =========================================================
-   RESPONSIBLE NAME
-========================================================= */
-
-function getResponsibleName(
-  asset: Asset
-) {
-  /* =======================================================
-     DEPARTMENT
-  ======================================================= */
-
-  const assetDepartmentName =
-    asset.departmentName?.trim() ||
-    asset.department?.name?.trim() ||
-    "";
-
-  /* =======================================================
-     RESPONSIBLE NAME
-  ======================================================= */
-
-  const originalResponsibleName =
-    asset.responsibleName?.trim() ||
-    asset.officerName?.trim() ||
-    "";
-
-  if (
-    originalResponsibleName &&
-    originalResponsibleName !== "-"
-  ) {
-    /*
-     * ถ้ามีชื่อหน่วยงานอยู่แล้ว
-     * ไม่เติมซ้ำ
-     */
-
-    if (
-      assetDepartmentName &&
-      (
-        originalResponsibleName ===
-          assetDepartmentName ||
-        originalResponsibleName.startsWith(
-          `${assetDepartmentName} /`
-        )
-      )
-    ) {
-      return originalResponsibleName;
-    }
-
-    if (
-      assetDepartmentName
-    ) {
-      return `${assetDepartmentName} / ${originalResponsibleName}`;
-    }
-
-    return originalResponsibleName;
-  }
-
-  /* =======================================================
-     SECTION FALLBACK
-  ======================================================= */
-
-  const sectionName =
-    asset.sectionName?.trim() ||
-    asset.section?.name?.trim() ||
-    "";
-
-  if (sectionName) {
-    if (
-      assetDepartmentName
-    ) {
-      return `${assetDepartmentName} / ${sectionName}`;
-    }
-
-    return sectionName;
-  }
-
-  /* =======================================================
-     OFFICER FALLBACK
-  ======================================================= */
-
-  const officerName =
-    asset.officer
-      ? `${asset.officer.firstName} ${asset.officer.lastName}`.trim()
-      : "";
-
-  if (officerName) {
-    if (
-      assetDepartmentName
-    ) {
-      return `${assetDepartmentName} / ${officerName}`;
-    }
-
-    return officerName;
-  }
-
-  if (
-    assetDepartmentName
-  ) {
-    return assetDepartmentName;
-  }
-
-  return "-";
-}
-
-/* =========================================================
-   ASSET UNIT
-========================================================= */
-
-function getAssetUnit(
-  asset: Asset
-) {
-  const originalUnit =
-    asset.unit?.trim();
-
-  if (
-    originalUnit &&
-    originalUnit !== "-"
-  ) {
-    return originalUnit;
-  }
-
-  return (
-    categoryUnit[
-      asset.category
-    ] ?? "รายการ"
-  );
-}
-
-/* =========================================================
-   COMPONENT
-========================================================= */
-
-export default function ExportDepartmentAssetsPdf({
-  departmentName,
-  assets,
-}: Props) {
-  const [
-    isExporting,
-    setIsExporting,
-  ] = useState(false);
-
-  /* =======================================================
-     PAGE
-
-     A4 แนวนอน = 297 x 210 mm
-  ======================================================= */
-
-  const pageWidth = 297;
-
-  /* =======================================================
-     TABLE WIDTH
-  ======================================================= */
-
-  const tableWidth = 270;
-
-  /* =======================================================
-     CENTER TABLE
-  ======================================================= */
-
-  const marginX =
-    (pageWidth - tableWidth) / 2;
-
-  /* =======================================================
-     EXPORT PDF
-  ======================================================= */
-
+export default function ExportDepartmentAssetsPdf({ departmentName, assets, fiscalYear }: Props) {
+  const [isExporting, setIsExporting] = useState(false);
   async function handleExportPdf() {
-    if (
-      assets.length === 0 ||
-      isExporting
-    ) {
-      return;
-    }
-
+    if (isExporting || assets.length === 0) return;
+    setIsExporting(true);
     try {
-      setIsExporting(true);
-
-      /* =====================================================
-         DATE
-      ===================================================== */
-
-      const currentDate =
-        new Date();
-
-      const currentQuarter =
-        getCurrentQuarter(
-          currentDate
-        );
-
-      const fiscalYear =
-        getFiscalYear(
-          currentDate
-        );
-
-      /* =====================================================
-         PDF
-      ===================================================== */
-
-      const doc =
-        new jsPDF({
-          orientation:
-            "landscape",
-
-          unit:
-            "mm",
-
-          format:
-            "a4",
-
-          compress:
-            true,
-        });
-
-      /* =====================================================
-         FONT
-      ===================================================== */
-
-      doc.setFont(
-        "2.3.2 THSarabunNew",
-        "normal"
-      );
-
-      /* =====================================================
-         PAGE HEADER
-      ===================================================== */
-
-      function drawPageHeader() {
-        const center =
-          pageWidth / 2;
-
-        doc.setFont(
-          "2.3.2 THSarabunNew",
-          "normal"
-        );
-
-        /* -------------------------------------------------
-           TITLE
-        ------------------------------------------------- */
-
-        doc.setFontSize(26);
-
-        doc.text(
-          "ทะเบียนคุมครุภัณฑ์",
-          center,
-          15,
-          {
-            align:
-              "center",
-          }
-        );
-
-        /* -------------------------------------------------
-           DEPARTMENT
-        ------------------------------------------------- */
-
-        doc.setFontSize(16);
-
-        const departmentHeader =
-          `${departmentName} สำนักอนามัยการเจริญพันธุ์`;
-
-        doc.text(
-          departmentHeader,
-          center,
-          23,
-          {
-            align:
-              "center",
-          }
-        );
-
-        /* -------------------------------------------------
-           FISCAL YEAR
-        ------------------------------------------------- */
-
-        const fiscalHeader =
-          `รอบไตรมาสที่ ${currentQuarter} ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`;
-
-        doc.text(
-          fiscalHeader,
-          center,
-          31,
-          {
-            align:
-              "center",
-          }
-        );
+      const year = fiscalYear && Number.isInteger(fiscalYear) ? fiscalYear : getFiscalYearBangkok();
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
+      doc.setFont(FONT, "normal");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const tableWidth = WIDTHS.reduce((a, b) => a + b, 0);
+      const left = (pageWidth - tableWidth) / 2;
+      const top = 37;
+      const bottom = 11;
+      const headHeight = 11;
+      const rowHeight = 10;
+      const rowsPerPage = Math.floor((pageHeight - top - bottom - headHeight) / rowHeight); // 15 on A4 landscape
+      const ordered = [...assets].sort((a, b) => {
+        const aa = CATEGORY_ORDER.indexOf(groupOf(a));
+        const bb = CATEGORY_ORDER.indexOf(groupOf(b));
+        return (aa < 0 ? 999 : aa) - (bb < 0 ? 999 : bb);
+      });
+      const totalPages = Math.ceil(ordered.length / rowsPerPage);
+      const colStyles = Object.fromEntries(WIDTHS.map((w, i) => [i, { cellWidth: w }]));
+      function drawHeader(page: number) {
+        doc.setFont(FONT, "normal");
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(23);
+        doc.text("ทะเบียนคุมบัญชีครุภัณฑ์", pageWidth / 2, 14, { align: "center" });
+        doc.setFontSize(15);
+        doc.text(departmentName, pageWidth / 2, 22, { align: "center" });
+        doc.text(`ประจำปีงบประมาณ พ.ศ. ${year}`, pageWidth / 2, 29, { align: "center" });
+        doc.setFontSize(12);
+        doc.text(`หน้า ${page} / ${totalPages}`, pageWidth - left, pageHeight - 5, { align: "right" });
       }
-
-      /* =====================================================
-         TABLE BODY
-      ===================================================== */
-
-      const body =
-        assets.map(
-          (
-            asset,
-            index
-          ) => {
-            const responsibleName =
-              getResponsibleName(
-                asset
-              );
-
-            return [
-              /* ลำดับ */
-
-              index + 1,
-
-              /* รหัส GFMIS */
-
-              asset.governmentAssetNo ??
-                "-",
-
-              /* รหัสครุภัณฑ์ */
-
-              asset.officeAssetNo ??
-                "-",
-
-              /* รายการครุภัณฑ์ */
-
-              asset.name ||
-                "-",
-
-              /* จำนวน */
-
-              asset.quantity ??
-                1,
-
-              /* หน่วย */
-
-              getAssetUnit(
-                asset
-              ),
-
-              /* ผู้รับผิดชอบ */
-
-              responsibleName,
-
-              /* สถานะ */
-
-              statusName[
-                asset.status
-              ] ??
-                asset.status,
-            ];
-          }
-        );
-
-      /* =====================================================
-         TABLE
-      ===================================================== */
-
-      autoTable(
-        doc,
-        {
-          /* =================================================
-             START
-          ================================================= */
-
-          startY: 37,
-
-          /* =================================================
-             MARGIN
-          ================================================= */
-
-          margin: {
-            top: 37,
-            left: marginX,
-            right: marginX,
-            bottom: 10,
-          },
-
-          /* =================================================
-             TABLE WIDTH
-          ================================================= */
-
-          tableWidth,
-
-          /* =================================================
-             HEADER
-          ================================================= */
-
-          head: [
-            [
-              "ลำดับ",
-              "รหัส GFMIS",
-              "รหัสครุภัณฑ์",
-              "รายการครุภัณฑ์",
-              "จำนวน",
-              "หน่วย",
-              "ผู้รับผิดชอบ",
-              "สถานะ",
-            ],
-          ],
-
-          body,
-
-          theme:
-            "grid",
-
-          /* =================================================
-             PAGE
-          ================================================= */
-
-          pageBreak:
-            "auto",
-
-          rowPageBreak:
-            "avoid",
-
-          showHead:
-            "everyPage",
-
-          /* =================================================
-             BASE STYLE
-          ================================================= */
-
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) doc.addPage();
+        const pageAssets = ordered.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+        doc.setFont(FONT, "normal");
+        doc.setFontSize(11);
+        const body = pageAssets.map((a, i) => {
+          const group = groupOf(a);
+          const location = a.section?.name?.trim() || departmentName;
+          const officer = a.officer
+            ? `${a.officer.firstName} ${a.officer.lastName}`.trim()
+            : a.responsibleName?.trim() || "-";
+          const raw = [
+            String(page * rowsPerPage + i + 1), a.governmentAssetNo || "-", a.officeAssetNo || "-",
+            location, officer, typeOf(a, group), a.name || "-",
+            [a.brand, a.model].filter(Boolean).join(" / ") || "-",
+            Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), STATUS[a.status] || a.status,
+          ];
+          return raw.map((value, col) => safeLines(doc, String(value), WIDTHS[col] - 2.4, [1, 2, 3, 4].includes(col) ? 1 : 2));
+        });
+        autoTable(doc, {
+          startY: top, margin: { left, right: left, top, bottom }, tableWidth,
+          head: [HEAD], body, theme: "grid", showHead: "firstPage",
+          pageBreak: "avoid", rowPageBreak: "avoid",
           styles: {
-            font:
-              "2.3.2 THSarabunNew",
-
-            fontStyle:
-              "normal",
-
-            fontSize:
-              13,
-
-            cellPadding:
-              1.2,
-
-            halign:
-              "center",
-
-            valign:
-              "middle",
-
-            lineColor: [
-              0,
-              0,
-              0,
-            ],
-
-            lineWidth:
-              0.25,
-
-            minCellHeight:
-              7.2,
-
-            overflow:
-              "linebreak",
-
-            textColor: [
-              0,
-              0,
-              0,
-            ],
+            font: FONT, fontStyle: "normal", fontSize: 11, cellPadding: 1.1,
+            halign: "center", valign: "middle", lineColor: [0, 0, 0],
+            lineWidth: 0.18, textColor: [20, 28, 40], overflow: "hidden", minCellHeight: rowHeight,
           },
-
-          /* =================================================
-             HEADER STYLE
-          ================================================= */
-
           headStyles: {
-            font:
-              "2.3.2 THSarabunNew",
-
-            fontStyle:
-              "normal",
-
-            fontSize:
-              13,
-
-            fillColor: [
-              255,
-              255,
-              255,
-            ],
-
-            textColor: [
-              0,
-              0,
-              0,
-            ],
-
-            halign:
-              "center",
-
-            valign:
-              "middle",
-
-            lineColor: [
-              0,
-              0,
-              0,
-            ],
-
-            lineWidth:
-              0.25,
-
-            cellPadding:
-              1.3,
-
-            minCellHeight:
-              9,
-
-            overflow:
-              "linebreak",
+            font: FONT, fontStyle: "normal", fontSize: 11,
+            fillColor: [45, 55, 72], textColor: [255, 255, 255],
+            halign: "center", valign: "middle", minCellHeight: headHeight,
+            lineColor: [0, 0, 0], lineWidth: 0.18,
           },
-
-          /* =================================================
-             BODY STYLE
-          ================================================= */
-
-          bodyStyles: {
-            font:
-              "2.3.2 THSarabunNew",
-
-            fontStyle:
-              "normal",
-
-            fontSize:
-              13,
-
-            textColor: [
-              0,
-              0,
-              0,
-            ],
-
-            halign:
-              "center",
-
-            valign:
-              "middle",
-
-            cellPadding:
-              1.2,
-
-            minCellHeight:
-              7.2,
-
-            overflow:
-              "linebreak",
-          },
-
-          /* =================================================
-             COLUMN STYLE
-
-             รวม = 270 mm
-          ================================================= */
-
-          columnStyles: {
-            /* ลำดับ */
-
-            0: {
-              cellWidth:
-                10,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            /* GFMIS */
-
-            1: {
-              cellWidth:
-                34,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            /* รหัสครุภัณฑ์ */
-
-            2: {
-              cellWidth:
-                42,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            /* รายการ */
-
-            3: {
-              cellWidth:
-                75,
-
-              halign:
-                "left",
-
-              valign:
-                "middle",
-
-              cellPadding: {
-                top:
-                  1.2,
-
-                right:
-                  1.2,
-
-                bottom:
-                  1.2,
-
-                left:
-                  2,
-              },
-            },
-
-            /* จำนวน */
-
-            4: {
-              cellWidth:
-                14,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            /* หน่วย */
-
-            5: {
-              cellWidth:
-                17,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-
-            /* ผู้รับผิดชอบ */
-
-            6: {
-              cellWidth:
-                58,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-
-              cellPadding: {
-                top:
-                  1.2,
-
-                right:
-                  1.2,
-
-                bottom:
-                  1.2,
-
-                left:
-                  1.2,
-              },
-
-              overflow:
-                "linebreak",
-            },
-
-            /* สถานะ */
-
-            7: {
-              cellWidth:
-                20,
-
-              halign:
-                "center",
-
-              valign:
-                "middle",
-            },
-          },
-
-          /* =================================================
-             CELL STYLE
-          ================================================= */
-
-          didParseCell: (
-            data
-          ) => {
-            /* ===============================================
-               HEADER: รายการครุภัณฑ์
-            =============================================== */
-
-            if (
-              data.section ===
-                "head" &&
-              data.column.index ===
-                3
-            ) {
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-            }
-
-            /* ===============================================
-               HEADER: ผู้รับผิดชอบ
-            =============================================== */
-
-            if (
-              data.section ===
-                "head" &&
-              data.column.index ===
-                6
-            ) {
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
-            }
-
-            /* ===============================================
-               BODY: ผู้รับผิดชอบ
-            =============================================== */
-
-            if (
-              data.section ===
-                "body" &&
-              data.column.index ===
-                6
-            ) {
-              data.cell.styles.halign =
-                "center";
-
-              data.cell.styles.valign =
-                "middle";
+          columnStyles: colStyles,
+          didParseCell: (data) => {
+            if (data.section === "body" && data.column.index === 6) data.cell.styles.halign = "left";
+            if (data.section === "body") {
+              const absolute = page * rowsPerPage + data.row.index;
+              const isFirst = absolute === 0 || groupOf(ordered[absolute]) !== groupOf(ordered[absolute - 1]);
+              if (isFirst) {
+                data.cell.styles.fillColor = [226, 232, 240];
+                data.cell.styles.fontStyle = "normal";
+              } else if (data.row.index % 2 === 1) {
+                data.cell.styles.fillColor = [248, 250, 252];
+              }
             }
           },
-
-          /* =================================================
-             HEADER ทุกหน้า
-          ================================================= */
-
-          didDrawPage: () => {
-            drawPageHeader();
-          },
-
-          /* =================================================
-             TABLE BORDER
-          ================================================= */
-
-          tableLineColor: [
-            0,
-            0,
-            0,
-          ],
-
-          tableLineWidth:
-            0.25,
-        }
-      );
-
-      /* =====================================================
-         OPEN PDF
-      ===================================================== */
-
-      const pdfBlob =
-        doc.output(
-          "blob"
-        );
-
-      const pdfUrl =
-        URL.createObjectURL(
-          pdfBlob
-        );
-
-      const newWindow =
-        window.open(
-          pdfUrl,
-          "_blank",
-          "noopener,noreferrer"
-        );
-
-      /* =====================================================
-         FALLBACK
-      ===================================================== */
-
-      if (!newWindow) {
-        const link =
-          document.createElement(
-            "a"
-          );
-
-        link.href =
-          pdfUrl;
-
-        link.target =
-          "_blank";
-
-        link.rel =
-          "noopener noreferrer";
-
+        });
+        drawHeader(page + 1);
+      }
+      const url = URL.createObjectURL(doc.output("blob"));
+      const popup = window.open(url, "_blank", "noopener,noreferrer");
+      if (!popup) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
         link.click();
       }
-
-      /* =====================================================
-         CLEAN URL
-      ===================================================== */
-
-      setTimeout(
-        () => {
-          URL.revokeObjectURL(
-            pdfUrl
-          );
-        },
-        60000
-      );
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (error) {
-      console.error(
-        "ไม่สามารถสร้าง PDF ได้:",
-        error
-      );
-
-      alert(
-        "ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง"
-      );
+      console.error("ไม่สามารถสร้าง PDF ได้:", error);
+      alert("ไม่สามารถสร้างไฟล์ PDF ได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setIsExporting(
-        false
-      );
+      setIsExporting(false);
     }
   }
-
-  /* =========================================================
-     UI
-
-     ใช้ AppButton ตัวกลางของระบบเท่านั้น
-     ไม่เขียน style ปุ่มเอง
-  ========================================================= */
-
   return (
-    <AppButton
-      type="button"
-      variant="danger"
-      size="md"
-      onClick={
-        handleExportPdf
-      }
-      disabled={
-        isExporting ||
-        assets.length === 0
-      }
-      icon={
-        <span
-          aria-hidden="true"
-        >
-          {isExporting
-            ? "⏳"
-            : "📄"}
-        </span>
-      }
-    >
-      {isExporting
-        ? "กำลังสร้าง PDF..."
-        : "ส่งออก PDF"}
+    <AppButton type="button" variant="danger" size="md" onClick={handleExportPdf}
+      disabled={isExporting || assets.length === 0}
+      icon={<span aria-hidden="true">{isExporting ? "⏳" : "📄"}</span>}>
+      {isExporting ? "กำลังสร้าง PDF..." : "ส่งออก PDF"}
     </AppButton>
   );
 }
