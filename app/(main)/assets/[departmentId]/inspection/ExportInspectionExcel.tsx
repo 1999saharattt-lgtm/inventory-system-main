@@ -159,7 +159,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           ];
           const rr = ++lastData;
           // ประมาณจำนวนบรรทัดเพื่อให้ Excel ขยายแถวตามข้อความ ไม่เหลือช่องว่างมากเกินไป
-          const lines = values.reduce((max, v, col) => {
+          const lines = values.reduce<number>((max, v, col) => {
             const text = String(v);
             const usable = Math.max(3, COLS[col] * 0.85);
             return Math.max(max, Math.ceil(Array.from(text).length / usable));

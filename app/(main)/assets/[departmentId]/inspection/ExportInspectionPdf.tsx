@@ -99,7 +99,7 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 4;
+const MAX_ROWS_PER_PAGE = 6;
 const FIXED_FONT_SIZE = 8.5;
 // ลดลงประมาณ 2px = 1.5pt เฉพาะหัวตารางและข้อมูลทั่วไป
 const COMPACT_FONT_SIZE = 7;
@@ -948,7 +948,9 @@ export default function ExportInspectionPdf({
       doc.setFontSize(FIXED_FONT_SIZE);
       const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
-      const rowsPerPage = MAX_ROWS_PER_PAGE; // ไม่เกิน 4 รายการต่อแผ่น
+      // ใช้รายการเรียงตามหมวดจากหน้า Inspection เป็นลิสต์เดียว
+      // ไม่เริ่มหน้าใหม่เมื่อเปลี่ยนหมวด: หมวดถัดไปต่อในหน้าปัจจุบันจนครบ 6 แถว
+      const rowsPerPage = MAX_ROWS_PER_PAGE;
 
       const totalPages =
         Math.max(
