@@ -99,7 +99,7 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 7;
+// ไม่จำกัดจำนวนแถวตายตัว: ให้พื้นที่ตารางที่เหลือเป็นตัวกำหนด
 const FIXED_FONT_SIZE = 8.5;
 // ลดลงประมาณ 2px = 1.5pt เฉพาะหัวตารางและข้อมูลทั่วไป
 const COMPACT_FONT_SIZE = 7;
@@ -949,48 +949,10 @@ export default function ExportInspectionPdf({
       doc.setFontSize(FIXED_FONT_SIZE);
       const measuredWidths = getAdjustedColumnWidths(doc, assets, department);
       const rowMap = new Map(rows.map(row => [row.assetId, row]));
-      // ใช้รายการเรียงตามหมวดจากหน้า Inspection เป็นลิสต์เดียว
-      // ไม่เริ่มหน้าใหม่เมื่อเปลี่ยนหมวด: หมวดถัดไปต่อในหน้าปัจจุบันจนครบ 6 แถว
-      const rowsPerPage = MAX_ROWS_PER_PAGE;
-
-      const totalPages =
-        Math.max(
-          1,
-          Math.ceil(
-            assets.length /
-              rowsPerPage
-          )
-        );
-
-      for (
-        let pageIndex = 0;
-        pageIndex <
-        totalPages;
-        pageIndex++
-      ) {
-        if (
-          pageIndex > 0
-        ) {
-          doc.addPage(
-            "a4",
-            "landscape"
-          );
-        }
-
-        drawDocumentHeader(
-          doc, pageIndex + 1, totalPages
-        );
-
-        const startIndex =
-          pageIndex *
-          rowsPerPage;
-
-        const pageAssets =
-          assets.slice(
-            startIndex,
-            startIndex +
-              rowsPerPage
-          );
+      // ให้ autoTable จัดจำนวนแถวตามความสูงจริงของข้อมูลโดยอัตโนมัติ
+      // หมวดถัดไปต่อจากหมวดก่อนทันที ไม่กำหนดจำนวนแถวต่อหน้า
+      const startIndex = 0;
+      const pageAssets = assets;
 
         // ให้ autoTable คำนวณความสูงแยกแต่ละแถวจากข้อความจริง
         // ไม่ใช้ความสูงสูงสุดของทั้งหน้า เพราะทำให้แถวสั้นมีช่องว่างมาก
@@ -1168,11 +1130,11 @@ export default function ExportInspectionPdf({
             TABLE_START_Y,
 
           margin: {
-            left:
-              MARGIN_X,
-
-            right:
-              MARGIN_X,
+            left: MARGIN_X,
+            right: MARGIN_X,
+            top: TABLE_START_Y,
+            // กันพื้นที่ด้านล่างไว้สำหรับกรรมการ 5 คนในตำแหน่งคงที่
+            bottom: 50,
           },
 
           tableWidth:
@@ -1202,7 +1164,7 @@ export default function ExportInspectionPdf({
           ],
 
           body,
-          pageBreak: "avoid",
+          pageBreak: "auto",
           styles: {
             font:
               "2.3.2 THSarabunNew",
@@ -1477,35 +1439,15 @@ export default function ExportInspectionPdf({
 
           showHead:
             "everyPage",
+
+          // วาดหัวกระดาษและลายเซ็นในตำแหน่งเดิมทุกหน้า
+          // ไม่ขึ้นกับความสูงของตารางหรือจำนวนแถวข้อมูล
+          didDrawPage: () => {
+            const pageNumber = doc.getCurrentPageInfo().pageNumber;
+            drawDocumentHeader(doc, pageNumber, doc.getNumberOfPages());
+            drawInspectors(doc, SIGNATURE_MIN_START_Y);
+          },
         });
-
-        const lastAutoTable =
-          (
-            doc as jsPDF & {
-              lastAutoTable?: {
-                finalY: number;
-              };
-            }
-          ).lastAutoTable;
-
-        const tableFinalY =
-          lastAutoTable
-            ?.finalY ??
-          TABLE_START_Y;
-
-        const signatureStartY =
-          Math.max(
-            tableFinalY +
-              SIGNATURE_GAP,
-
-            SIGNATURE_MIN_START_Y
-          );
-
-        drawInspectors(
-          doc,
-          signatureStartY
-        );
-      }
 
       /* ===================================================
          เปิด PDF
