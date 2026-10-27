@@ -102,7 +102,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const fy = Number(movementFiscalYear);
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
-      const ROWS_PER_PAGE = 6;
+      const ROWS_PER_PAGE = 7;
       const pages = Math.max(1, Math.ceil(assets.length / ROWS_PER_PAGE));
       let rowNo = 1;
       const writeMerged = (r1: number, c1: number, r2: number, c2: number, value: string, size = 12) => {

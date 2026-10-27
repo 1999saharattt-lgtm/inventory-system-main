@@ -99,7 +99,7 @@ type Props = {
   officers?: Officer[];
 };
 
-const MAX_ROWS_PER_PAGE = 6;
+const MAX_ROWS_PER_PAGE = 7;
 const FIXED_FONT_SIZE = 8.5;
 // ลดลงประมาณ 2px = 1.5pt เฉพาะหัวตารางและข้อมูลทั่วไป
 const COMPACT_FONT_SIZE = 7;
