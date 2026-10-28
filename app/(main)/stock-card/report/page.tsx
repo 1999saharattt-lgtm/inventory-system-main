@@ -62,7 +62,7 @@ export default async function StockCardReportPage({ searchParams }: PageProps) {
       id: true, code: true, name: true, unit: true, category: true, latestPrice: true,
       receiveItems: {
         where: { receive: { receiveDate: { lt: endDate } } },
-        select: { qty: true, receive: { select: { receiveDate: true, documentNo: true } } },
+        select: { id: true, qty: true, unitPrice: true, receive: { select: { receiveDate: true, documentNo: true } } },
       },
       issueItems: {
         where: { issue: { status: "APPROVED", issueDate: { lt: endDate } } },
@@ -101,7 +101,12 @@ export default async function StockCardReportPage({ searchParams }: PageProps) {
       unit: material.category === "ELECTRIC" && material.name.trim() === "ถ่านชาร์จ ขนาด AAA (Rechargeable Battery)"
         ? "แพ็ค" : material.unit.trim() === "ห่อ" ? "แพ็ค" : material.unit,
       category: String(material.category),
-      latestPrice: safeNumber(material.latestPrice),
+      latestPrice: (() => {
+        const latestInFiscalYear = material.receiveItems
+          .filter(item => isDateInRange(item.receive.receiveDate, startDate, endDate))
+          .sort((a, b) => b.receive.receiveDate.getTime() - a.receive.receiveDate.getTime() || b.id - a.id)[0];
+        return latestInFiscalYear ? safeNumber(latestInFiscalYear.unitPrice) : null;
+      })(),
       openingBalance,
       receiveQty,
       issueQty,

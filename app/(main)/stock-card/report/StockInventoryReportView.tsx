@@ -5,6 +5,7 @@ import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
+import AppButton from "@/components/AppButton";
 
 type Material = {
   materialId: number;
@@ -12,7 +13,7 @@ type Material = {
   name: string;
   unit: string;
   category: string;
-  latestPrice: number;
+  latestPrice: number | null;
   openingBalance: number;
   receiveQty: number;
   issueQty: number;
@@ -41,11 +42,18 @@ const headerClass = "border border-black bg-gradient-to-r from-slate-800 to-slat
 const cellClass = "h-[23.25px] border border-black px-1 py-0 text-center align-middle text-[15px] font-normal leading-tight tabular-nums !text-black";
 const formatStock = (value: number) => Number.isFinite(value) && value !== 0 ? value.toLocaleString("th-TH") : "-";
 const formatCurrent = (value: number) => Number.isFinite(value) ? value.toLocaleString("th-TH") : "0";
-const formatPrice = (value: number) => Number.isFinite(value) ? value.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-";
+const formatPrice = (value: number | null) => value !== null && Number.isFinite(value) ? value.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-";
 
 export default function StockInventoryReportView({ fiscalYear, startShortYear, endShortYear, materials }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
+  // สถานะของหน้ารายงานนี้แยกจากประวัติการตรวจสอบ และยังไม่บันทึกลงฐานข้อมูล
+  const [accuracy, setAccuracy] = useState<Record<number, "CORRECT" | "INCORRECT">>({});
+  const [statuses, setStatuses] = useState<Record<number, "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY">>({});
+  const selectAllAccuracy = (value: "CORRECT" | "INCORRECT") =>
+    setAccuracy(previous => ({ ...previous, ...Object.fromEntries(filtered.map(material => [material.materialId, value])) }));
+  const selectAllStatus = (value: "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY") =>
+    setStatuses(previous => ({ ...previous, ...Object.fromEntries(filtered.map(material => [material.materialId, value])) }));
   const topScrollbarRef = useRef<HTMLDivElement>(null);
   const tableScrollbarRef = useRef<HTMLDivElement>(null);
   const syncScroll = (source: "top" | "table") => {
@@ -86,6 +94,14 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
             <AppSearchableSelect value={selectedCategory} options={categories} placeholder="เลือกหมวด"
               searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
           </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <AppButton type="button" variant="success" size="sm" onClick={() => selectAllAccuracy("CORRECT")}>ถูกต้องทั้งหมด</AppButton>
+            <AppButton type="button" variant="danger" size="sm" onClick={() => selectAllAccuracy("INCORRECT")}>ไม่ถูกต้องทั้งหมด</AppButton>
+            <AppButton type="button" variant="success" size="sm" onClick={() => selectAllStatus("IN_USE")}>ใช้การได้ทั้งหมด</AppButton>
+            <AppButton type="button" variant="warning" size="sm" onClick={() => selectAllStatus("DAMAGED")}>ชำรุดทั้งหมด</AppButton>
+            <AppButton type="button" variant="warning" size="sm" onClick={() => selectAllStatus("DETERIORATED")}>เสื่อมสภาพทั้งหมด</AppButton>
+            <AppButton type="button" variant="danger" size="sm" onClick={() => selectAllStatus("UNNECESSARY")}>สูญไปหรือไม่จำเป็นต้องใช้ในหน่วยงานทั้งหมด</AppButton>
+          </div>
         </div>
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
           <div className="mb-1 text-xs font-bold !text-slate-600">เลื่อนตารางซ้าย–ขวา</div>
@@ -114,8 +130,8 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                 <th rowSpan={2} className={headerClass}>หมายเหตุ</th>
               </tr>
               <tr>
-                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็นต้องใช้ในหน่วยงาน"].map(label =>
-                  <th key={label} className={`${headerClass} !py-1`}>{label}</th>)}
+                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"].map(label =>
+                  <th key={label} className={`${headerClass} !py-1 whitespace-pre-line`}>{label}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -132,7 +148,32 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                     <td className={cellClass}>{formatStock(material.receiveQty)}</td>
                     <td className={cellClass}>{formatStock(material.issueQty)}</td>
                     <td className={cellClass}>{formatCurrent(material.closingBalance)}</td>
-                    {Array.from({ length: 10 }, (_, i) => <td key={i} className={cellClass} />)}
+                    {(["CORRECT", "INCORRECT"] as const).map(value => (
+                      <td key={value} className={cellClass}>
+                        <input type="checkbox" aria-label={`${material.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
+                          checked={accuracy[material.materialId] === value}
+                          onChange={event => setAccuracy(previous => {
+                            const next = { ...previous };
+                            if (event.target.checked) next[material.materialId] = value;
+                            else delete next[material.materialId];
+                            return next;
+                          })} />
+                      </td>
+                    ))}
+                    {Array.from({ length: 3 }, (_, i) => <td key={`quantity-${i}`} className={cellClass} />)}
+                    {(["IN_USE", "DAMAGED", "DETERIORATED", "UNNECESSARY"] as const).map(value => (
+                      <td key={value} className={cellClass}>
+                        <input type="checkbox" aria-label={`${material.name} ${value}`}
+                          checked={statuses[material.materialId] === value}
+                          onChange={event => setStatuses(previous => {
+                            const next = { ...previous };
+                            if (event.target.checked) next[material.materialId] = value;
+                            else delete next[material.materialId];
+                            return next;
+                          })} />
+                      </td>
+                    ))}
+                    <td className={cellClass} />
                   </tr>
                 ))}
               </Fragment>)}
