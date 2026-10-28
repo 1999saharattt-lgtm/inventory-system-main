@@ -135,7 +135,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const PAGE_HEIGHT_PT = 565;
       const MAX_ROWS_PER_PAGE = 15;
       const HEADER_HEIGHT_PT = 151;
-      const SIGNATURE_HEIGHT_PT = 73;
+      const SIGNATURE_HEIGHT_PT = 80;
       const BODY_BUDGET_PT = PAGE_HEIGHT_PT - HEADER_HEIGHT_PT - SIGNATURE_HEIGHT_PT;
       let assetIndex = 0;
       let page = 0;
@@ -215,9 +215,9 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
               sum + Math.max(1, Math.ceil(Array.from(part).length / charsPerLine)), 0);
             return Math.max(max, count);
           }, 1);
-          // ให้แถวกระชับขึ้น แต่ยังมีพื้นที่เหนือ-ใต้ตัวอักษร 12 pt
+          // กำหนดความสูงตามจำนวนบรรทัดจริง พร้อมช่องไฟเหนือ-ใต้ ไม่บีบข้อความให้ชนเส้น
           // สูงสุด 15 แถวต่อหน้า และขึ้นหน้าใหม่ก่อนพื้นที่ลงชื่อกรรมการ
-          const rowHeight = Math.max(21, Math.min(120, lines * 9 + 12));
+          const rowHeight = Math.max(24, lines * 12 + 12);
           if (bodyHeight + rowHeight > BODY_BUDGET_PT && bodyHeight > 0) break;
           const rr = ++lastData;
           ws.getRow(rr).height = rowHeight;
