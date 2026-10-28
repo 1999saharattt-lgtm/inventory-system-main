@@ -6,6 +6,7 @@ import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 
 import DeleteInspectionButton from "../DeleteInspectionButton";
+import InspectionHistoryTypeSelect from "./InspectionHistoryTypeSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ function parseInspectorNames(value: unknown): string[] {
 }
 
 type PageProps = {
-  searchParams: Promise<{ fiscalYear?: string }>;
+  searchParams: Promise<{ fiscalYear?: string; type?: string }>;
 };
 
 function getCurrentFiscalYearThai(): number {
@@ -92,19 +93,21 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
       ? requestedFiscalYear
       : currentFiscalYear;
 
-  const inspections = await prisma.stockCardInspection.findMany({
-    where: { fiscalYear: selectedFiscalYear },
-    include: {
-      _count: {
-        select: { rows: true },
-      },
-    },
-    orderBy: [
-      { fiscalYear: "desc" },
-      { inspectionDate: "desc" },
-      { id: "desc" },
-    ],
-  });
+  const selectedType: "annual" | "inventory" = params.type === "inventory" ? "inventory" : "annual";
+
+  // ห้ามใช้ StockCardInspection เป็นประวัติของรายงานบัญชีพัสดุคงคลัง:
+  // รายงานประเภทนี้ต้องมีตารางและ API บันทึกแยกต่างหากก่อน จึงจะแสดงประวัติจริงได้
+  const inspections = selectedType === "annual"
+    ? await prisma.stockCardInspection.findMany({
+        where: { fiscalYear: selectedFiscalYear },
+        include: { _count: { select: { rows: true } } },
+        orderBy: [
+          { fiscalYear: "desc" },
+          { inspectionDate: "desc" },
+          { id: "desc" },
+        ],
+      })
+    : [];
 
   const backHref = `/stock-card/inspection-history?fiscalYear=${selectedFiscalYear}`;
   const tableSubtitle = `ประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`;
@@ -127,6 +130,7 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
         badge={`${inspections.length.toLocaleString("th-TH")} รายการ`}
         className="w-full min-w-0"
       >
+        <InspectionHistoryTypeSelect fiscalYear={selectedFiscalYear} value={selectedType} />
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[1350px] border-collapse bg-white text-sm">
             <thead>
@@ -145,7 +149,9 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
                     colSpan={8}
                     className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500"
                   >
-                    ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ
+                    {selectedType === "annual"
+                      ? "ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ"
+                      : "ยังไม่มีประวัติรายงานบัญชีพัสดุคงคลัง (ต้องเชื่อมระบบบันทึกประวัติแยกต่างหาก)"}
                   </td>
                 </tr>
               ) : (
