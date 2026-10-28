@@ -13,7 +13,7 @@ export default function InspectionHistoryTypeSelect({ fiscalYear, value }: { fis
         id="inspection-history-type"
         value={value}
         onChange={(event) => router.push(`/stock-card/inspection-history/materials?fiscalYear=${fiscalYear}&type=${event.target.value}`)}
-        className="h-[46px] w-full max-w-[420px] rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
+        className="h-[46px] w-fit min-w-[250px] max-w-full rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100"
       >
         <option value="annual">ตรวจสอบบัญชีพัสดุประจำปี</option>
         <option value="inventory">รายงานบัญชีพัสดุคงคลัง</option>
