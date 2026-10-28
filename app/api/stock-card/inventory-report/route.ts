@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       if (!raw || typeof raw !== "object") return NextResponse.json({ error: "รายการไม่ถูกต้อง" }, { status: 400 });
       const row = raw as Record<string, unknown>;
       const id = Number(row.materialId);
-      if (!Number.isInteger(id) || id <= 0 || materialIds.has(id) || !allowedAccuracy.includes(row.accuracy ?? null) || !allowedStatus.includes(row.status ?? null)) {
+      if (!Number.isInteger(id) || id <= 0 || materialIds.has(id) || !(row.accuracy == null || (typeof row.accuracy === "string" && allowedAccuracy.includes(row.accuracy))) || !(row.status == null || (typeof row.status === "string" && allowedStatus.includes(row.status)))) {
         return NextResponse.json({ error: "ข้อมูลรายการไม่ถูกต้อง" }, { status: 400 });
       }
       materialIds.add(id);
