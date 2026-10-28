@@ -130,13 +130,13 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
       // จัดหน้าแบบไหลตามความสูงจริง: สูงสุด 15 รายการต่อหน้า หากแถวสูงเกินพื้นที่กรรมการให้ขึ้นหน้าใหม่
-      // พื้นที่พิมพ์ A4 แนวนอน สูง 595 pt หักขอบบน-ล่าง 0.2 นิ้ว รวม ~29 pt
-      // ใช้ 565 pt เพื่อเติมพื้นที่หน้าให้มากขึ้น โดยสงวนพื้นที่ลายเซ็นไว้คงที่
-      const PAGE_HEIGHT_PT = 565;
+      // ความกว้าง 20 คอลัมน์ถูกย่อให้พอดีกับ A4 แนวนอนเมื่อพิมพ์
+      // ดังนั้นความสูงแถวใน worksheet (ก่อนย่อ) ไม่ควรเทียบตรงกับ 595 pt ของกระดาษ
+      // พื้นที่เดิม 334 pt ตัดหน้าตั้งแต่ ~9 รายการ ทั้งที่ Print Preview เหลือพื้นที่มาก
+      // เพิ่มพื้นที่ข้อมูลก่อนย่อเป็น 510 pt เพื่อรองรับสูงสุด 15 รายการ
+      // และยังตรวจความสูงแต่ละแถวก่อนนำลงหน้า โดยกันส่วนกรรมการไว้ต่างหาก
       const MAX_ROWS_PER_PAGE = 15;
-      const HEADER_HEIGHT_PT = 151;
-      const SIGNATURE_HEIGHT_PT = 80;
-      const BODY_BUDGET_PT = PAGE_HEIGHT_PT - HEADER_HEIGHT_PT - SIGNATURE_HEIGHT_PT;
+      const BODY_BUDGET_PT = 510;
       let assetIndex = 0;
       let page = 0;
       let rowNo = 1;
