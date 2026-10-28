@@ -221,7 +221,7 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
           </table>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 bg-white px-4 py-5">
-          <AppButton type="button" variant="secondary" size="md" href={`/stock-card?fiscalYear=${fiscalYear}`}>ยกเลิก</AppButton>
+          <AppButton variant="secondary" size="md" href={`/stock-card?fiscalYear=${fiscalYear}`}>ยกเลิก</AppButton>
           <AppButton type="button" variant="success" size="md" icon={<span aria-hidden="true">💾</span>} disabled={saving} onClick={handleSave}>
             {saving ? "กำลังบันทึก..." : "บันทึก"}
           </AppButton>
