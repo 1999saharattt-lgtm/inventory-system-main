@@ -129,12 +129,13 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
       const fy = Number(movementFiscalYear);
       const start = Number.isInteger(fy) ? `${fy - 544}-10-01` : accountStartDate;
       const end = Number.isInteger(fy) ? `${fy - 543}-09-30` : accountEndDate;
-      // จัดหน้าแบบไหลตามความสูงจริง: ไม่จำกัดจำนวนรายการต่อหน้า
+      // จัดหน้าแบบไหลตามความสูงจริง: สูงสุด 15 รายการต่อหน้า หากแถวสูงเกินพื้นที่กรรมการให้ขึ้นหน้าใหม่
       // พื้นที่พิมพ์ A4 แนวนอน สูง 595 pt หักขอบบน-ล่าง 0.2 นิ้ว รวม ~29 pt
       // ใช้ 565 pt เพื่อเติมพื้นที่หน้าให้มากขึ้น โดยสงวนพื้นที่ลายเซ็นไว้คงที่
       const PAGE_HEIGHT_PT = 565;
+      const MAX_ROWS_PER_PAGE = 15;
       const HEADER_HEIGHT_PT = 151;
-      const SIGNATURE_HEIGHT_PT = 82;
+      const SIGNATURE_HEIGHT_PT = 73;
       const BODY_BUDGET_PT = PAGE_HEIGHT_PT - HEADER_HEIGHT_PT - SIGNATURE_HEIGHT_PT;
       let assetIndex = 0;
       let page = 0;
@@ -187,7 +188,8 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         ws.getRow(h + 1).height = 21;
         let lastData = h + 1;
         let bodyHeight = 0;
-        while (assetIndex < assets.length) {
+        let pageDataCount = 0;
+        while (assetIndex < assets.length && pageDataCount < MAX_ROWS_PER_PAGE) {
           const i = assetIndex;
           const a = assets[i];
           const r = rowMap.get(a.id) ?? { countedQty: "", accuracy: "", status: "", remark: "" };
@@ -214,13 +216,14 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
             return Math.max(max, count);
           }, 1);
           // ให้แถวกระชับขึ้น แต่ยังมีพื้นที่เหนือ-ใต้ตัวอักษร 12 pt
-          // จำนวนแถวต่อหน้าขึ้นอยู่กับความสูงรวม ไม่ล็อก 7 แถว
-          const rowHeight = Math.max(26, Math.min(120, lines * 10 + 12));
+          // สูงสุด 15 แถวต่อหน้า และขึ้นหน้าใหม่ก่อนพื้นที่ลงชื่อกรรมการ
+          const rowHeight = Math.max(21, Math.min(120, lines * 9 + 12));
           if (bodyHeight + rowHeight > BODY_BUDGET_PT && bodyHeight > 0) break;
           const rr = ++lastData;
           ws.getRow(rr).height = rowHeight;
           bodyHeight += rowHeight;
           assetIndex++;
+          pageDataCount++;
           values.forEach((v, col) => {
             const cell = ws.getCell(rr, col + 1);
             cell.value = v;
