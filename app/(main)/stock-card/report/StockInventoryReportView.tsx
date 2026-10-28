@@ -130,7 +130,6 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
               searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-          <AppButton type="button" variant="success" size="md" disabled={saving} onClick={handleSave}>{saving ? "กำลังบันทึก..." : "บันทึก"}</AppButton>
           <ExportStockInventoryReport fiscalYear={fiscalYear} startShortYear={startShortYear} endShortYear={endShortYear} materials={filtered} accuracy={accuracy} statuses={statuses} />
           </div>
           </div>
@@ -220,6 +219,12 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
               </Fragment>)}
             </tbody>
           </table>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3 border-t border-slate-200 bg-white px-4 py-5">
+          <AppButton type="button" variant="secondary" size="md" href={`/stock-card?fiscalYear=${fiscalYear}`}>ยกเลิก</AppButton>
+          <AppButton type="button" variant="success" size="md" icon={<span aria-hidden="true">💾</span>} disabled={saving} onClick={handleSave}>
+            {saving ? "กำลังบันทึก..." : "บันทึก"}
+          </AppButton>
         </div>
       </AppTableCard>
     </div>
