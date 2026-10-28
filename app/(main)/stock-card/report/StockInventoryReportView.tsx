@@ -190,7 +190,8 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                     <td className={cellClass}>{formatCurrent(material.closingBalance)}</td>
                     {(["CORRECT", "INCORRECT"] as const).map(value => (
                       <td key={value} className={cellClass}>
-                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500 accent-emerald-600 [appearance:auto]" style={{ appearance: "none", borderRadius: "50%", backgroundColor: accuracy[material.materialId] === value ? "#059669" : "white", boxShadow: accuracy[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
+                        <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                          <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" aria-label={`${material.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
                           checked={accuracy[material.materialId] === value}
                           onChange={event => setAccuracy(previous => {
                             const next = { ...previous };
@@ -198,12 +199,15 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                             else delete next[material.materialId];
                             return next;
                           })} />
+                          <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+                        </label>
                       </td>
                     ))}
                     {Array.from({ length: 3 }, (_, i) => <td key={`quantity-${i}`} className={cellClass} />)}
                     {(["IN_USE", "DAMAGED", "DETERIORATED", "UNNECESSARY"] as const).map(value => (
                       <td key={value} className={cellClass}>
-                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500" style={{ appearance: "none", borderRadius: "50%", backgroundColor: statuses[material.materialId] === value ? "#059669" : "white", boxShadow: statuses[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value}`}
+                        <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                          <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" aria-label={`${material.name} ${value}`}
                           checked={statuses[material.materialId] === value}
                           onChange={event => setStatuses(previous => {
                             const next = { ...previous };
@@ -211,6 +215,8 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                             else delete next[material.materialId];
                             return next;
                           })} />
+                          <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+                        </label>
                       </td>
                     ))}
                     <td className={cellClass} />
