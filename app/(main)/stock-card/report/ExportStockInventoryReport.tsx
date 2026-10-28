@@ -96,8 +96,8 @@ export default function ExportStockInventoryReport({ fiscalYear, startShortYear,
   };
   return (
     <div className="flex flex-wrap items-center justify-end gap-2">
-      <AppButton type="button" variant="danger" size="md" onClick={exportPdf} disabled={busy !== null}>ส่งออก PDF</AppButton>
-      <AppButton type="button" variant="success" size="md" onClick={exportExcel} disabled={busy !== null}>ส่งออก Excel</AppButton>
+      <AppButton type="button" variant="danger" size="md" icon={<span aria-hidden="true">📄</span>} onClick={exportPdf} disabled={busy !== null}>{busy === "pdf" ? "กำลังส่งออก PDF..." : "ส่งออก PDF"}</AppButton>
+      <AppButton type="button" variant="success" size="md" icon={<span aria-hidden="true">📊</span>} onClick={exportExcel} disabled={busy !== null}>{busy === "excel" ? "กำลังส่งออก Excel..." : "ส่งออก Excel"}</AppButton>
     </div>
   );
 }
