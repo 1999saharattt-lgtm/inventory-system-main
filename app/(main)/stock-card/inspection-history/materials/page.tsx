@@ -95,19 +95,20 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
 
   const selectedType: "annual" | "inventory" = params.type === "inventory" ? "inventory" : "annual";
 
-  // ห้ามใช้ StockCardInspection เป็นประวัติของรายงานบัญชีพัสดุคงคลัง:
-  // รายงานประเภทนี้ต้องมีตารางและ API บันทึกแยกต่างหากก่อน จึงจะแสดงประวัติจริงได้
-  const inspections = selectedType === "annual"
+  const annualInspections = selectedType === "annual"
     ? await prisma.stockCardInspection.findMany({
         where: { fiscalYear: selectedFiscalYear },
         include: { _count: { select: { rows: true } } },
-        orderBy: [
-          { fiscalYear: "desc" },
-          { inspectionDate: "desc" },
-          { id: "desc" },
-        ],
+        orderBy: [{ fiscalYear: "desc" }, { inspectionDate: "desc" }, { id: "desc" }],
       })
     : [];
+  const inventoryInspections = selectedType === "inventory"
+    ? await prisma.stockInventoryReportHistory.findMany({
+        where: { fiscalYear: selectedFiscalYear },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      })
+    : [];
+  const inspections = selectedType === "annual" ? annualInspections : inventoryInspections;
 
   const backHref = `/stock-card/inspection-history?fiscalYear=${selectedFiscalYear}`;
   const tableSubtitle = `ประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`;
@@ -155,7 +156,18 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
                   </td>
                 </tr>
               ) : (
-                inspections.map((inspection, index) => {
+                selectedType === "inventory" ? inventoryInspections.map((inspection, index) => (
+                  <tr key={inspection.id} className={index % 2 === 0 ? "bg-white hover:bg-blue-50/70" : "bg-slate-50/70 hover:bg-blue-50/70"}>
+                    <td className={cellClassName}>{index + 1}</td>
+                    <td className={cellClassName}>พ.ศ. {inspection.fiscalYear}</td>
+                    <td className={cellClassName}>{formatInspectionDate(inspection.createdAt)}</td>
+                    <td className={cellClassName}>{formatInspectionDate(inspection.updatedAt)}</td>
+                    <td className={cellClassName}>{Array.isArray(inspection.rows) ? inspection.rows.length : 0} รายการ</td>
+                    <td className={cellClassName}>-</td>
+                    <td className={cellClassName}><AppButton href={`/stock-card/inspection-history/materials/inventory/${inspection.id}?fiscalYear=${selectedFiscalYear}`} variant="primary" size="sm">เปิด</AppButton></td>
+                    <td className={cellClassName}>-</td>
+                  </tr>
+                )) : annualInspections.map((inspection, index) => {
                   const detailHref =
                     `/stock-card/inspection-history/${inspection.fiscalYear}`;
                   const inspectorCount = parseInspectorNames(

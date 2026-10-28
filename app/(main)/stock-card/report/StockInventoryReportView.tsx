@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import AppCard from "@/components/AppCard";
 import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
@@ -46,15 +47,47 @@ const formatCurrent = (value: number) => Number.isFinite(value) ? value.toLocale
 const formatPrice = (value: number | null) => value !== null && Number.isFinite(value) ? value.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-";
 
 export default function StockInventoryReportView({ fiscalYear, startShortYear, endShortYear, materials }: Props) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("ALL");
-  // สถานะของหน้ารายงานนี้แยกจากประวัติการตรวจสอบ และยังไม่บันทึกลงฐานข้อมูล
+  // บันทึกข้อมูลลงประวัติรายงานบัญชีพัสดุคงคลังโดยแยกจาก StockCardInspection
   const [accuracy, setAccuracy] = useState<Record<number, "CORRECT" | "INCORRECT">>({});
   const [statuses, setStatuses] = useState<Record<number, "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY">>({});
   const selectAllAccuracy = (value: "CORRECT" | "INCORRECT") =>
     setAccuracy(previous => ({ ...previous, ...Object.fromEntries(filtered.map(material => [material.materialId, value])) }));
   const selectAllStatus = (value: "IN_USE" | "DAMAGED" | "DETERIORATED" | "UNNECESSARY") =>
     setStatuses(previous => ({ ...previous, ...Object.fromEntries(filtered.map(material => [material.materialId, value])) }));
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const response = await fetch("/api/stock-card/inventory-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fiscalYear,
+          rows: materials.map(material => ({
+            ...material,
+            accuracy: accuracy[material.materialId] ?? null,
+            status: statuses[material.materialId] ?? null,
+          })),
+        }),
+      });
+      if (!response.ok) {
+        const result: { error?: string } = await response.json().catch(() => ({}));
+        throw new Error(result.error || "ไม่สามารถบันทึกข้อมูลได้");
+      }
+      router.push(`/stock-card/inspection-history/materials?fiscalYear=${fiscalYear}&type=inventory`);
+      router.refresh();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "บันทึกไม่สำเร็จ");
+    } finally {
+      setSaving(false);
+    }
+  };
   const topScrollbarRef = useRef<HTMLDivElement>(null);
   const tableScrollbarRef = useRef<HTMLDivElement>(null);
   const syncScroll = (source: "top" | "table") => {
@@ -96,8 +129,12 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
             <AppSearchableSelect value={selectedCategory} options={categories} placeholder="เลือกหมวด"
               searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+          <AppButton type="button" variant="success" size="md" disabled={saving} onClick={handleSave}>{saving ? "กำลังบันทึก..." : "บันทึก"}</AppButton>
           <ExportStockInventoryReport fiscalYear={fiscalYear} startShortYear={startShortYear} endShortYear={endShortYear} materials={filtered} accuracy={accuracy} statuses={statuses} />
           </div>
+          </div>
+          {saveError && <p role="alert" className="mt-2 text-sm font-semibold text-red-600">{saveError}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             <AppButton type="button" variant="success" size="sm" onClick={() => selectAllAccuracy("CORRECT")}>ถูกต้องทั้งหมด</AppButton>
             <AppButton type="button" variant="danger" size="sm" onClick={() => selectAllAccuracy("INCORRECT")}>ไม่ถูกต้องทั้งหมด</AppButton>

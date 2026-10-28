@@ -419,7 +419,7 @@ model Asset {
   updatedAt DateTime @updatedAt
 
   inspections AssetInspection[]
-  ownerHistory AssetOwnerHistory[]
+  AssetOwnerHistory AssetOwnerHistory[]
 
   @@index([departmentId])
   @@index([sectionId])
@@ -544,17 +544,31 @@ model StockCardInspectionRow {
   @@index([accuracy])
 }
 
-// ประวัติการเปลี่ยนผู้ครอบครองครุภัณฑ์
+// ประวัติรายงานบัญชีพัสดุคงคลัง (แยกจากการตรวจสอบประจำปี)
+model StockInventoryReportHistory {
+  id         Int      @id @default(autoincrement())
+  fiscalYear Int
+  rows       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([fiscalYear, createdAt])
+}
+
+
+// =====================================================
+// ประวัติการเปลี่ยนผู้รับผิดชอบครุภัณฑ์ (คงตารางเดิม)
+// =====================================================
 model AssetOwnerHistory {
-  id Int @id @default(autoincrement())
-  assetId Int
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  id                Int      @id @default(autoincrement())
+  assetId           Int
   previousOfficerId Int?
-  nextOfficerId Int?
-  previousName String?
-  nextName String?
-  changedById Int?
-  changedAt DateTime @default(now())
+  nextOfficerId     Int?
+  previousName      String?
+  nextName          String?
+  changedById       Int?
+  changedAt         DateTime @default(now())
+  Asset             Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([assetId, changedAt])
 }
