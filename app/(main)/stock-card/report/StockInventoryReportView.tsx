@@ -167,7 +167,7 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                     {Array.from({ length: 3 }, (_, i) => <td key={`quantity-${i}`} className={cellClass} />)}
                     {(["IN_USE", "DAMAGED", "DETERIORATED", "UNNECESSARY"] as const).map(value => (
                       <td key={value} className={cellClass}>
-                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500" style={{ appearance: "none", borderRadius: "50%", backgroundColor: statuses[material.materialId] === value ? "#059669" : "white", boxShadow: statuses[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value}`
+                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500" style={{ appearance: "none", borderRadius: "50%", backgroundColor: statuses[material.materialId] === value ? "#059669" : "white", boxShadow: statuses[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value}`}
                           checked={statuses[material.materialId] === value}
                           onChange={event => setStatuses(previous => {
                             const next = { ...previous };
