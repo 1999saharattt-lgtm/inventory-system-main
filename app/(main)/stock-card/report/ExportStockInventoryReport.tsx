@@ -33,46 +33,75 @@ const columns = [
 ];
 export default function ExportStockInventoryReport({ fiscalYear, startShortYear, endShortYear, materials, accuracy, statuses }: Props) {
   const [busy, setBusy] = useState<"pdf" | "excel" | null>(null);
-  const makeRows = () => {
-    const counters: Record<string, number> = {};
-    return materials.map(material => {
-      counters[material.category] = (counters[material.category] ?? 0) + 1;
-      const correct = accuracy[material.materialId];
-      const status = statuses[material.materialId];
-      return [
-        counters[material.category], material.name, material.unit,
-        material.latestPrice ?? "", material.openingBalance, material.receiveQty,
-        material.issueQty, material.closingBalance,
-        correct === "CORRECT" ? "✓" : "", correct === "INCORRECT" ? "✓" : "",
-        "", "", "", status === "IN_USE" ? "✓" : "",
-        status === "DAMAGED" ? "✓" : "", status === "DETERIORATED" ? "✓" : "",
-        status === "UNNECESSARY" ? "✓" : "", "",
-      ];
-    });
-  };
+  // ไม่แสดงรายการนี้ทั้งในไฟล์ Excel และ PDF
+  const exportMaterials = materials.filter(
+    material => material.name.trim() !== "หมึกพิมพ์อิงค์เจ็ท Canon รุ่น PGI-810 BK สีดำ"
+  );
   const exportExcel = () => {
+    if (busy !== null) return;
     setBusy("excel");
     try {
-      const rows = makeRows();
-      const sheet = XLSX.utils.aoa_to_sheet([
-        [`รายงานบัญชีพัสดุคงคลัง ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`],
-        [`ระหว่างวันที่ 01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`],
-        columns, ...rows,
-      ]);
-      sheet["!cols"] = [
-        { wch: 8 }, { wch: 54 }, { wch: 14 }, { wch: 18 },
-        { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 18 },
-        { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
-        { wch: 26 }, { wch: 14 }, { wch: 12 }, { wch: 16 }, { wch: 42 }, { wch: 24 },
-      ];
       const book = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(book, sheet, "รายงานบัญชีพัสดุคงคลัง");
+      const order = ["OFFICE", "COMPUTER", "ELECTRIC", "HOUSEHOLD", "VEHICLE", "PRINTING"];
+      const widths = [8, 54, 14, 18, 20, 12, 12, 20, 12, 14, 12, 12, 26, 14, 12, 18, 42, 24];
+      let sheetNumber = 0;
+
+      for (const category of order) {
+        const items = exportMaterials.filter(material => material.category === category);
+        if (items.length === 0) continue;
+        sheetNumber += 1;
+        const title = `บัญชีตรวจสอบพัสดุประจำปีงบประมาณ พ.ศ. ${fiscalYear}`;
+        const categoryTitle = `ประเภท ${categoryName[category]}`;
+        const balanceDate = `เป็นยอดคงเหลือตามบัญชีหรือทะเบียนเมื่อวันที่ 30 ก.ย. ${String(fiscalYear).slice(-2)}`;
+        const data: (string | number)[][] = [
+          [title],
+          ["หน่วยงาน สำนักอนามัยการเจริญพันธุ์"],
+          [categoryTitle],
+          [balanceDate],
+          [],
+          columns,
+        ];
+        items.forEach((material, index) => {
+          const correct = accuracy[material.materialId];
+          const status = statuses[material.materialId];
+          data.push([
+            index + 1, material.name, material.unit,
+            material.latestPrice ?? "", material.openingBalance,
+            material.receiveQty, material.issueQty, material.closingBalance,
+            correct === "CORRECT" ? "✓" : "", correct === "INCORRECT" ? "✓" : "",
+            "", "", "", status === "IN_USE" ? "✓" : "",
+            status === "DAMAGED" ? "✓" : "", status === "DETERIORATED" ? "✓" : "",
+            status === "UNNECESSARY" ? "✓" : "", "",
+          ]);
+        });
+        const sheet = XLSX.utils.aoa_to_sheet(data);
+        // หัวกระดาษ 4 บรรทัด กึ่งกลางเต็มความกว้างตาราง 18 คอลัมน์
+        sheet["!merges"] = [0, 1, 2, 3].map(row => ({ s: { r: row, c: 0 }, e: { r: row, c: 17 } }));
+        sheet["!cols"] = widths.map(wch => ({ wch }));
+        sheet["!rows"] = [
+          { hpt: 24 }, { hpt: 24 }, { hpt: 24 }, { hpt: 24 },
+          { hpt: 8 }, { hpt: 34 },
+          ...items.map(() => ({ hpt: 23.25 })),
+        ];
+        sheet["!autofilter"] = { ref: `A6:R${data.length}` };
+        // กำหนดรูปแบบตัวเลขราคาให้แสดงทศนิยมสองตำแหน่ง
+        for (let row = 7; row <= data.length; row++) {
+          const cell = sheet[`D${row}`];
+          if (cell && cell.t === "n") cell.z = "#,##0.00";
+        }
+        // แต่ละหมวดแยกชีตโดยเด็ดขาด ไม่ให้รายการข้ามหมวดต่อกัน
+        XLSX.utils.book_append_sheet(book, sheet, categoryName[category]);
+      }
+      if (sheetNumber === 0) {
+        alert("ไม่มีรายการสำหรับส่งออก Excel");
+        return;
+      }
       XLSX.writeFile(book, `stock-inventory-report-${fiscalYear}.xlsx`);
     } finally { setBusy(null); }
   };
   const exportPdf = () => {
     if (busy !== null) return;
-    if (materials.length === 0) {
+    if (exportMaterials.length === 0) {
       alert("ไม่มีรายการสำหรับแสดงตัวอย่าง PDF");
       return;
     }
@@ -98,7 +127,7 @@ export default function ExportStockInventoryReport({ fiscalYear, startShortYear,
       const groups = order.map(category => ({
         category,
         name: categoryName[category],
-        items: materials.filter(material => material.category === category),
+        items: exportMaterials.filter(material => material.category === category),
       })).filter(group => group.items.length > 0);
       const setFont = (size: number) => {
         doc.setFont(font, "normal");
@@ -125,7 +154,7 @@ export default function ExportStockInventoryReport({ fiscalYear, startShortYear,
         { content: "คงเหลือปัจจุบัน", rowSpan: 2 },
         { content: "ผลการตรวจสอบ", colSpan: 2 },
         { content: "ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน", colSpan: 2 },
-        { content: "จำนวนที่ขาดเกิน\nคิดเป็นเงิน", rowSpan: 2 },
+        { content: "จำนวนที่ขาดเกิน\nคิดเป็นเงิน", colSpan: 1 },
         { content: "สถานะการใช้งานของวัสดุ (จำนวน)", colSpan: 4 },
         { content: "หมายเหตุ", rowSpan: 2 },
       ], ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็นต้องใช้ในหน่วยงาน"]];
@@ -133,12 +162,12 @@ export default function ExportStockInventoryReport({ fiscalYear, startShortYear,
       for (const group of groups) {
         let itemNo = 0;
         // จำกัดจำนวนแถวต่อหน้าให้มีพื้นที่หัวเอกสารเหมือนเอกสารตรวจสอบต้นแบบ
-        for (let offset = 0; offset < group.items.length; offset += 15) {
+        for (let offset = 0; offset < group.items.length; offset += 20) {
           if (!firstPage) doc.addPage("a4", "landscape");
           firstPage = false;
           drawHeader(group.name);
           const body: unknown[][] = [];
-          for (const material of group.items.slice(offset, offset + 15)) {
+          for (const material of group.items.slice(offset, offset + 20)) {
             const check = accuracy[material.materialId];
             const status = statuses[material.materialId];
             const numberText = (value: number) => Number.isFinite(value) && value !== 0 ? value.toLocaleString("th-TH") : "-";
