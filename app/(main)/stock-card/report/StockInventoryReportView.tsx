@@ -6,6 +6,7 @@ import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
 import AppButton from "@/components/AppButton";
+import ExportStockInventoryReport from "./ExportStockInventoryReport";
 
 type Material = {
   materialId: number;
@@ -87,12 +88,15 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
           resultLabel="รายการ" showSearchButton showClearButton searchButtonText="ค้นหา" clearButtonText="ล้าง" />
       </div>
       <AppTableCard title="รายการบัญชีพัสดุคงคลัง" subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
-        badge={`${filtered.length.toLocaleString("th-TH")} รายการ`} className="relative z-0 w-full min-w-0 !max-w-full">
+        className="relative z-0 w-full min-w-0 !max-w-full">
         <div className="border-b border-slate-200 bg-white px-3 pb-2 pt-0">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div className="relative z-30 w-full sm:max-w-[360px]">
             <label className="mb-1.5 block text-sm font-extrabold !text-slate-700">เลือกหมวด</label>
             <AppSearchableSelect value={selectedCategory} options={categories} placeholder="เลือกหมวด"
               searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
+          </div>
+          <ExportStockInventoryReport fiscalYear={fiscalYear} startShortYear={startShortYear} endShortYear={endShortYear} materials={filtered} accuracy={accuracy} statuses={statuses} />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <AppButton type="button" variant="success" size="sm" onClick={() => selectAllAccuracy("CORRECT")}>ถูกต้องทั้งหมด</AppButton>
@@ -125,7 +129,7 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                 <th rowSpan={2} className={headerClass}>คงเหลือปัจจุบัน</th>
                 <th colSpan={2} className={headerClass}>ผลการตรวจสอบ</th>
                 <th colSpan={2} className={headerClass}>ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน</th>
-                <th className={headerClass}>จำนวนที่ขาดเกินคิดเป็นเงิน</th>
+                <th className={headerClass}>จำนวนที่ขาดเกิน<br />คิดเป็นเงิน</th>
                 <th colSpan={4} className={headerClass}>สถานะการใช้งานของวัสดุ (จำนวน)</th>
                 <th rowSpan={2} className={headerClass}>หมายเหตุ</th>
               </tr>
@@ -150,7 +154,7 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                     <td className={cellClass}>{formatCurrent(material.closingBalance)}</td>
                     {(["CORRECT", "INCORRECT"] as const).map(value => (
                       <td key={value} className={cellClass}>
-                        <input type="checkbox" aria-label={`${material.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
+                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500 accent-emerald-600 [appearance:auto]" style={{ appearance: "none", borderRadius: "50%", backgroundColor: accuracy[material.materialId] === value ? "#059669" : "white", boxShadow: accuracy[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
                           checked={accuracy[material.materialId] === value}
                           onChange={event => setAccuracy(previous => {
                             const next = { ...previous };
@@ -163,7 +167,7 @@ export default function StockInventoryReportView({ fiscalYear, startShortYear, e
                     {Array.from({ length: 3 }, (_, i) => <td key={`quantity-${i}`} className={cellClass} />)}
                     {(["IN_USE", "DAMAGED", "DETERIORATED", "UNNECESSARY"] as const).map(value => (
                       <td key={value} className={cellClass}>
-                        <input type="checkbox" aria-label={`${material.name} ${value}`}
+                        <input type="checkbox" className="h-4 w-4 cursor-pointer rounded-full border border-slate-500" style={{ appearance: "none", borderRadius: "50%", backgroundColor: statuses[material.materialId] === value ? "#059669" : "white", boxShadow: statuses[material.materialId] === value ? "inset 0 0 0 3px white" : "none" }} aria-label={`${material.name} ${value}`
                           checked={statuses[material.materialId] === value}
                           onChange={event => setStatuses(previous => {
                             const next = { ...previous };
