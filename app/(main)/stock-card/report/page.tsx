@@ -81,11 +81,17 @@ export default async function StockCardReportPage({ searchParams }: PageProps) {
     }
     return true;
   }).map(material => {
-    const openingBalance = material.receiveItems
+    const initialBalance = material.receiveItems
       .filter(item => normalizeDocumentNo(item.receive.documentNo) === "ยอดยกเข้าระบบ")
       .reduce((sum, item) => sum + safeNumber(item.qty), 0);
     const receiveItems = material.receiveItems.filter(item => normalizeDocumentNo(item.receive.documentNo).startsWith("ร."));
     const issueItems = material.issueItems.filter(item => normalizeDocumentNo(item.issue.documentNo).startsWith("จ."));
+    // ยอดยกมา ณ 1 ต.ค. ของปีที่เลือก = ยอดตั้งต้น + รับสะสมก่อนปี - จ่ายสะสมก่อนปี
+    const previousReceive = receiveItems.filter(item => item.receive.receiveDate.getTime() < startDate.getTime())
+      .reduce((sum, item) => sum + safeNumber(item.qty), 0);
+    const previousIssue = issueItems.filter(item => item.issue.issueDate.getTime() < startDate.getTime())
+      .reduce((sum, item) => sum + getActualIssuedQty(item), 0);
+    const openingBalance = initialBalance + previousReceive - previousIssue;
     const receiveQty = receiveItems.filter(item => isDateInRange(item.receive.receiveDate, startDate, endDate))
       .reduce((sum, item) => sum + safeNumber(item.qty), 0);
     const issueQty = issueItems.filter(item => isDateInRange(item.issue.issueDate, startDate, endDate))
@@ -102,10 +108,10 @@ export default async function StockCardReportPage({ searchParams }: PageProps) {
         ? "แพ็ค" : material.unit.trim() === "ห่อ" ? "แพ็ค" : material.unit,
       category: String(material.category),
       latestPrice: (() => {
-        const latestInFiscalYear = material.receiveItems
-          .filter(item => isDateInRange(item.receive.receiveDate, startDate, endDate))
+        const latestAsOfFiscalYear = material.receiveItems
+          .filter(item => item.receive.receiveDate.getTime() < endDate.getTime())
           .sort((a, b) => b.receive.receiveDate.getTime() - a.receive.receiveDate.getTime() || b.id - a.id)[0];
-        return latestInFiscalYear ? safeNumber(latestInFiscalYear.unitPrice) : null;
+        return latestAsOfFiscalYear ? safeNumber(latestAsOfFiscalYear.unitPrice) : null;
       })(),
       openingBalance,
       receiveQty,
