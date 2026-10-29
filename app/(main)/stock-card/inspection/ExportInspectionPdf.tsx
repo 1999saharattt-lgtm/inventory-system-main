@@ -557,25 +557,35 @@ export default function ExportInspectionPdf({
             },
             columnStyles,
             didDrawCell: (data: any) => {
-              if (data.section !== "body" || ![8, 9, 13, 14, 15, 16].includes(data.column.index)) return;
-              if (data.cell.raw !== "__CHECK__") return;
-              // วาดเครื่องหมายถูกเป็นเส้นเวกเตอร์โดยตรง
-              // ไม่พึ่งฟอนต์ ZapfDingbats ซึ่งอาจไม่แสดงใน PDF viewer บางตัว
-              const centerX = data.cell.x + data.cell.width / 2;
-              const centerY = data.cell.y + data.cell.height / 2;
-              const checkSize = Math.min(3.4, data.cell.width * 0.34, data.cell.height * 0.52);
+              if (data.section !== "body") return;
+              const rowIndex = data.row.index;
+              const material = pageMaterials[rowIndex];
+              if (!material) return;
+              const row = rowMap.get(material.materialId);
+              const selected: Record<number, boolean> = {
+                8: row?.accuracy === "CORRECT",
+                9: row?.accuracy === "INCORRECT",
+                13: inUseChecks[material.materialId] === true,
+                14: Number(row?.damagedQty || 0) > 0,
+                15: Number(row?.deterioratedQty || 0) > 0,
+                16: Number(row?.unnecessaryQty || 0) > 0,
+              };
+              if (!selected[data.column.index]) return;
+              // วาดเครื่องหมายถูกด้วยเส้นเวกเตอร์ตามข้อมูลที่เลือกจริง
+              // ไม่อ้างอิงข้อความ __CHECK__ ซึ่งอาจถูก autoTable แปลงระหว่าง parse
+              const cx = data.cell.x + data.cell.width / 2;
+              const cy = data.cell.y + data.cell.height / 2;
+              const size = Math.min(3.6, data.cell.width * 0.32, data.cell.height * 0.42);
               doc.setDrawColor(0, 0, 0);
-              doc.setLineWidth(0.45);
+              doc.setLineWidth(0.7);
               doc.setLineCap("round");
               doc.setLineJoin("round");
-              doc.line(centerX - checkSize * 0.75, centerY,
-                centerX - checkSize * 0.2, centerY + checkSize * 0.48);
-              doc.line(centerX - checkSize * 0.2, centerY + checkSize * 0.48,
-                centerX + checkSize * 0.85, centerY - checkSize * 0.62);
+              doc.line(cx - size * 0.9, cy - size * 0.05, cx - size * 0.22, cy + size * 0.65);
+              doc.line(cx - size * 0.22, cy + size * 0.65, cx + size * 0.95, cy - size * 0.7);
               doc.setLineWidth(0.25);
             },
             didParseCell: (data: any) => {
-              if (data.section === "body" && [8, 9, 13, 14, 15, 16].includes(data.column.index) && data.cell.raw === "__CHECK__") {
+              if (data.section === "body" && [8, 9, 13, 14, 15, 16].includes(data.column.index)) {
                 data.cell.text = [""];
               }
               const cell = data.cell;
