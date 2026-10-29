@@ -48,6 +48,7 @@ type InspectionRow = {
   receiveQty: number;
   issueQty: number;
   closingQty: number;
+  latestPrice?: number | null;
 
   accuracy: string;
 
@@ -1093,7 +1094,7 @@ export default function EditInspectionForm({
   const topScrollRef = useRef<HTMLDivElement>(null);
   const bottomScrollRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLTableElement>(null);
-  const [tableScrollWidth, setTableScrollWidth] = useState(1710);
+  const [tableScrollWidth, setTableScrollWidth] = useState(2067);
   const [canScrollTable, setCanScrollTable] = useState(false);
   const syncTopScroll = useCallback(() => {
     if (topScrollRef.current && bottomScrollRef.current) {
@@ -1111,7 +1112,7 @@ export default function EditInspectionForm({
     if (!bottom || !table) return;
     const measure = () => {
       if (!bottomScrollRef.current || !tableRef.current) return;
-      const width = Math.max(1710, tableRef.current.scrollWidth);
+      const width = Math.max(2067, tableRef.current.scrollWidth);
       setTableScrollWidth(width);
       setCanScrollTable(width > bottomScrollRef.current.clientWidth + 1);
       if (topScrollRef.current) {
@@ -2050,8 +2051,8 @@ export default function EditInspectionForm({
           <table
             ref={tableRef}
             className="
-              w-[1710px]
-              min-w-[1710px]
+              w-[2067px]
+              min-w-[2067px]
 
               table-fixed
               border-collapse
@@ -2062,7 +2063,7 @@ export default function EditInspectionForm({
             "
           >
             <colgroup>
-              {[42,372,72,132,84,84,90,60,78,66,66,60,60,84,90,108,162].map((width, index) => (
+              {[46,360,74,105,140,90,90,105,75,82,75,75,125,90,90,90,195,160].map((width, index) => (
                 <col key={index} style={{ width: `${width}px` }} />
               ))}
             </colgroup>
@@ -2075,32 +2076,26 @@ export default function EditInspectionForm({
                 <th rowSpan={2} className={inspectionHeaderClass}>ลำดับ</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หน่วยนับ</th>
+                <th rowSpan={2} className={inspectionHeaderClass}>ราคาต่อหน่วย</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือยอดยกมาเมื่อ<br />01 ต.ค. {String(fiscalYear - 1).slice(-2)}</th>
-                <th colSpan={2} className={inspectionHeaderClass}>{`01 ต.ค. ${String(fiscalYear - 1).slice(-2)} - 30 ก.ย. ${String(fiscalYear).slice(-2)}`}</th>
+                <th colSpan={2} className={inspectionHeaderClass}>01 ต.ค. {String(fiscalYear - 1).slice(-2)} - 30 ก.ย. {String(fiscalYear).slice(-2)}</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>คงเหลือปัจจุบัน</th>
                 <th colSpan={2} className={inspectionHeaderClass}>ผลการตรวจสอบ</th>
-                <th colSpan={4} className={inspectionHeaderClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<br />จำนวนที่เกินคิดเป็นเงินร้อยละ</th>
-                <th colSpan={3} className={inspectionHeaderClass}>จำนวนที่</th>
+                <th colSpan={2} className={inspectionHeaderClass}>ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน</th>
+                <th className={inspectionHeaderClass}>จำนวนที่ขาดเกิน<br />คิดเป็นเงิน</th>
+                <th colSpan={4} className={inspectionHeaderClass}>สถานะการใช้งานของวัสดุ (จำนวน)</th>
                 <th rowSpan={2} className={inspectionHeaderClass}>หมายเหตุ</th>
               </tr>
-              <tr>
-                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "บาท", "สต.", "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้"].map((title) => (
-                  <th key={title} className={`${inspectionHeaderClass} !py-1`}>{title}</th>
-                ))}
-              </tr>
+              <tr>{["รับ","จ่าย","ถูกต้อง","ไม่ถูกต้อง","ขาด","เกิน","(บาท)","ใช้การได้","ชำรุด","เสื่อมสภาพ","สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"].map(label =>
+                <th key={label} className={`${inspectionHeaderClass} !py-1 whitespace-pre-line`}>{label}</th>)}</tr>
             </thead>
-
-            {/* =================================================
-                BODY
-            ================================================= */}
-
             <tbody>
               {groupedRows.length ===
               0 ? (
                 <tr>
                   <td
                     colSpan={
-                      17
+                      18
                     }
                     className="
                       border
@@ -2412,684 +2407,49 @@ export default function EditInspectionForm({
    CATEGORY ROWS
 ========================================================= */
 
-function CategoryRows({
-  categoryName,
-  rows,
-  numberInputClass,
-  onAccuracyChange,
-  onNumberChange,
-  onRemarkChange,
-}: {
+function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, onNumberChange, onRemarkChange }: {
   categoryName: string;
-
   rows: InspectionRow[];
-
   numberInputClass: string;
-
-  onAccuracyChange: (
-    materialId: number,
-    accuracy: string
-  ) => void;
-
-  onNumberChange: (
-    materialId: number,
-    field:
-      | "shortageQty"
-      | "excessQty"
-      | "baht"
-      | "satang"
-      | "damagedQty"
-      | "deterioratedQty"
-      | "unnecessaryQty",
-    value: string
-  ) => void;
-
-  onRemarkChange: (
-    materialId: number,
-    value: string
-  ) => void;
+  onAccuracyChange: (materialId: number, accuracy: string) => void;
+  onNumberChange: (materialId: number, field: "shortageQty" | "excessQty" | "baht" | "satang" | "damagedQty" | "deterioratedQty" | "unnecessaryQty", value: string) => void;
+  onRemarkChange: (materialId: number, value: string) => void;
 }) {
-  return (
-    <>
-      {/* =====================================================
-          CATEGORY HEADER
-      ===================================================== */}
-
-      <tr>
-        <td
-          colSpan={
-            17
-          }
-          className="
-            border
-            border-black
-
-            bg-slate-200
-
-            px-4
-            py-3
-
-            text-left
-            text-base
-            font-black
-
-            !text-slate-900
-          "
-        >
-          {
-            categoryName
-          }
-        </td>
-      </tr>
-
-      {/* =====================================================
-          ROWS
-      ===================================================== */}
-
-      {rows.map(
-        (
-          row,
-          index
-        ) => (
-          <tr
-            key={
-              row.materialId
-            }
-            className={`
-              transition-colors
-              duration-150
-
-              hover:bg-blue-50/70
-
-              ${
-                index %
-                  2 ===
-                0
-                  ? "bg-white"
-                  : "bg-slate-50/70"
-              }
-            `}
-          >
-            {/* ===========================================
-                ORDER
-            =========================================== */}
-
-            <td
-              className="
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-extrabold
-
-                !text-slate-800
-              "
-            >
-              {(
-                index +
-                1
-              ).toLocaleString(
-                "th-TH"
-              )}
-            </td>
-
-            {/* ===========================================
-                MATERIAL
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-3
-                py-3
-
-                text-left
-              "
-            >
-              <div
-                className="
-                  font-extrabold
-
-                  !text-slate-900
-                "
-              >
-                {
-                  row.name
-                }
-              </div>
-
-            </td>
-
-            {/* ===========================================
-                UNIT
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-bold
-
-                !text-slate-700
-              "
-            >
-              {row.unit ||
-                "-"}
-            </td>
-
-            {/* ===========================================
-                OPENING
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-extrabold
-                tabular-nums
-
-                !text-slate-800
-              "
-            >
-              {displayStockValue(
-                row.openingQty
-              )}
-            </td>
-
-            {/* ===========================================
-                RECEIVE
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-extrabold
-                tabular-nums
-
-                !text-slate-800
-              "
-            >
-              {displayStockValue(
-                row.receiveQty
-              )}
-            </td>
-
-            {/* ===========================================
-                ISSUE
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-extrabold
-                tabular-nums
-
-                !text-slate-800
-              "
-            >
-              {displayStockValue(
-                row.issueQty
-              )}
-            </td>
-
-            {/* ===========================================
-                CLOSING
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-                font-extrabold
-                tabular-nums
-
-                !text-slate-900
-              "
-            >
-              {displayStockValue(
-                row.closingQty
-              )}
-            </td>
-
-            {/* ===========================================
-                CORRECT
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-              "
-            >
-              <input
-                type="radio"
-                name={`accuracy-${row.materialId}`}
-                checked={
-                  row.accuracy ===
-                  "CORRECT"
-                }
-                onChange={() =>
-                  onAccuracyChange(
-                    row.materialId,
-                    "CORRECT"
-                  )
-                }
-                className="
-                  h-5
-                  w-5
-
-                  cursor-pointer
-
-                  accent-emerald-600
-                "
-                aria-label={`${row.name} ถูกต้อง`}
-              />
-            </td>
-
-            {/* ===========================================
-                INCORRECT
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-3
-
-                text-center
-              "
-            >
-              <input
-                type="radio"
-                name={`accuracy-${row.materialId}`}
-                checked={
-                  row.accuracy ===
-                  "INCORRECT"
-                }
-                onChange={() =>
-                  onAccuracyChange(
-                    row.materialId,
-                    "INCORRECT"
-                  )
-                }
-                className="
-                  h-5
-                  w-5
-
-                  cursor-pointer
-
-                  accent-red-600
-                "
-                aria-label={`${row.name} ไม่ถูกต้อง`}
-              />
-            </td>
-
-            {/* ===========================================
-                SHORTAGE
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.shortageQty
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "shortageQty",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                EXCESS
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.excessQty
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "excessQty",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                BAHT
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.baht
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "baht",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                SATANG
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.satang
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "satang",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                DAMAGED
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.damagedQty
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "damagedQty",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                DETERIORATED
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.deterioratedQty
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "deterioratedQty",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                UNNECESSARY
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={
-                  row.unnecessaryQty
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onNumberChange(
-                    row.materialId,
-                    "unnecessaryQty",
-                    event.target
-                      .value
-                  )
-                }
-                className={
-                  numberInputClass
-                }
-              />
-            </td>
-
-            {/* ===========================================
-                REMARK
-            =========================================== */}
-
-            <td
-              className="
-
-                border
-                border-black
-
-                px-2
-                py-2
-              "
-            >
-              <input
-                type="text"
-                value={
-                  row.remark
-                }
-                placeholder="-"
-                onChange={(
-                  event
-                ) =>
-                  onRemarkChange(
-                    row.materialId,
-                    event.target
-                      .value
-                  )
-                }
-                className="
-                  h-10
-                  w-full
-
-                  rounded-[10px]
-
-                  border
-                  border-slate-300
-
-                  bg-white
-
-                  px-3
-
-                  text-sm
-                  font-semibold
-
-                  !text-slate-900
-
-                  outline-none
-
-                  transition
-
-                  focus:border-blue-500
-                  focus:ring-2
-                  focus:ring-blue-100
-                "
-              />
-            </td>
-          </tr>
-        )
-      )}
-    </>
-  );
+  const cell = "h-[23.25px] border border-black px-1 py-0 text-center text-[15px] font-normal leading-none tabular-nums !text-black";
+  const fieldClass = "h-[22px] w-full min-w-0 rounded-[4px] border border-slate-200 bg-white px-1 text-center text-[15px] font-normal leading-none !text-slate-900 outline-none focus:ring-1 focus:ring-blue-100";
+  const numberFields = ["shortageQty", "excessQty"] as const;
+  const statusFields = ["damagedQty", "deterioratedQty", "unnecessaryQty"] as const;
+  return <>
+    <tr><td colSpan={18} className="h-[23.25px] border border-black bg-white px-2 py-0 text-left text-[15px] font-bold leading-none !text-black">{categoryName}</td></tr>
+    {rows.map((row, index) => <tr key={row.materialId} className={index % 2 === 0 ? "bg-white hover:bg-blue-50/50" : "bg-slate-50/35 hover:bg-blue-50/50"}>
+      <td className={cell}>{index + 1}</td>
+      <td className={`${cell} px-2 text-left leading-tight`}>{row.name}</td>
+      <td className={cell}>{row.unit || "-"}</td>
+      <td className={cell}>{row.latestPrice == null ? "-" : row.latestPrice.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+      <td className={cell}>{displayStockValue(row.openingQty)}</td>
+      <td className={cell}>{displayStockValue(row.receiveQty)}</td>
+      <td className={cell}>{displayStockValue(row.issueQty)}</td>
+      <td className={cell}>{Number(row.closingQty).toLocaleString("th-TH")}</td>
+      {(["CORRECT", "INCORRECT"] as const).map(value => <td key={value} className={cell}>
+        <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+          <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+            aria-label={`${row.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
+            checked={row.accuracy === value}
+            onChange={event => onAccuracyChange(row.materialId, event.target.checked ? value : "")} />
+          <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-transparent peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
+        </label>
+      </td>)}
+      {numberFields.map(field => <td key={field} className={`${cell} p-0`}><input type="text" inputMode="numeric" value={row[field]} placeholder="" className={fieldClass} onChange={event => onNumberChange(row.materialId, field, event.target.value)} /></td>)}
+      <td className={`${cell} p-0`}>
+        <div className="flex items-center gap-px">
+          <input aria-label={`${row.name} บาท`} title="บาท" type="text" inputMode="numeric" value={row.baht} placeholder="บาท" className={`${fieldClass} w-2/3`} onChange={event => onNumberChange(row.materialId, "baht", event.target.value)} />
+          <span className="text-slate-500">.</span>
+          <input aria-label={`${row.name} สตางค์`} title="สตางค์" type="text" inputMode="numeric" value={row.satang} placeholder="สต." className={`${fieldClass} w-1/3`} onChange={event => onNumberChange(row.materialId, "satang", event.target.value)} />
+        </div>
+      </td>
+      <td className={cell}>{Math.max(0, row.closingQty - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH")}</td>
+      {statusFields.map(field => <td key={field} className={`${cell} p-0`}><input type="text" inputMode="numeric" value={row[field]} placeholder="" className={fieldClass} onChange={event => onNumberChange(row.materialId, field, event.target.value)} /></td>)}
+      <td className={`${cell} p-0`}><input type="text" value={row.remark} className={`${fieldClass} text-left`} onChange={event => onRemarkChange(row.materialId, event.target.value)} /></td>
+    </tr>)}
+  </>;
 }

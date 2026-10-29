@@ -510,10 +510,6 @@ export default function StockCardHome() {
 
     `/stock-card/inspection?fiscalYear=${selectedFiscalYear}`;
 
-  const stockReportHref =
-
-    `/stock-card/report?fiscalYear=${selectedFiscalYear}`;
-
   /* =======================================================
 
      CHANGE FISCAL YEAR
@@ -639,24 +635,6 @@ export default function StockCardHome() {
         actions={
 
           <>
-
-            {/* ===============================================
-
-                INSPECTION HISTORY
-
-                ใช้ปุ่มตัวกลาง
-
-                สีเขียว
-
-            =============================================== */}
-
-            <AppButton
-              href={stockReportHref}
-              variant="primary"
-              size="md"
-            >
-              รายงานบัญชีพัสดุคงคลัง
-            </AppButton>
 
             <ExportAllStockCardPdf fiscalYear={selectedFiscalYear} />
 

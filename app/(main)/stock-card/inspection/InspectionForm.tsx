@@ -26,6 +26,7 @@ type Material = {
   receiveQty: number;
   issueQty: number;
   closingBalance: number;
+  latestPrice: number | null;
 };
 type Officer = {
   id: number;
@@ -115,7 +116,10 @@ const THAI_WEEK_DAYS = [
   "ศ",
   "ส",
 ];
-const TABLE_MIN_WIDTH = 1710;
+const TABLE_WIDTHS = [46, 360, 74, 105, 140, 90, 90, 105, 75, 82, 75, 75, 125, 90, 90, 90, 195, 160];
+const TABLE_MIN_WIDTH = TABLE_WIDTHS.reduce((sum, width) => sum + width, 0);
+const formatPrice = (value: number | null) => value !== null && Number.isFinite(value)
+  ? value.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "-";
 /* =========================================================
    DATE HELPERS
 \========================================================= */
@@ -1181,48 +1185,37 @@ export default function InspectionForm({
         >
           <table
             ref={contentRef}
+            style={{ minWidth: TABLE_MIN_WIDTH }}
             className="
-              w-full min-w-[1710px]
+              w-full 
               table-fixed border-collapse
               bg-white text-[15px]
             "
           >
             <colgroup>
-              {[
-                42, 372, 72, 132, 84, 84, 90, 60, 78,
-                66, 66, 60, 60, 84, 90, 108, 162,
-              ].map((width, index) => (
-                <col key={index} style={{ width: `${width}px` }} />
+              {TABLE_WIDTHS.map((width, index) => (
+                <col key={index} style={{ width }} />
               ))}
             </colgroup>
-            {/* HEADER */}
+            {/* HEADER: same 18-column layout as stock-card/report */}
             <thead>
               <tr>
                 <th rowSpan={2} className={tableHeaderClass}>ลำดับ</th>
                 <th rowSpan={2} className={tableHeaderClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
                 <th rowSpan={2} className={tableHeaderClass}>หน่วยนับ</th>
-                <th rowSpan={2} className={tableHeaderClass}>
-                  <div>คงเหลือยอดยกมาเมื่อ</div>
-                  <div>01 ต.ค. {startShortYear}</div>
-                </th>
-                <th colSpan={2} className={tableHeaderClass}>
-                  {`01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`}
-                </th>
+                <th rowSpan={2} className={tableHeaderClass}>ราคาต่อหน่วย</th>
+                <th rowSpan={2} className={tableHeaderClass}>คงเหลือยอดยกมาเมื่อ<br />01 ต.ค. {startShortYear}</th>
+                <th colSpan={2} className={tableHeaderClass}>01 ต.ค. {startShortYear} - 30 ก.ย. {endShortYear}</th>
                 <th rowSpan={2} className={tableHeaderClass}>คงเหลือปัจจุบัน</th>
                 <th colSpan={2} className={tableHeaderClass}>ผลการตรวจสอบ</th>
-                <th colSpan={4} className={tableHeaderClass}>
-                  <span className="block">ถ้าไม่ถูกต้องจำนวนที่ขาด</span>
-                  <span className="block">จำนวนที่เกินคิดเป็นเงินร้อยละ</span>
-                </th>
-                <th colSpan={3} className={tableHeaderClass}>จำนวนที่</th>
+                <th colSpan={2} className={tableHeaderClass}>ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน</th>
+                <th className={tableHeaderClass}>จำนวนที่ขาดเกิน<br />คิดเป็นเงิน</th>
+                <th colSpan={4} className={tableHeaderClass}>สถานะการใช้งานของวัสดุ (จำนวน)</th>
                 <th rowSpan={2} className={tableHeaderClass}>หมายเหตุ</th>
               </tr>
               <tr>
-                {[
-                  "รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "บาท", "สต.",
-                  "ชำรุด", "เสื่อมสภาพ", "ไม่จำเป็นต้องใช้",
-                ].map((title) => (
-                  <th key={title} className={`${tableHeaderClass} !py-1`}>{title}</th>
+                {["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"].map(title => (
+                  <th key={title} className={`${tableHeaderClass} !py-1 whitespace-pre-line`}>{title}</th>
                 ))}
               </tr>
             </thead>
@@ -1231,7 +1224,7 @@ export default function InspectionForm({
               {groupedMaterials.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={17}
+                    colSpan={18}
                     className="
                       h-[60px]
                       border border-black bg-white
@@ -1437,7 +1430,7 @@ function MaterialCategoryRows({
     <>
       <tr className="h-[23.25px] bg-white">
         <td
-          colSpan={17}
+          colSpan={18}
           className="
             h-[23.25px]
             border border-black
@@ -1487,7 +1480,9 @@ function MaterialCategoryRows({
             <td className={stockCellClass}>
               {material.unit || "-"}
             </td>
-            {/* 4. OPENING */}
+            {/* 4. LATEST PRICE */}
+            <td className={stockCellClass}>{formatPrice(material.latestPrice)}</td>
+            {/* 5. OPENING */}
             <td className={stockCellClass}>
               {displayStockValue(material.openingBalance)}
             </td>
@@ -1505,33 +1500,23 @@ function MaterialCategoryRows({
             </td>
             {/* 8. CORRECT */}
             <td className={radioCellClass}>
-              <input
-                type="radio"
-                name={`accuracy-${material.materialId}`}
-                checked={row.accuracy === "CORRECT"}
-                onChange={() =>
-                  updateAccuracy(material.materialId, "CORRECT")
-                }
-                className="
-                  h-[15px] w-[15px] cursor-pointer
-                  accent-emerald-600
-                "
-              />
+              <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  aria-label={`${material.name} ถูกต้อง`}
+                  checked={row.accuracy === "CORRECT"}
+                  onChange={(event) => updateAccuracy(material.materialId, event.target.checked ? "CORRECT" : "")} />
+                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+              </label>
             </td>
             {/* 9. INCORRECT */}
             <td className={radioCellClass}>
-              <input
-                type="radio"
-                name={`accuracy-${material.materialId}`}
-                checked={row.accuracy === "INCORRECT"}
-                onChange={() =>
-                  updateAccuracy(material.materialId, "INCORRECT")
-                }
-                className="
-                  h-[15px] w-[15px] cursor-pointer
-                  accent-red-600
-                "
-              />
+              <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  aria-label={`${material.name} ไม่ถูกต้อง`}
+                  checked={row.accuracy === "INCORRECT"}
+                  onChange={(event) => updateAccuracy(material.materialId, event.target.checked ? "INCORRECT" : "")} />
+                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+              </label>
             </td>
             {/* 10. SHORTAGE */}
             <CompactNumberCell
@@ -1557,30 +1542,23 @@ function MaterialCategoryRows({
                 )
               }
             />
-            {/* 12. BAHT */}
-            <CompactNumberCell
-              value={row.baht}
-              inputClass={inputClass}
-              onChange={(value) =>
-                updateNumberField(
-                  material.materialId,
-                  "baht",
-                  value
-                )
-              }
-            />
-            {/* 13. SATANG */}
-            <CompactNumberCell
-              value={row.satang}
-              inputClass={inputClass}
-              onChange={(value) =>
-                updateNumberField(
-                  material.materialId,
-                  "satang",
-                  value
-                )
-              }
-            />
+            {/* 12. AMOUNT: keep both baht and satang values for existing API */}
+            <td className="h-[23.25px] border border-black p-0">
+              <div className="flex items-center gap-0.5 px-0.5">
+                <input type="text" inputMode="numeric" aria-label={`${material.name} บาท`}
+                  title="บาท" placeholder="บาท" value={row.baht}
+                  onChange={(event) => updateNumberField(material.materialId, "baht", event.target.value)}
+                  className={`${inputClass} !w-3/5`} />
+                <input type="text" inputMode="numeric" aria-label={`${material.name} สตางค์`}
+                  title="สตางค์" placeholder="สต." value={row.satang}
+                  onChange={(event) => updateNumberField(material.materialId, "satang", event.target.value)}
+                  className={`${inputClass} !w-2/5`} />
+              </div>
+            </td>
+            {/* 13. IN USE: display remaining usable quantity; no change to stored fields */}
+            <td className={stockCellClass}>
+              {Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH")}
+            </td>
             {/* 14. DAMAGED */}
             <CompactNumberCell
               value={row.damagedQty}

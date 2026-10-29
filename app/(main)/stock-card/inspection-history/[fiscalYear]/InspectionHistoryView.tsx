@@ -9,7 +9,7 @@ import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
 
 type Material = {
   materialId: number; code: string; name: string; unit: string; category: string;
-  openingBalance: number; receiveQty: number; issueQty: number; closingBalance: number;
+  latestPrice?: number | null; openingBalance: number; receiveQty: number; issueQty: number; closingBalance: number;
 };
 type InspectionRow = {
   materialId: number; accuracy: string; shortageQty: string; excessQty: string;
@@ -33,7 +33,8 @@ const CATEGORY_NAME: Record<string, string> = {
   ELECTRIC: "วัสดุไฟฟ้าและวิทยุ", HOUSEHOLD: "วัสดุงานบ้านและงานครัว",
   VEHICLE: "วัสดุยานพาหนะ", PRINTING: "วัสดุสื่อสิ่งพิมพ์",
 };
-const widths = [42,372,72,132,84,84,90,60,78,66,66,60,60,84,90,108,162];
+const widths = [46,360,74,105,140,90,90,105,75,82,75,75,125,90,90,90,195,160];
+const tableWidth = widths.reduce((total, width) => total + width, 0);
 const headerClass = "border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-2 text-center align-middle text-[15px] font-extrabold leading-tight !text-white";
 const cellClass = "h-[23.25px] border border-black px-1 py-0 text-center text-[15px] font-normal leading-none tabular-nums !text-black";
 const formatStock = (value: number) => Number.isFinite(value) && value !== 0 ? value.toLocaleString("th-TH") : "-";
@@ -119,32 +120,34 @@ export default function InspectionHistoryView(props: Props) {
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
           <div className="mb-1 text-xs font-bold !text-slate-600">เลื่อนตารางซ้าย–ขวา</div>
           <div ref={topScrollbarRef} onScroll={() => syncScroll("top")} className="w-full max-w-full overflow-x-auto rounded-md border border-slate-300 bg-white" aria-label="แถบเลื่อนตารางด้านบน">
-            <div style={{ width: 1710, height: 8 }} />
+            <div style={{ width: tableWidth, height: 8 }} />
           </div>
         </div>
         <div ref={tableScrollbarRef} onScroll={() => syncScroll("table")} className="w-full max-w-full min-w-0 overflow-x-auto overscroll-x-contain" style={{ touchAction: "pan-x pan-y" }}>
-          <table className="w-full min-w-[1710px] table-fixed border-collapse bg-white text-[15px]">
+          <table className="w-full table-fixed border-collapse bg-white text-[15px]" style={{ minWidth: tableWidth }}>
             <colgroup>{widths.map((width,index) => <col key={index} style={{width:`${width}px`}} />)}</colgroup>
             <thead>
               <tr>
                 <th rowSpan={2} className={headerClass}>ลำดับ</th>
                 <th rowSpan={2} className={headerClass}>ชื่อหรือชนิดวัสดุหรือครุภัณฑ์</th>
                 <th rowSpan={2} className={headerClass}>หน่วยนับ</th>
+                <th rowSpan={2} className={headerClass}>ราคาต่อหน่วย</th>
                 <th rowSpan={2} className={headerClass}>คงเหลือยอดยกมาเมื่อ<br />01 ต.ค. {startShortYear}</th>
                 <th colSpan={2} className={headerClass}>01 ต.ค. {startShortYear} - 30 ก.ย. {endShortYear}</th>
                 <th rowSpan={2} className={headerClass}>คงเหลือปัจจุบัน</th>
                 <th colSpan={2} className={headerClass}>ผลการตรวจสอบ</th>
-                <th colSpan={4} className={headerClass}>ถ้าไม่ถูกต้องจำนวนที่ขาด<br />จำนวนที่เกินคิดเป็นเงินร้อยละ</th>
-                <th colSpan={3} className={headerClass}>จำนวนที่</th>
+                <th colSpan={2} className={headerClass}>ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน</th>
+                <th className={headerClass}>จำนวนที่ขาดเกิน<br />คิดเป็นเงิน</th>
+                <th colSpan={4} className={headerClass}>สถานะการใช้งานของวัสดุ (จำนวน)</th>
                 <th rowSpan={2} className={headerClass}>หมายเหตุ</th>
               </tr>
-              <tr>{["รับ","จ่าย","ถูกต้อง","ไม่ถูกต้อง","ขาด","เกิน","บาท","สต.","ชำรุด","เสื่อมสภาพ","ไม่จำเป็นต้องใช้"].map(label =>
-                <th key={label} className={`${headerClass} !py-1`}>{label}</th>)}</tr>
+              <tr>{["รับ","จ่าย","ถูกต้อง","ไม่ถูกต้อง","ขาด","เกิน","(บาท)","ใช้การได้","ชำรุด","เสื่อมสภาพ","สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"].map(label =>
+                <th key={label} className={`${headerClass} !py-1 whitespace-pre-line`}>{label}</th>)}</tr>
             </thead>
             <tbody>
-              {groups.length === 0 && <tr><td colSpan={17} className={`${cellClass} py-6`}>ไม่พบรายการพัสดุ</td></tr>}
+              {groups.length === 0 && <tr><td colSpan={18} className={`${cellClass} py-6`}>ไม่พบรายการพัสดุ</td></tr>}
               {groups.map(group => <Fragment key={group.category}>
-                <tr key={`${group.category}-heading`}><td colSpan={17} className="h-[23.25px] border border-black bg-white px-2 py-0 text-left text-[15px] font-bold leading-none !text-black">{group.name}</td></tr>
+                <tr key={`${group.category}-heading`}><td colSpan={18} className="h-[23.25px] border border-black bg-white px-2 py-0 text-left text-[15px] font-bold leading-none !text-black">{group.name}</td></tr>
                 {group.materials.map((material,index) => {
                   const row = rowMap.get(material.materialId);
                   const cells = [formatStock(material.openingBalance), formatStock(material.receiveQty),
@@ -153,10 +156,15 @@ export default function InspectionHistoryView(props: Props) {
                     <td className={cellClass}>{index+1}</td>
                     <td className={`${cellClass} px-2 text-left leading-tight`}>{material.name}</td>
                     <td className={cellClass}>{material.unit || "-"}</td>
+                    <td className={cellClass}>{material.latestPrice == null ? "-" : material.latestPrice.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     {cells.map((value,i) => <td key={i} className={cellClass}>{value}</td>)}
-                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? "✓" : ""}</td>
-                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? "✓" : ""}</td>
-                    {(["shortageQty","excessQty","baht","satang","damagedQty","deterioratedQty","unnecessaryQty"] as const).map(key =>
+                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
+                    {(["shortageQty","excessQty"] as const).map(key =>
+                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
+                    <td className={cellClass}>{row?.baht || row?.satang ? `${row?.baht || "0"}.${String(row?.satang || "0").padStart(2, "0")}` : ""}</td>
+                    <td className={cellClass}>{row ? Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH") : ""}</td>
+                    {(["damagedQty","deterioratedQty","unnecessaryQty"] as const).map(key =>
                       <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
                     <td className={`${cellClass} px-2 text-left`}>{row?.remark ?? ""}</td>
                   </tr>;

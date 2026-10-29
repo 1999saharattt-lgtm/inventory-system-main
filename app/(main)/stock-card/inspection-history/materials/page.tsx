@@ -6,7 +6,6 @@ import AppButton from "@/components/AppButton";
 import AppTableCard from "@/components/AppTableCard";
 
 import DeleteInspectionButton from "../DeleteInspectionButton";
-import InspectionHistoryTypeSelect from "./InspectionHistoryTypeSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -93,22 +92,15 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
       ? requestedFiscalYear
       : currentFiscalYear;
 
-  const selectedType: "annual" | "inventory" = params.type === "inventory" ? "inventory" : "annual";
-
-  const annualInspections = selectedType === "annual"
-    ? await prisma.stockCardInspection.findMany({
-        where: { fiscalYear: selectedFiscalYear },
-        include: { _count: { select: { rows: true } } },
-        orderBy: [{ fiscalYear: "desc" }, { inspectionDate: "desc" }, { id: "desc" }],
-      })
-    : [];
-  const inventoryInspections = selectedType === "inventory"
-    ? await prisma.stockInventoryReportHistory.findMany({
-        where: { fiscalYear: selectedFiscalYear },
-        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      })
-    : [];
-  const inspections = selectedType === "annual" ? annualInspections : inventoryInspections;
+  const inspections = await prisma.stockCardInspection.findMany({
+    where: { fiscalYear: selectedFiscalYear },
+    include: { _count: { select: { rows: true } } },
+    orderBy: [
+      { fiscalYear: "desc" },
+      { inspectionDate: "desc" },
+      { id: "desc" },
+    ],
+  });
 
   const backHref = `/stock-card/inspection-history?fiscalYear=${selectedFiscalYear}`;
   const tableSubtitle = `ประวัติการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${selectedFiscalYear}`;
@@ -131,7 +123,6 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
         badge={`${inspections.length.toLocaleString("th-TH")} รายการ`}
         className="w-full min-w-0"
       >
-        <InspectionHistoryTypeSelect fiscalYear={selectedFiscalYear} value={selectedType} />
         <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[1350px] border-collapse bg-white text-sm">
             <thead>
@@ -150,24 +141,11 @@ export default async function StockCardInspectionHistoryPage({ searchParams }: P
                     colSpan={8}
                     className="border border-black px-4 py-12 text-center text-base font-bold !text-slate-500"
                   >
-                    {selectedType === "annual"
-                      ? "ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ"
-                      : "ยังไม่มีประวัติรายงานบัญชีพัสดุคงคลัง (ต้องเชื่อมระบบบันทึกประวัติแยกต่างหาก)"}
+                    ยังไม่มีประวัติการตรวจสอบบัญชีพัสดุ
                   </td>
                 </tr>
               ) : (
-                selectedType === "inventory" ? inventoryInspections.map((inspection, index) => (
-                  <tr key={inspection.id} className={index % 2 === 0 ? "bg-white hover:bg-blue-50/70" : "bg-slate-50/70 hover:bg-blue-50/70"}>
-                    <td className={cellClassName}>{index + 1}</td>
-                    <td className={cellClassName}>พ.ศ. {inspection.fiscalYear}</td>
-                    <td className={cellClassName}>{formatInspectionDate(inspection.createdAt)}</td>
-                    <td className={cellClassName}>{formatInspectionDate(inspection.updatedAt)}</td>
-                    <td className={cellClassName}>{Array.isArray(inspection.rows) ? inspection.rows.length : 0} รายการ</td>
-                    <td className={cellClassName}>-</td>
-                    <td className={cellClassName}><AppButton href={`/stock-card/inspection-history/materials/inventory/${inspection.id}?fiscalYear=${selectedFiscalYear}`} variant="primary" size="sm">เปิด</AppButton></td>
-                    <td className={cellClassName}>-</td>
-                  </tr>
-                )) : annualInspections.map((inspection, index) => {
+                inspections.map((inspection, index) => {
                   const detailHref =
                     `/stock-card/inspection-history/${inspection.fiscalYear}`;
                   const inspectorCount = parseInspectorNames(

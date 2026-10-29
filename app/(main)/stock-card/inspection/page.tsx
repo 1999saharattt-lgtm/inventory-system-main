@@ -95,6 +95,7 @@ type MaterialRow = {
   issueQty: number;
 
   closingBalance: number;
+  latestPrice: number | null;
 
 };
 
@@ -1181,8 +1182,7 @@ export default async function StockCardInspectionPage({
               id: true,
 
               qty: true,
-
-
+              unitPrice: true,
 
               receive: {
 
@@ -1508,7 +1508,21 @@ export default async function StockCardInspectionPage({
 
 
 
-          const openingBalance =
+          // ราคาซื้อล่าสุดไม่เกินวันสิ้นปีงบประมาณที่เลือก
+          const latestReceipt = [...material.receiveItems].sort(
+            (a, b) => b.receive.receiveDate.getTime() - a.receive.receiveDate.getTime() || b.id - a.id
+          )[0];
+          const latestPrice = latestReceipt ? safeNumber(latestReceipt.unitPrice) : null;
+
+          // ยอดยกเข้าระบบ (ฐานตั้งต้น) และรายการรับ-จ่ายก่อนต้นปีงบประมาณ
+          const previousReceiveQty = material.receiveItems
+            .filter(item => isReceiveDocument(item.receive.documentNo) && item.receive.receiveDate.getTime() < fiscalRange.startDate.getTime())
+            .reduce((total, item) => total + safeNumber(item.qty), 0);
+          const previousIssueQty = material.issueItems
+            .filter(item => isIssueDocument(item.issue.documentNo) && item.issue.issueDate.getTime() < fiscalRange.startDate.getTime())
+            .reduce((total, item) => total + getActualIssuedQty(item), 0);
+
+          const initialBalance =
 
             material.receiveItems
 
@@ -1553,6 +1567,8 @@ export default async function StockCardInspectionPage({
               );
 
 
+
+          const openingBalance = initialBalance + previousReceiveQty - previousIssueQty;
 
           /* =============================================
 
@@ -1989,8 +2005,7 @@ export default async function StockCardInspectionPage({
 
 
             openingBalance,
-
-
+            latestPrice,
 
             receiveQty,
 
