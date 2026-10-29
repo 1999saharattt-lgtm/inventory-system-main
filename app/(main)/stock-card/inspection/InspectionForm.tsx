@@ -770,6 +770,20 @@ export default function InspectionForm({
       )
     );
   }
+  // Selection for the usable-status column; no change to stock calculations.
+  const [inUseChecks, setInUseChecks] = useState<Record<number, boolean>>({});
+  function toggleInUse(materialId: number, checked: boolean) {
+    setInUseChecks((previous) => ({ ...previous, [materialId]: checked }));
+  }
+  function updateVisibleStatus(field: "IN_USE" | "damagedQty" | "deterioratedQty" | "unnecessaryQty") {
+    const visibleIds = new Set(filteredMaterials.map((material) => material.materialId));
+    if (field === "IN_USE") {
+      setInUseChecks((previous) => ({ ...previous, ...Object.fromEntries([...visibleIds].map((id) => [id, true])) }));
+      return;
+    }
+    setRows((previous) => previous.map((row) => visibleIds.has(row.materialId)
+      ? { ...row, [field]: "1" } : row));
+  }
   function updateNumberField(
     materialId: number,
     field:
@@ -1112,6 +1126,10 @@ export default function InspectionForm({
               >
                 ไม่ถูกต้องทั้งหมด
               </AppButton>
+              <AppButton type="button" variant="success" size="sm" onClick={() => updateVisibleStatus("IN_USE")}>ใช้การได้ทั้งหมด</AppButton>
+              <AppButton type="button" variant="warning" size="sm" onClick={() => updateVisibleStatus("damagedQty")}>ชำรุดทั้งหมด</AppButton>
+              <AppButton type="button" variant="warning" size="sm" onClick={() => updateVisibleStatus("deterioratedQty")}>เสื่อมสภาพทั้งหมด</AppButton>
+              <AppButton type="button" variant="danger" size="sm" onClick={() => updateVisibleStatus("unnecessaryQty")}>สูญไปหรือไม่จำเป็นต้องใช้ในหน่วยงานทั้งหมด</AppButton>
               <ExportInspectionPdf
                 fiscalYear={fiscalYear}
                 startShortYear={startShortYear}
@@ -1122,6 +1140,7 @@ export default function InspectionForm({
                 inspectionEndDate={inspectionEndDate}
                 inspectorIds={inspectorIds}
                 officers={officers}
+                inUseChecks={inUseChecks}
               />
             </div>
           </div>
@@ -1244,6 +1263,8 @@ export default function InspectionForm({
                     getRow={getRow}
                     inputClass={compactInputClass}
                     updateAccuracy={updateAccuracy}
+                    inUseChecks={inUseChecks}
+                    toggleInUse={toggleInUse}
                     updateNumberField={updateNumberField}
                     updateRemark={(materialId, value) =>
                       updateRow(materialId, "remark", value)
@@ -1398,6 +1419,8 @@ function MaterialCategoryRows({
   getRow,
   inputClass,
   updateAccuracy,
+  inUseChecks,
+  toggleInUse,
   updateNumberField,
   updateRemark,
 }: {
@@ -1409,6 +1432,8 @@ function MaterialCategoryRows({
     materialId: number,
     accuracy: string
   ) => void;
+  inUseChecks: Record<number, boolean>;
+  toggleInUse: (materialId: number, checked: boolean) => void;
   updateNumberField: (
     materialId: number,
     field:
@@ -1555,46 +1580,25 @@ function MaterialCategoryRows({
                   className={`${inputClass} !w-2/5`} />
               </div>
             </td>
-            {/* 13. IN USE: display remaining usable quantity; no change to stored fields */}
-            <td className={stockCellClass}>
-              {Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH")}
+            {/* 13-16. STATUS: circular selection, Excel-style check mark */}
+            <td className={radioCellClass}>
+              <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  aria-label={`${material.name} ใช้การได้`} checked={Boolean(inUseChecks[material.materialId])}
+                  onChange={(event) => toggleInUse(material.materialId, event.target.checked)} />
+                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[14px] font-bold leading-none !text-transparent peer-checked:border-transparent peer-checked:!text-black">✓</span>
+              </label>
             </td>
-            {/* 14. DAMAGED */}
-            <CompactNumberCell
-              value={row.damagedQty}
-              inputClass={inputClass}
-              onChange={(value) =>
-                updateNumberField(
-                  material.materialId,
-                  "damagedQty",
-                  value
-                )
-              }
-            />
-            {/* 15. DETERIORATED */}
-            <CompactNumberCell
-              value={row.deterioratedQty}
-              inputClass={inputClass}
-              onChange={(value) =>
-                updateNumberField(
-                  material.materialId,
-                  "deterioratedQty",
-                  value
-                )
-              }
-            />
-            {/* 16. UNNECESSARY */}
-            <CompactNumberCell
-              value={row.unnecessaryQty}
-              inputClass={inputClass}
-              onChange={(value) =>
-                updateNumberField(
-                  material.materialId,
-                  "unnecessaryQty",
-                  value
-                )
-              }
-            />
+            {(["damagedQty", "deterioratedQty", "unnecessaryQty"] as const).map((field) => (
+              <td key={field} className={radioCellClass}>
+                <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+                  <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                    aria-label={`${material.name} ${field}`} checked={Number(row[field] || 0) > 0}
+                    onChange={(event) => updateNumberField(material.materialId, field, event.target.checked ? "1" : "")} />
+                  <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[14px] font-bold leading-none !text-transparent peer-checked:border-transparent peer-checked:!text-black">✓</span>
+                </label>
+              </td>
+            ))}
             {/* 17. REMARK */}
             <td
               className="
