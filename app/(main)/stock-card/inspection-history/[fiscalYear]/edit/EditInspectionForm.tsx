@@ -1402,6 +1402,34 @@ export default function EditInspectionForm({
     );
   }
 
+  function updateAllStatus(field: "usable" | "damagedQty" | "deterioratedQty" | "unnecessaryQty") {
+    const visibleIds = new Set(filteredRows.map((row) => row.materialId));
+    setRows((current) => current.map((row) => {
+      if (!visibleIds.has(row.materialId)) return row;
+      return {
+        ...row,
+        accuracy: field === "usable" ? "CORRECT" : row.accuracy,
+        damagedQty: field === "damagedQty" ? "1" : "",
+        deterioratedQty: field === "deterioratedQty" ? "1" : "",
+        unnecessaryQty: field === "unnecessaryQty" ? "1" : "",
+      };
+    }));
+  }
+
+  function updateStatus(materialId: number, field: "usable" | "damagedQty" | "deterioratedQty" | "unnecessaryQty", checked: boolean) {
+    setRows((current) => current.map((row) => {
+      if (row.materialId !== materialId) return row;
+      if (field === "usable") {
+        return { ...row, accuracy: checked ? "CORRECT" : "", damagedQty: "", deterioratedQty: "", unnecessaryQty: "" };
+      }
+      return {
+        ...row,
+        [field]: checked ? "1" : "",
+        ...(checked ? { damagedQty: field === "damagedQty" ? "1" : "", deterioratedQty: field === "deterioratedQty" ? "1" : "", unnecessaryQty: field === "unnecessaryQty" ? "1" : "" } : {}),
+      };
+    }));
+  }
+
   /* =======================================================
      NUMBER INPUT
   ======================================================= */
@@ -1876,9 +1904,6 @@ export default function EditInspectionForm({
       <AppTableCard
         title="รายการตรวจสอบบัญชีพัสดุ"
         subtitle={`แก้ไขผลการตรวจสอบบัญชีพัสดุ ประจำปีงบประมาณ ${fiscalYear}`}
-        badge={`${filteredRows.length.toLocaleString(
-          "th-TH"
-        )} รายการ`}
         className="
           relative
           z-10
@@ -1888,6 +1913,48 @@ export default function EditInspectionForm({
           !max-w-full
         "
       >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-3">
+          <span className="text-sm font-bold text-slate-700">{filteredRows.length.toLocaleString("th-TH")} รายการ</span>
+              <ExportInspectionPdf
+                fiscalYear={fiscalYear}
+                startShortYear={String(fiscalYear - 1).slice(-2)}
+                endShortYear={String(fiscalYear).slice(-2)}
+                materials={filteredRows.map((row) => ({
+                  materialId: row.materialId,
+                  code: row.code,
+                  name: row.name,
+                  unit: row.unit,
+                  category: row.category,
+                  openingBalance: row.openingQty,
+                  receiveQty: row.receiveQty,
+                  issueQty: row.issueQty,
+                  closingBalance: row.closingQty,
+                }))}
+                rows={rows.map((row) => ({
+                  materialId: row.materialId,
+                  accuracy: row.accuracy,
+                  shortageQty: row.shortageQty,
+                  excessQty: row.excessQty,
+                  baht: row.baht,
+                  satang: row.satang,
+                  damagedQty: row.damagedQty,
+                  deterioratedQty: row.deterioratedQty,
+                  unnecessaryQty: row.unnecessaryQty,
+                  remark: row.remark,
+                }))}
+                inspectionStartDate={inspectionDate}
+                inspectionEndDate={inspectionEndDate}
+                inspectorIds={inspectorIds}
+                officers={officers.map((officer) => ({
+                  ...officer,
+                  position: officer.position ?? "",
+                  type: "",
+                  departmentId: officer.department?.id ?? null,
+                  sectionId: officer.section?.id ?? null,
+                }))}
+              />
+        </div>
+
         {/* เลือกหมวด: ชิดหัวการ์ด โดยไม่เปลี่ยนปุ่มและหัวตารางเดิม */}
         <div className="border-b border-slate-200 bg-white px-3 pb-2 pt-0">
           <div className="relative z-30 w-full sm:max-w-[360px]">
@@ -1973,44 +2040,17 @@ export default function EditInspectionForm({
             >
               ไม่ถูกต้องทั้งหมด
             </AppButton>
-              <ExportInspectionPdf
-                fiscalYear={fiscalYear}
-                startShortYear={String(fiscalYear - 1).slice(-2)}
-                endShortYear={String(fiscalYear).slice(-2)}
-                materials={filteredRows.map((row) => ({
-                  materialId: row.materialId,
-                  code: row.code,
-                  name: row.name,
-                  unit: row.unit,
-                  category: row.category,
-                  openingBalance: row.openingQty,
-                  receiveQty: row.receiveQty,
-                  issueQty: row.issueQty,
-                  closingBalance: row.closingQty,
-                }))}
-                rows={rows.map((row) => ({
-                  materialId: row.materialId,
-                  accuracy: row.accuracy,
-                  shortageQty: row.shortageQty,
-                  excessQty: row.excessQty,
-                  baht: row.baht,
-                  satang: row.satang,
-                  damagedQty: row.damagedQty,
-                  deterioratedQty: row.deterioratedQty,
-                  unnecessaryQty: row.unnecessaryQty,
-                  remark: row.remark,
-                }))}
-                inspectionStartDate={inspectionDate}
-                inspectionEndDate={inspectionEndDate}
-                inspectorIds={inspectorIds}
-                officers={officers.map((officer) => ({
-                  ...officer,
-                  position: officer.position ?? "",
-                  type: "",
-                  departmentId: officer.department?.id ?? null,
-                  sectionId: officer.section?.id ?? null,
-                }))}
-              />
+
+            {([
+              ["ใช้การได้ทั้งหมด", "usable"],
+              ["ชำรุดทั้งหมด", "damagedQty"],
+              ["เสื่อมสภาพทั้งหมด", "deterioratedQty"],
+              ["สูญไปหรือไม่จำเป็นต้องใช้ทั้งหมด", "unnecessaryQty"],
+            ] as const).map(([label, field]) => (
+              <AppButton key={field} type="button" variant="secondary" size="sm" onClick={() => updateAllStatus(field)}>
+                {label}
+              </AppButton>
+            ))}
           </div>
         </div>
 
@@ -2140,6 +2180,7 @@ export default function EditInspectionForm({
                       onNumberChange={
                         handleNumberChange
                       }
+                      onStatusChange={updateStatus}
                       onRemarkChange={(
                         materialId,
                         value
@@ -2407,12 +2448,13 @@ export default function EditInspectionForm({
    CATEGORY ROWS
 ========================================================= */
 
-function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, onNumberChange, onRemarkChange }: {
+function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, onNumberChange, onStatusChange, onRemarkChange }: {
   categoryName: string;
   rows: InspectionRow[];
   numberInputClass: string;
   onAccuracyChange: (materialId: number, accuracy: string) => void;
   onNumberChange: (materialId: number, field: "shortageQty" | "excessQty" | "baht" | "satang" | "damagedQty" | "deterioratedQty" | "unnecessaryQty", value: string) => void;
+  onStatusChange: (materialId: number, field: "usable" | "damagedQty" | "deterioratedQty" | "unnecessaryQty", checked: boolean) => void;
   onRemarkChange: (materialId: number, value: string) => void;
 }) {
   const cell = "h-[23.25px] border border-black px-1 py-0 text-center text-[15px] font-normal leading-none tabular-nums !text-black";
@@ -2447,8 +2489,19 @@ function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, 
           <input aria-label={`${row.name} สตางค์`} title="สตางค์" type="text" inputMode="numeric" value={row.satang} placeholder="สต." className={`${fieldClass} w-1/3`} onChange={event => onNumberChange(row.materialId, "satang", event.target.value)} />
         </div>
       </td>
-      <td className={cell}>{Math.max(0, row.closingQty - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH")}</td>
-      {statusFields.map(field => <td key={field} className={`${cell} p-0`}><input type="text" inputMode="numeric" value={row[field]} placeholder="" className={fieldClass} onChange={event => onNumberChange(row.materialId, field, event.target.value)} /></td>)}
+      {(["usable", ...statusFields] as const).map(field => {
+        const selected = field === "usable"
+          ? row.accuracy === "CORRECT" && !Number(row.damagedQty || 0) && !Number(row.deterioratedQty || 0) && !Number(row.unnecessaryQty || 0)
+          : Number(row[field] || 0) > 0;
+        return <td key={field} className={cell}>
+          <label className="relative inline-flex h-5 w-5 cursor-pointer items-center justify-center align-middle">
+            <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+              aria-label={`${row.name} ${field === "usable" ? "ใช้การได้" : field === "damagedQty" ? "ชำรุด" : field === "deterioratedQty" ? "เสื่อมสภาพ" : "สูญไปหรือไม่จำเป็นต้องใช้"}`}
+              checked={selected} onChange={event => onStatusChange(row.materialId, field, event.target.checked)} />
+            <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-transparent peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
+          </label>
+        </td>;
+      })}
       <td className={`${cell} p-0`}><input type="text" value={row.remark} className={`${fieldClass} text-left`} onChange={event => onRemarkChange(row.materialId, event.target.value)} /></td>
     </tr>)}
   </>;
