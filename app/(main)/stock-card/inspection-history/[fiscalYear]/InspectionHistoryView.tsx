@@ -39,6 +39,10 @@ const headerClass = "border border-black bg-gradient-to-r from-slate-800 to-slat
 const cellClass = "h-[23.25px] border border-black px-1 py-0 text-center text-[15px] font-normal leading-none tabular-nums !text-black";
 const formatStock = (value: number) => Number.isFinite(value) && value !== 0 ? value.toLocaleString("th-TH") : "-";
 const formatCurrent = (value: number) => Number.isFinite(value) ? value.toLocaleString("th-TH") : "0";
+const hasSelectedValue = (value: string | number | null | undefined) => {
+  const text = String(value ?? "").trim();
+  return text !== "" && text !== "0" && !/^0+(?:\.0+)?$/.test(text);
+};
 const dateText = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "-";
   const [y,m,d] = value.split("-").map(Number);
@@ -158,15 +162,15 @@ export default function InspectionHistoryView(props: Props) {
                     <td className={cellClass}>{material.unit || "-"}</td>
                     <td className={cellClass}>{material.latestPrice == null ? "-" : material.latestPrice.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     {cells.map((value,i) => <td key={i} className={cellClass}>{value}</td>)}
-                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
-                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
-                    {(["shortageQty","excessQty"] as const).map(key =>
-                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
-                    <td className={cellClass}>{row?.baht || row?.satang ? `${row?.baht || "0"}.${String(row?.satang || "0").padStart(2, "0")}` : ""}</td>
-                    <td className={cellClass}>{row ? Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH") : ""}</td>
-                    {(["damagedQty","deterioratedQty","unnecessaryQty"] as const).map(key =>
-                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
-                    <td className={`${cellClass} px-2 text-left`}>{row?.remark ?? ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? "✓" : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? "✓" : ""}</td>
+                    {(["shortageQty", "excessQty"] as const).map(key =>
+                      <td key={key} className={cellClass}>{hasSelectedValue(row?.[key]) ? "✓" : ""}</td>)}
+                    <td className={cellClass}>{hasSelectedValue(row?.baht) || hasSelectedValue(row?.satang) ? "✓" : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? "✓" : ""}</td>
+                    {(["damagedQty", "deterioratedQty", "unnecessaryQty"] as const).map(key =>
+                      <td key={key} className={cellClass}>{hasSelectedValue(row?.[key]) ? "✓" : ""}</td>)}
+                    <td className={`${cellClass} px-2 text-center`}>{hasSelectedValue(row?.remark) ? "✓" : ""}</td>
                   </tr>;
                 })}
               </Fragment>)}
