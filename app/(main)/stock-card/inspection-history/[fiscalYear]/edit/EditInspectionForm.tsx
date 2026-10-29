@@ -2030,7 +2030,7 @@ export default function EditInspectionForm({
 
             <AppButton
               type="button"
-              variant="danger"
+              variant="success"
               size="sm"
               onClick={() =>
                 updateAllAccuracy(
@@ -2047,7 +2047,7 @@ export default function EditInspectionForm({
               ["เสื่อมสภาพทั้งหมด", "deterioratedQty"],
               ["สูญไปหรือไม่จำเป็นต้องใช้ทั้งหมด", "unnecessaryQty"],
             ] as const).map(([label, field]) => (
-              <AppButton key={field} type="button" variant="secondary" size="sm" onClick={() => updateAllStatus(field)}>
+              <AppButton key={field} type="button" variant="success" size="sm" onClick={() => updateAllStatus(field)}>
                 {label}
               </AppButton>
             ))}
@@ -2478,7 +2478,7 @@ function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, 
             aria-label={`${row.name} ${value === "CORRECT" ? "ถูกต้อง" : "ไม่ถูกต้อง"}`}
             checked={row.accuracy === value}
             onChange={event => onAccuracyChange(row.materialId, event.target.checked ? value : "")} />
-          <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-transparent peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
+          <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[16px] font-bold leading-none text-transparent peer-checked:rounded-none peer-checked:border-transparent peer-checked:bg-transparent peer-checked:!text-black peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
         </label>
       </td>)}
       {numberFields.map(field => <td key={field} className={`${cell} p-0`}><input type="text" inputMode="numeric" value={row[field]} placeholder="" className={fieldClass} onChange={event => onNumberChange(row.materialId, field, event.target.value)} /></td>)}
@@ -2498,7 +2498,7 @@ function CategoryRows({ categoryName, rows, numberInputClass, onAccuracyChange, 
             <input type="checkbox" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
               aria-label={`${row.name} ${field === "usable" ? "ใช้การได้" : field === "damagedQty" ? "ชำรุด" : field === "deterioratedQty" ? "เสื่อมสภาพ" : "สูญไปหรือไม่จำเป็นต้องใช้"}`}
               checked={selected} onChange={event => onStatusChange(row.materialId, field, event.target.checked)} />
-            <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-transparent peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
+            <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[16px] font-bold leading-none text-transparent peer-checked:rounded-none peer-checked:border-transparent peer-checked:bg-transparent peer-checked:!text-black peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400">✓</span>
           </label>
         </td>;
       })}
