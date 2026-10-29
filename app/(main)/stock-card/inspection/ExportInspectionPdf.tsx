@@ -71,14 +71,14 @@ const HEADER_FONT_SIZE = 9;
 const DOCUMENT_FONT_SIZE = 15;
 const SIGNATURE_FONT_SIZE = 12;
 const BODY_ROW_HEIGHT = 6.1515625;
-const ROWS_PER_PAGE = 17;
+const ROWS_PER_PAGE = 15;
 /*
  * ความกว้างรวม 289 มม.
- * ตรงกับตาราง 17 คอลัมน์ในหน้า InspectionForm
+ * ตรงกับตาราง 18 คอลัมน์ในหน้า InspectionForm
  */
 const COLUMN_WIDTHS = [
-  7, 78, 11, 17, 15, 13, 13, 17, 10,
-  10, 9, 9, 14, 12, 12, 12, 16, 14,
+  7, 70, 12, 17, 20, 12, 12, 17, 10,
+  10, 9, 9, 14, 12, 12, 12, 20, 14,
 ];
 const CATEGORY_ORDER = [
   "OFFICE",
@@ -248,39 +248,29 @@ export default function ExportInspectionPdf({
   /* =======================================================
      DOCUMENT HEADER
   ======================================================= */
-  function drawPageHeader(doc: jsPDF): number {
+  function drawPageHeader(doc: jsPDF, categoryName: string): number {
     const centerX = PAGE_WIDTH / 2;
     setThaiFont(doc, DOCUMENT_FONT_SIZE);
     doc.text(
-      `กระดาษทำการตรวจสอบพัสดุ ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`,
-      centerX,
-      8,
-      { align: "center" }
+      `บัญชีตรวจสอบพัสดุประจำปี งบประมาณ พ.ศ. ${fiscalYear}`,
+      centerX, 8, { align: "center" }
     );
-    doc.text(
-      "สำนักอนามัยการเจริญพันธุ์",
-      centerX,
-      14,
-      { align: "center" }
-    );
-    // เว้นเฉพาะช่อง "วันที่" ส่วนเดือนและปีใช้ค่าที่บันทึกไว้
+    doc.text("สำนักอนามัยการเจริญพันธ์ุ กรมอนามัย", centerX, 14, { align: "center" });
+    doc.text(`ประเภท ${categoryName}`, centerX, 20, { align: "center" });
+
     const dateText =
       `วันที่เริ่มตรวจสอบ ${getThaiDay(inspectionStartDate)} เดือน ${startDateInfo.month} พ.ศ. ${startDateInfo.year}  ` +
-      `ตรวจสอบแล้วเสร็จวันที่ ${getThaiDay(inspectionEndDate)} เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}  ` +
-      `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`;
-    const dateFontSize = fitFontSize(
-      doc,
-      dateText,
-      TABLE_WIDTH - 2,
-      DOCUMENT_FONT_SIZE,
-      9
-    );
+      `ตรวจสอบแล้วเสร็จวันที่ ${getThaiDay(inspectionEndDate)} เดือน ${endDateInfo.month} พ.ศ. ${endDateInfo.year}`;
+    const dateFontSize = fitFontSize(doc, dateText, TABLE_WIDTH - 2, DOCUMENT_FONT_SIZE, 9);
     setThaiFont(doc, dateFontSize);
-    doc.text(dateText, centerX, 21, {
-      align: "center",
-      maxWidth: TABLE_WIDTH - 2,
-    });
-    return 27;
+    doc.text(dateText, centerX, 26, { align: "center", maxWidth: TABLE_WIDTH - 2 });
+
+    setThaiFont(doc, DOCUMENT_FONT_SIZE);
+    doc.text(
+      `เป็นยอดคงเหลือตามบัญชีหรือทะเบียน เมื่อวันที่ 30 กันยายน พ.ศ. ${fiscalYear}`,
+      centerX, 32, { align: "center" }
+    );
+    return 37;
   }
   /* =======================================================
      SIGNATURE
@@ -303,7 +293,7 @@ export default function ExportInspectionPdf({
         { align: "center" }
       );
       const name = officer
-        ? `(${officer.firstName} ${officer.lastName})`
+        ? `(${officer.firstName.trim()} ${officer.lastName.trim()})`
         : "(................................................)";
       const nameSize = fitFontSize(
         doc,
@@ -432,7 +422,7 @@ export default function ExportInspectionPdf({
             doc.addPage("a4", "landscape");
           }
           firstPage = false;
-          const tableStartY = drawPageHeader(doc);
+          const tableStartY = drawPageHeader(doc, group.name);
           const pageMaterials = group.materials.slice(
             startIndex,
             startIndex + ROWS_PER_PAGE
@@ -492,23 +482,23 @@ export default function ExportInspectionPdf({
           const headerOpening =
             `คงเหลือยอดยกมา\nเมื่อ 01 ต.ค. ${startShortYear}`;
           const headerMovement =
-            `01 ต.ค. ${startShortYear} - 30 ก.ย. ${endShortYear}`;
+            `01 ต.ค. ${startShortYear}\nถึง\n30 ก.ย. ${endShortYear}`;
           const head = [
             [
               { content: "ลำดับ", rowSpan: 2 },
               { content: "ชื่อหรือชนิดวัสดุหรือครุภัณฑ์", rowSpan: 2 },
-              { content: "หน่วยนับ", rowSpan: 2 },
+              { content: "หน่วย\nนับ", rowSpan: 2 },
               { content: "ราคาต่อหน่วย", rowSpan: 2 },
               { content: headerOpening, rowSpan: 2 },
               { content: headerMovement, colSpan: 2 },
-              { content: "คงเหลือปัจจุบัน", rowSpan: 2 },
+              { content: "คงเหลือ\nปัจจุบัน", rowSpan: 2 },
               { content: "ผลการตรวจสอบ", colSpan: 2 },
-              { content: "ถ้าไม่ถูกต้องระบุจำนวนที่ขาด/เกิน", colSpan: 2 },
+              { content: "ถ้าไม่ถูกต้องระบุ\nจำนวนที่ขาด/เกิน", colSpan: 2 },
               { content: "จำนวนที่ขาดเกิน\nคิดเป็นเงิน", colSpan: 1 },
               { content: "สถานะการใช้งานของวัสดุ (จำนวน)", colSpan: 4 },
               { content: "หมายเหตุ", rowSpan: 2 },
             ],
-            ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"],
+            ["รับ", "จ่าย", "ถูกต้อง", "ไม่ถูกต้อง", "ขาด", "เกิน", "(บาท)", "ใช้การได้", "ชำรุด", "เสื่อมสภาพ", "สูญไปหรือไม่จำเป็น\nต้องใช้ในหน่วยงาน"],
           ];
 
           const columnStyles: Record<number, any> = {};
@@ -576,8 +566,8 @@ export default function ExportInspectionPdf({
               cellPadding: 0.5,
               halign: "center",
               valign: "middle",
-              overflow: "hidden",
-              minCellHeight: 7,
+              overflow: "linebreak",
+              minCellHeight: 13,
             },
             bodyStyles: {
               font: FONT_NAME,
@@ -636,7 +626,7 @@ export default function ExportInspectionPdf({
                 );
                 cell.styles.fontSize = HEADER_FONT_SIZE;
                 cell.styles.minCellHeight =
-                  data.row.index === 0 ? 9 : 6;
+                  data.row.index === 0 ? 13 : 8;
                 cell.styles.cellPadding = {
                   top: 1,
                   right: 0.5,
