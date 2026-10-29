@@ -77,8 +77,8 @@ const ROWS_PER_PAGE = 15;
  * ตรงกับตาราง 18 คอลัมน์ในหน้า InspectionForm
  */
 const COLUMN_WIDTHS = [
-  7, 70, 12, 17, 20, 12, 12, 17, 10,
-  10, 9, 9, 14, 12, 12, 12, 20, 14,
+  7, 64, 12, 18, 20, 12, 12, 17, 10,
+  10, 9, 9, 19, 12, 12, 12, 20, 14,
 ];
 const CATEGORY_ORDER = [
   "OFFICE",
@@ -293,7 +293,7 @@ export default function ExportInspectionPdf({
         { align: "center" }
       );
       const name = officer
-        ? `(${officer.firstName.trim()} ${officer.lastName.trim()})`
+        ? `(${officer.firstName.trim()} ${officer.lastName.trim()})`.replace(/\s+\)/g, ")")
         : "(................................................)";
       const nameSize = fitFontSize(
         doc,
@@ -428,32 +428,6 @@ export default function ExportInspectionPdf({
             startIndex + ROWS_PER_PAGE
           );
           const body: any[] = [];
-          if (startIndex === 0) {
-            body.push([
-              {
-                content: group.name,
-                colSpan: 18,
-                styles: {
-                  font: FONT_NAME,
-                  fontStyle: FONT_STYLE,
-                  fontSize: TABLE_FONT_SIZE,
-                  halign: "left",
-                  valign: "middle",
-                  cellPadding: {
-                    top: 0.5,
-                    right: 1,
-                    bottom: 0.5,
-                    left: 1.5,
-                  },
-                  minCellHeight: BODY_ROW_HEIGHT,
-                  fillColor: [255, 255, 255],
-                  textColor: [0, 0, 0],
-                  lineColor: [0, 0, 0],
-                  lineWidth: 0.25,
-                },
-              },
-            ]);
-          }
           pageMaterials.forEach((material) => {
             const inspectionRow = rowMap.get(
               material.materialId
@@ -488,7 +462,7 @@ export default function ExportInspectionPdf({
               { content: "ลำดับ", rowSpan: 2 },
               { content: "ชื่อหรือชนิดวัสดุหรือครุภัณฑ์", rowSpan: 2 },
               { content: "หน่วย\nนับ", rowSpan: 2 },
-              { content: "ราคาต่อหน่วย", rowSpan: 2 },
+              { content: "ราคา\nต่อหน่วย", rowSpan: 2 },
               { content: headerOpening, rowSpan: 2 },
               { content: headerMovement, colSpan: 2 },
               { content: "คงเหลือ\nปัจจุบัน", rowSpan: 2 },
@@ -585,16 +559,20 @@ export default function ExportInspectionPdf({
             didDrawCell: (data: any) => {
               if (data.section !== "body" || ![8, 9, 13, 14, 15, 16].includes(data.column.index)) return;
               if (data.cell.raw !== "__CHECK__") return;
-              // ZapfDingbats เป็นฟอนต์สัญลักษณ์มาตรฐานของ PDF
-              // รหัส "3" คือเครื่องหมายถูก ✓ (ไม่ใช่รูปภาพ)
-              doc.setFont("zapfdingbats", "normal");
-              doc.setFontSize(13);
-              doc.setTextColor(0, 0, 0);
-              doc.text("3", data.cell.x + data.cell.width / 2,
-                data.cell.y + data.cell.height / 2, {
-                  align: "center", baseline: "middle",
-                });
-              setThaiFont(doc, TABLE_FONT_SIZE);
+              // วาดเครื่องหมายถูกเป็นเส้นเวกเตอร์โดยตรง
+              // ไม่พึ่งฟอนต์ ZapfDingbats ซึ่งอาจไม่แสดงใน PDF viewer บางตัว
+              const centerX = data.cell.x + data.cell.width / 2;
+              const centerY = data.cell.y + data.cell.height / 2;
+              const checkSize = Math.min(3.4, data.cell.width * 0.34, data.cell.height * 0.52);
+              doc.setDrawColor(0, 0, 0);
+              doc.setLineWidth(0.45);
+              doc.setLineCap("round");
+              doc.setLineJoin("round");
+              doc.line(centerX - checkSize * 0.75, centerY,
+                centerX - checkSize * 0.2, centerY + checkSize * 0.48);
+              doc.line(centerX - checkSize * 0.2, centerY + checkSize * 0.48,
+                centerX + checkSize * 0.85, centerY - checkSize * 0.62);
+              doc.setLineWidth(0.25);
             },
             didParseCell: (data: any) => {
               if (data.section === "body" && [8, 9, 13, 14, 15, 16].includes(data.column.index) && data.cell.raw === "__CHECK__") {
