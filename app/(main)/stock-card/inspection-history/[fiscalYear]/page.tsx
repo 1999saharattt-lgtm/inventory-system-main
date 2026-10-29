@@ -84,6 +84,8 @@ type MaterialRow = {
 
 
 
+  latestPrice: number | null;
+
   openingBalance: number;
 
   receiveQty: number;
@@ -1142,7 +1144,9 @@ export default async function StockCardInspectionPage({
 
 
 
-              receive: {
+              unitPrice: true,
+
+               receive: {
 
                 select: {
 
@@ -1918,6 +1922,11 @@ export default async function StockCardInspectionPage({
 
 
 
+           // ใช้ราคาจากรายการรับล่าสุดก่อนสิ้นปีงบประมาณ ตามหน้ารายงานบัญชีพัสดุคงคลัง
+           const latestReceive = [...material.receiveItems]
+             .sort((a, b) => b.receive.receiveDate.getTime() - a.receive.receiveDate.getTime() || b.id - a.id)[0];
+           const latestPrice = latestReceive ? safeNumber(latestReceive.unitPrice) : null;
+
           return {
 
             materialId:
@@ -1956,6 +1965,8 @@ export default async function StockCardInspectionPage({
               ),
 
 
+
+            latestPrice,
 
             openingBalance,
 
