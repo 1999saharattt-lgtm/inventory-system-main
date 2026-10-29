@@ -204,7 +204,7 @@ function wrapMaterialName(doc: jsPDF, name: string, width: number, fontSize: num
   for (const part of parts) {
     if (!part) continue;
     // ไม่ปล่อยพยัญชนะหรือเครื่องหมายเดี่ยวไปขึ้นบรรทัดใหม่
-    if (tokens.length && (/^[**\p**{M}**\p**{P}]+$/u.test(part) || /^[ก-ฮ]$/u.test(part))) {
+    if (tokens.length && (/^[\p{M}\p{P}]+$/u.test(part) || /^[ก-ฮ]$/u.test(part))) {
       tokens[tokens.length - 1] += part;
     } else {
       tokens.push(part);
@@ -386,7 +386,7 @@ export default function ExportInspectionPdf({
     }
     const exportMaterials = materials.filter((material) => {
       const name = material.name.trim();
-      const isSSS = /**\(**\s*สส&#xE2A;**\.**\s***\)**\s*$/u.test(name);
+      const isSSS = /\(\s*สสส\.\s*\)\s*$/u.test(name);
       const isCR2032 =
         material.category === "ELECTRIC" &&
         /^ถ่านกระดุม\s*ขนาด\s*CR2032$/i.test(name);
