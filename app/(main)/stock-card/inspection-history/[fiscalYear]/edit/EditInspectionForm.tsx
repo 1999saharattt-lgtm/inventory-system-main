@@ -2420,7 +2420,7 @@ export default function EditInspectionForm({
 
           const name = row.name.trim();
 
-          if (/**\(**ส**\.\)**\s*$/u.test(name)) return false;
+          if (/\(ส\)\s*$/u.test(name)) return false;
 
           if (row.category === "ELECTRIC" && /ถ่านกระดุม/iu.test(name)) return false;
 

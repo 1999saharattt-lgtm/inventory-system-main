@@ -179,7 +179,7 @@ export default function ExportInspectionExcel({
             [15, "ชำรุด"], [16, "เสื่อมสภาพ"], [17, "สูญไปหรือไม่จำเป็นต้องใช้\nในหน่วยงาน"],
           ]);
           for (const [column, label] of lower) sheet.getCell(h + 1, column).value = label;
-          sheet.getRow(h).height = 50;
+          sheet.getRow(h).height = 84; // สูงพอสำหรับวันที่ 3 บรรทัด ไม่ทับแถว รับ/จ่าย
           sheet.getRow(h + 1).height = 46;
           for (let r = h; r <= h + 1; r++) {
             for (let c = 1; c <= 18; c++) {

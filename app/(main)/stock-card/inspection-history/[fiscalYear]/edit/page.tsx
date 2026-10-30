@@ -1756,7 +1756,7 @@ export default async function StockCardInspectionHistoryEditPage({
 
       const name = material.name.trim();
 
-      if (/**\(**ส**\.\)**\s*$/u.test(name)) return false;
+      if (/\(ส\)\s*$/u.test(name)) return false;
 
       if (material.category === "ELECTRIC") {
 
