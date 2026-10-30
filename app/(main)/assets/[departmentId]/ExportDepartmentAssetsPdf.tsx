@@ -11,6 +11,7 @@ type Asset = {
   name: string;
   category: string;
   categoryDetail?: string | null;
+  price?: number | null;
   brand: string | null;
   model: string | null;
   governmentAssetNo: string | null;
@@ -39,11 +40,11 @@ type Props = {
 const FONT = "2.3.2 THSarabunNew";
 const HEAD = [
   "ลำดับ", "รหัส GFMIS", "รหัสครุภัณฑ์", "สถานที่ใช้งาน", "ผู้รับผิดชอบ",
-  "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น",
+  "ราคาต่อหน่วย", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น",
   "ยอดคงเหลือ", "หน่วยนับ", "สถานะ",
 ];
-const HEADER_WRAP: Record<number, string> = { 1: "รหัส\nGFMIS", 2: "รหัส\nครุภัณฑ์", 3: "สถานที่\nใช้งาน", 4: "ผู้รับ\nผิดชอบ", 6: "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", 8: "ยอด\nคงเหลือ", 9: "หน่วย\nนับ" };
-const WIDTHS = [9, 29, 31, 28, 29, 34, 48, 30, 13, 12, 16]; // 279 mm; ขอบซ้าย-ขวา 9 mm
+const HEADER_WRAP: Record<number, string> = { 8: "ยอด\nคงเหลือ", 9: "หน่วย\nนับ" };
+const WIDTHS = [9, 26, 29, 27, 28, 25, 59, 28, 13, 12, 16]; // 272 mm; เพิ่มพื้นที่ชื่อครุภัณฑ์และคงหัวตารางบรรทัดเดียว
 const CATEGORY_ORDER = ["DESK", "CHAIR", "CABINET", "SHELF", "COMPUTER", "PRINTER", "AIR_CONDITIONER", "TELEPHONE", "UPS", "OTHER", "NO_SYSTEM"];
 const CATEGORY_NAME: Record<string, string> = {
   DESK: "โต๊ะ", CHAIR: "เก้าอี้", CABINET: "ตู้", SHELF: "ชั้น",
@@ -186,11 +187,11 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             : a.responsibleName?.trim() || "-";
           const raw = [
             String(page * rowsPerPage + i + 1), a.governmentAssetNo || "-", a.officeAssetNo || "-",
-            location, officer, typeOf(a, group), a.name || "-",
+            location, officer, a.price == null ? "-" : Number(a.price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), a.name || "-",
             [a.brand, a.model].filter(Boolean).join(" / ") || "-",
-            Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), STATUS[a.status] || a.status,
+            Number(a.quantity ?? 1).toLocaleString("th-TH"), unitOf(a), "",
           ];
-          return raw.map((value, col) => fitText(doc, String(value), WIDTHS[col] - 2.6));
+          return raw.map((value, col) => col === 10 ? "" : fitText(doc, String(value), WIDTHS[col] - 2.6));
         });
         autoTable(doc, {
           startY: top, margin: { left, right: left, top, bottom }, tableWidth,
@@ -202,15 +203,29 @@ export default function ExportDepartmentAssetsPdf({ departmentName, assets, fisc
             lineWidth: 0.18, textColor: [0, 0, 0], overflow: "linebreak", minCellHeight: rowHeight,
           },
           headStyles: {
-            font: FONT, fontStyle: "normal", fontSize: 10, cellPadding: 0.8,
+            font: FONT, fontStyle: "normal", fontSize: 10, cellPadding: 0.6,
+            overflow: "visible",
             fillColor: [255, 255, 255], textColor: [0, 0, 0],
             halign: "center", valign: "middle", minCellHeight: headHeight,
             lineColor: [0, 0, 0], lineWidth: 0.18,
           },
           columnStyles: colStyles,
           didParseCell: (data) => {
+            if (data.section === "head") {
+              // ปรับขนาดตัวอักษรหัวตารางให้พอดีคอลัมน์โดยไม่ตัดบรรทัด
+              const heading = HEADER_WRAP[data.column.index] || HEAD[data.column.index];
+              if (!heading.includes("\n")) {
+                doc.setFont(FONT, "normal");
+                doc.setFontSize(10);
+                const availableWidth = WIDTHS[data.column.index] - 1.2;
+                const measuredWidth = doc.getTextWidth(heading);
+                data.cell.styles.fontSize = measuredWidth > availableWidth
+                  ? Math.max(7, 10 * availableWidth / measuredWidth)
+                  : 10;
+              }
+            }
             if (data.section === "body") {
-              // หมวด/ชนิด (คอลัมน์ 5) จัดกึ่งกลางแนวนอนและแนวตั้งเสมอ
+              // ราคาต่อหน่วย (คอลัมน์ 5) จัดกึ่งกลางแนวนอนและแนวตั้ง
               data.cell.styles.fontSize = 12;
               data.cell.styles.valign = "middle";
               if ([6, 7].includes(data.column.index)) data.cell.styles.halign = "left";
