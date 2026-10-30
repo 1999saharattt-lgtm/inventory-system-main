@@ -170,7 +170,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         outline(h, h + 1);
         const h1: Array<[number, number, string, boolean]> = [
           [1, 1, "ลำดับ", true], [2, 2, "รหัส GFMIS", true], [3, 3, "รหัสครุภัณฑ์", true],
-          [4, 4, "สถานที่ใช้งาน", true], [5, 5, "ผู้รับผิดชอบ", true], [6, 6, "ราคาต่อหน่วย", true],
+          [4, 4, "สถานที่ใช้งาน", true], [5, 5, "ผู้รับผิดชอบ", true], [6, 6, "ราคาต่อหน่วย (บาท)", true],
           [7, 7, "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", true], [8, 8, "ยี่ห้อ/รุ่น", true],
           [9, 9, "หน่วย\nนับ", true], [10, 10, `ยอดคงเหลือ\nตามบัญชี\nณ วันที่ ${thaiDate(start, true)}`, true],
           [11, 12, `รายการเคลื่อนไหว\nระหว่างปีงบประมาณ\nพ.ศ. ${movementFiscalYear}`, false],
