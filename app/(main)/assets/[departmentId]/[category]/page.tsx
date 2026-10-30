@@ -765,7 +765,7 @@ export default async function AssetCategoryPage({
                   "รหัสครุภัณฑ์",
                   "สถานที่ใช้งาน",
                   "ผู้รับผิดชอบ",
-                  "หมวด/ชนิด",
+                  "ราคาต่อหน่วย",
                   "ชื่อเรียก/คุณลักษณะครุภัณฑ์",
                   "ยี่ห้อ/รุ่น",
                   "ยอดคงเหลือ",
@@ -930,9 +930,14 @@ export default async function AssetCategoryPage({
                             : asset.responsibleName?.trim() || "-"}
                         </td>
 
-                        {/* หมวด/ชนิด: ประเภทครุภัณฑ์ในทะเบียน */}
-                        <td className="border border-black px-2 py-2.5 text-center font-semibold !text-slate-700 break-words">
-                          {getDisplayedCategoryDetail(asset, assetCategory)}
+                        {/* ราคาต่อหน่วย: ดึงจาก Asset.price ในฐานข้อมูล */}
+                        <td className="border border-black px-2 py-2.5 text-center font-semibold tabular-nums !text-slate-700">
+                          {asset.price == null || !Number.isFinite(asset.price)
+                            ? "-"
+                            : asset.price.toLocaleString("th-TH", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                         </td>
 
                         {/* ชื่อเรียก/คุณลักษณะครุภัณฑ์ */}
