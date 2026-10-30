@@ -387,30 +387,6 @@ export default async function AllAssetsPage({
     AIR_CONDITIONER: "เครื่องปรับอากาศ", TELEPHONE: "เครื่องโทรศัพท์",
     UPS: "เครื่องสำรองไฟฟ้า (UPS)", OTHER: "ทั่วไป", NO_SYSTEM: "ไม่มีอยู่ในระบบ",
   };
-  const categoryDefault: Record<string, string> = {
-    DESK: "โต๊ะ, โต๊ะทำงาน, โต๊ะสำหรับวางคอมพิวเตอร์, โต๊ะวางของอเนกประสงค์",
-    CHAIR: "เก้าอี้, เก้าอี้สำนักงานพนักพิงสูง, เก้าอี้สำหรับห้องประชุม",
-    CABINET: "ตู้, ตู้ใส่เอกสาร 2 บานเปิด, ตู้เก็บเอกสารบานสไลด์, ตู้เอกสาร",
-    SHELF: "ชั้น", COMPUTER: "เครื่องคอมพิวเตอร์โน๊ตบุ้ค, เครื่องคอมพิวเตอร์แบบตั้งโต๊ะ, เครื่องคอมพิวเตอร์สำนักงาน All In One",
-    PRINTER: "เครื่องพิมพ์คอมพิวเตอร์, เครื่องพิมพ์เลเซอร์ขาวดำ ชนิด Network แบบที่ 1, เครื่องพิมพ์เลเซอร์ LED สี ชนิด Network แบบที่ 2",
-    AIR_CONDITIONER: "เครื่องปรับอากาศแบบติดผนัง, เครื่องปรับอากาศแบบแขวนฝ้าเพดาน",
-    TELEPHONE: "เครื่องโทรศัพท์ ชนิด IP PHONE ไร้สาย", UPS: "เครื่องสำรองไฟฟ้า, เครื่องสำรองไฟฟ้า ชนิด True Online UPS",
-  };
-  const displayedType = (asset: (typeof assets)[number], group: string) => {
-    const saved = asset.categoryDetail?.trim();
-    if (saved) return saved;
-    const firstLine = (asset.remark ?? "").split("\n")[0]?.trim() ?? "";
-    if (firstLine.startsWith("หมวด/ชนิด:")) {
-      const legacy = firstLine.slice("หมวด/ชนิด:".length).trim();
-      if (legacy) return legacy;
-    }
-    if (group === "OTHER") {
-      if (/เครื่องเล่นเทปคาสเซ็ท/i.test(asset.name)) return "เครื่องเล่นเทปคาสเซ็ท";
-      if (/รถเข็น/i.test(asset.name)) return "รถเข็น";
-      return "ทั่วไป";
-    }
-    return categoryDefault[group] ?? categoryLabels[group] ?? group;
-  };
   const getGroup = (asset: (typeof assets)[number]) => {
     if (asset.category === "OTHER") {
       const type = asset.categoryDetail?.trim() || asset.name;
@@ -449,7 +425,7 @@ export default async function AllAssetsPage({
               <tr>
                 {[
                   "ลำดับ", "รหัส GFMIS", "รหัสครุภัณฑ์", "สถานที่ใช้งาน", "ผู้รับผิดชอบ",
-                  "หมวด/ชนิด", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น", "ยอดคงเหลือ",
+                  "ราคาต่อหน่วย", "ชื่อเรียก/คุณลักษณะครุภัณฑ์", "ยี่ห้อ/รุ่น", "ยอดคงเหลือ",
                   "หน่วยนับ", "สถานะ", "จัดการ",
                 ].map((heading) => (
                   <th key={heading} className="whitespace-normal break-words border border-black bg-gradient-to-r from-slate-800 to-slate-700 px-1 py-3 text-center text-xs font-extrabold leading-snug !text-white">{heading}</th>
@@ -474,7 +450,7 @@ export default async function AllAssetsPage({
                         <td className={td}>{asset.officeAssetNo || "-"}</td>
                         <td className={td}>{location}</td>
                         <td className={td}>{officer}</td>
-                        <td className={td}>{displayedType(asset, group.key)}</td>
+                        <td className={td}>{asset.price == null ? "-" : asset.price.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td className={`${td} text-left`} title={asset.name}>{asset.name || "-"}</td>
                         <td className={td}>{[asset.brand, asset.model].filter(Boolean).join(" / ") || "-"}</td>
                         <td className={td}>{asset.quantity.toLocaleString("th-TH")}</td>
