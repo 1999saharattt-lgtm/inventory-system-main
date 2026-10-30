@@ -319,6 +319,8 @@ export default async function NewAssetPage({
         ) ?? "1"
       ).trim();
 
+    const unitPriceRaw = String(formData.get("price") ?? "").trim();
+
     const unit =
       normalizeText(
         String(
@@ -396,6 +398,18 @@ export default async function NewAssetPage({
       throw new Error(
         "จำนวนครุภัณฑ์ต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป"
       );
+    }
+
+    /* =====================================================
+       UNIT PRICE
+    ===================================================== */
+
+    const unitPrice = unitPriceRaw === "" ? null : Number(unitPriceRaw);
+    if (
+      unitPrice !== null &&
+      (!Number.isFinite(unitPrice) || unitPrice < 0 || !/^\d+(?:\.\d{1,2})?$/.test(unitPriceRaw))
+    ) {
+      throw new Error("ราคาต่อหน่วยต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป และมีทศนิยมไม่เกิน 2 ตำแหน่ง");
     }
 
     /* =====================================================
@@ -684,6 +698,7 @@ export default async function NewAssetPage({
           null,
 
         quantity,
+        price: unitPrice,
 
         unit:
           assetUnit || null,
@@ -977,6 +992,24 @@ export default async function NewAssetPage({
                 className={
                   inputClassName
                 }
+              />
+            </AppInfoCard>
+
+            {/* UNIT PRICE */}
+
+            <AppInfoCard>
+              <label htmlFor="price" className={labelClassName}>
+                ราคาต่อหน่วย (บาท)
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="กรอกราคาต่อหน่วย"
+                className={inputClassName}
               />
             </AppInfoCard>
 
