@@ -571,17 +571,21 @@ export default function ExportInspectionPdf({
                 16: Number(row?.unnecessaryQty || 0) > 0,
               };
               if (!selected[data.column.index]) return;
-              // เครื่องหมายถูกแบบ Excel: ✓ สีดำ เส้นเรียบ ไม่มีวงกลมหรือพื้นหลัง
-              // ใช้เวกเตอร์เพื่อให้แสดงได้ทุกเครื่องอ่าน PDF โดยไม่พึ่งฟอนต์
+              // ติ๊กถูกสีดำแบบ Excel (✓) ไม่มีวงกลม/กรอบ/พื้นหลัง
+              // วาดเป็นเวกเตอร์แทน glyph เพื่อป้องกันฟอนต์ PDF แสดงผิด
               const cx = data.cell.x + data.cell.width / 2;
               const cy = data.cell.y + data.cell.height / 2;
-              const size = Math.min(2.8, data.cell.width * 0.23, data.cell.height * 0.33);
+              const halfWidth = Math.min(3.4, data.cell.width * 0.30);
+              const halfHeight = Math.min(2.5, data.cell.height * 0.35);
               doc.setDrawColor(0, 0, 0);
-              doc.setLineWidth(0.38);
+              doc.setLineWidth(0.65);
               doc.setLineCap("round");
               doc.setLineJoin("round");
-              doc.line(cx - size, cy, cx - size * 0.28, cy + size * 0.7);
-              doc.line(cx - size * 0.28, cy + size * 0.7, cx + size, cy - size * 0.7);
+              // ขาสั้นลงด้านล่าง แล้วตวัดขาขวาขึ้น เหมือนเครื่องหมาย ✓ ใน Excel
+              doc.line(cx - halfWidth, cy - halfHeight * 0.05,
+                       cx - halfWidth * 0.22, cy + halfHeight * 0.78);
+              doc.line(cx - halfWidth * 0.22, cy + halfHeight * 0.78,
+                       cx + halfWidth, cy - halfHeight);
               doc.setLineWidth(0.25);
             },
             didParseCell: (data: any) => {

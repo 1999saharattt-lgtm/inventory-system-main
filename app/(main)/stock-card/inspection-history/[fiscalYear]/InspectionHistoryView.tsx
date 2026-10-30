@@ -176,14 +176,14 @@ export default function InspectionHistoryView(props: Props) {
                     <td className={cellClass}>{material.unit || "-"}</td>
                     <td className={cellClass}>{material.latestPrice == null ? "-" : material.latestPrice.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     {cells.map((value,i) => <td key={i} className={cellClass}>{value}</td>)}
-                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
-                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? <span aria-label="เลือกแล้ว" className="inline-block text-[16px] font-bold leading-none !text-black">✓</span> : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? <span aria-label="เลือกแล้ว" className="inline-block text-[16px] font-bold leading-none !text-black">✓</span> : ""}</td>
                     {(["shortageQty","excessQty"] as const).map(key =>
                       <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
                     <td className={cellClass}>{row?.baht || row?.satang ? `${row?.baht || "0"}.${String(row?.satang || "0").padStart(2, "0")}` : ""}</td>
-                    <td className={cellClass}>{row ? Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH") : ""}</td>
+                    <td className={cellClass}>{row && Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)) > 0 ? <span className="text-[16px] font-bold !text-black">✓</span> : ""}</td>
                     {(["damagedQty","deterioratedQty","unnecessaryQty"] as const).map(key =>
-                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
+                      <td key={key} className={cellClass}>{Number(row?.[key] || 0) > 0 ? <span className="text-[16px] font-bold !text-black">✓</span> : ""}</td>)}
                     <td className={`${cellClass} px-2 text-left`}>{row?.remark ?? ""}</td>
                   </tr>;
                 })}

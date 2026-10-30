@@ -97,7 +97,14 @@ export default function ExportInspectionExcel({
       workbook.created = new Date();
       const rowMap = new Map(rows.map(row => [row.materialId, row]));
       const officerMap = new Map(officers.map(officer => [String(officer.id), officer]));
-      const widths = [7, 45, 11, 14, 19, 11, 11, 17, 11, 13, 10, 10, 18, 12, 12, 14, 30, 20];
+      // ปรับความกว้างคอลัมน์ชื่อวัสดุตามชื่อที่ยาวที่สุดในข้อมูลจริง
+      // จำกัดความกว้างเพื่อให้ยังพิมพ์ลง A4 แนวนอนได้ และตัดบรรทัดเมื่อจำเป็น
+      const nameColumnWidth = Math.min(90, Math.max(45,
+        ...materials.map(material => Array.from(material.name ?? "").reduce(
+          (sum, char) => sum + (/[\u0E00-\u0E7F]/.test(char) ? 1.15 : 1), 0
+        ) + 4)
+      ));
+      const widths = [7, nameColumnWidth, 11, 14, 19, 11, 11, 17, 11, 13, 10, 10, 18, 12, 12, 14, 30, 20];
       const borderSide = { style: "thin" as const, color: { argb: "FF000000" } };
       const border = { top: borderSide, bottom: borderSide, left: borderSide, right: borderSide };
       const font = "TH SarabunPSK";
@@ -232,7 +239,7 @@ export default function ExportInspectionExcel({
             const officer = officerMap.get(id);
             const [first, last] = positions[index];
             const name = officer ? `${officer.firstName} ${officer.lastName}`.trim() : "........................................";
-            const role = index === 0 ? "ประธานกรรมการ" : "กรรมการ";
+            const role = officer?.position?.trim() || "........................................";
             mergeText(signatureTop, first, last, "ลงชื่อ ........................................", "center");
             mergeText(signatureTop + 1, first, last, `(${name})`, "center");
             mergeText(signatureTop + 2, first, last, role, "center");
