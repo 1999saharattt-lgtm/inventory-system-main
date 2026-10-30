@@ -571,21 +571,19 @@ export default function ExportInspectionPdf({
                 16: Number(row?.unnecessaryQty || 0) > 0,
               };
               if (!selected[data.column.index]) return;
-              // ติ๊กถูกสีดำแบบ Excel (✓) ไม่มีวงกลม/กรอบ/พื้นหลัง
-              // วาดเป็นเวกเตอร์แทน glyph เพื่อป้องกันฟอนต์ PDF แสดงผิด
+              // เครื่องหมาย ✓ ทรงเดียวกับตัวอย่าง Excel: เส้นบาง ปลายแหลม ไม่มีวงกลม
+              // วาดเป็นเส้นเวกเตอร์ เพื่อให้ PDF แสดงผลเหมือนกันทุกเครื่อง
               const cx = data.cell.x + data.cell.width / 2;
               const cy = data.cell.y + data.cell.height / 2;
-              const halfWidth = Math.min(3.4, data.cell.width * 0.30);
-              const halfHeight = Math.min(2.5, data.cell.height * 0.35);
+              const w = Math.min(3.0, data.cell.width * 0.27);
+              const h = Math.min(2.6, data.cell.height * 0.39);
               doc.setDrawColor(0, 0, 0);
-              doc.setLineWidth(0.65);
-              doc.setLineCap("round");
-              doc.setLineJoin("round");
-              // ขาสั้นลงด้านล่าง แล้วตวัดขาขวาขึ้น เหมือนเครื่องหมาย ✓ ใน Excel
-              doc.line(cx - halfWidth, cy - halfHeight * 0.05,
-                       cx - halfWidth * 0.22, cy + halfHeight * 0.78);
-              doc.line(cx - halfWidth * 0.22, cy + halfHeight * 0.78,
-                       cx + halfWidth, cy - halfHeight);
+              doc.setLineWidth(0.32);
+              doc.setLineCap("butt");
+              doc.setLineJoin("miter");
+              // ขาซ้ายสั้น ขาขวายาวชัน ให้คล้ายตัว ✓ ที่แสดงใน Excel
+              doc.line(cx - w, cy - h * 0.02, cx - w * 0.22, cy + h * 0.72);
+              doc.line(cx - w * 0.22, cy + h * 0.72, cx + w, cy - h);
               doc.setLineWidth(0.25);
             },
             didParseCell: (data: any) => {

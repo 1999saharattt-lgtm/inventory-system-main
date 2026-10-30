@@ -140,7 +140,7 @@ export default function ExportInspectionExcel({
         };
 
         let nextRow = 1;
-        for (let offset = 0; offset < items.length; offset += 15) {
+        for (let offset = 0; offset < items.length; offset += 25) {
           if (nextRow > 1) sheet.getRow(nextRow - 1).addPageBreak();
           pageNumber++;
           const top = nextRow;
@@ -160,7 +160,7 @@ export default function ExportInspectionExcel({
             [3, 3, "หน่วย\nนับ", true],
             [4, 4, "ราคา\nต่อหน่วย", true],
             [5, 5, `คงเหลือยอดยกมา\nเมื่อ 01 ต.ค. ${startShortYear}`, true],
-            [6, 7, `01 ต.ค. ${startShortYear} ถึง 30 ก.ย. ${endShortYear}`, false],
+            [6, 7, `01 ต.ค. ${endShortYear}\nถึง\n30 ก.ย. ${endShortYear}`, false],
             [8, 8, "คงเหลือ\nปัจจุบัน", true],
             [9, 10, "ผลการตรวจสอบ", false],
             [11, 12, "ถ้าไม่ถูกต้องระบุ\nจำนวนที่ขาด/เกิน", false],
@@ -190,7 +190,7 @@ export default function ExportInspectionExcel({
             }
           }
 
-          const chunk = items.slice(offset, offset + 15);
+          const chunk = items.slice(offset, offset + 25);
           chunk.forEach((material, index) => {
             const record = rowMap.get(material.materialId);
             const row = sheet.getRow(h + 2 + index);
