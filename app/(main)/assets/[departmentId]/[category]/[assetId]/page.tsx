@@ -115,6 +115,7 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
           <ReadonlyField label="หมวด/ชนิด" value={categoryType} />
           <ReadonlyField label="ยี่ห้อ/รุ่น" value={brandAndModel} />
           <ReadonlyField label="จำนวน" value={asset.quantity.toLocaleString("th-TH")} />
+          <ReadonlyField label="ราคาต่อหน่วย (บาท)" value={asset.price == null ? "-" : asset.price.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
           <ReadonlyField label="หน่วย" value={asset.unit} />
         </div>
 
