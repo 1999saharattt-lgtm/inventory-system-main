@@ -1530,7 +1530,7 @@ function MaterialCategoryRows({
                   aria-label={`${material.name} ถูกต้อง`}
                   checked={row.accuracy === "CORRECT"}
                   onChange={(event) => updateAccuracy(material.materialId, event.target.checked ? "CORRECT" : "")} />
-                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[14px] font-bold leading-none !text-transparent peer-checked:border-transparent peer-checked:!text-black peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400 peer-focus-visible:ring-offset-1">✓</span>
               </label>
             </td>
             {/* 9. INCORRECT */}
@@ -1540,7 +1540,7 @@ function MaterialCategoryRows({
                   aria-label={`${material.name} ไม่ถูกต้อง`}
                   checked={row.accuracy === "INCORRECT"}
                   onChange={(event) => updateAccuracy(material.materialId, event.target.checked ? "INCORRECT" : "")} />
-                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[13px] font-bold leading-none text-white peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400 peer-focus-visible:ring-offset-1">✓</span>
+                <span aria-hidden="true" className="pointer-events-none flex h-[18px] w-[18px] items-center justify-center rounded-full border border-slate-500 bg-white text-[14px] font-bold leading-none !text-transparent peer-checked:border-transparent peer-checked:!text-black peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400 peer-focus-visible:ring-offset-1">✓</span>
               </label>
             </td>
             {/* 10. SHORTAGE */}
