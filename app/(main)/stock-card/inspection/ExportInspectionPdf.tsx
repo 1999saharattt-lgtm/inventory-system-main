@@ -73,7 +73,7 @@ const SIGNATURE_FONT_SIZE = 12;
 const BODY_ROW_HEIGHT = 6.1515625;
 const ROWS_PER_PAGE = 15;
 // ภาพอักขระ Unicode ✓ ที่เรนเดอร์จากฟอนต์จริง (ไม่ใช่เส้นเวกเตอร์วาดเอง)
-const CHECKMARK_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAA8CAYAAAA34qk1AAAC4ElEQVR42uWaTUhUURTHf6PlVDNombiICqyImlCkFhFREdQiN62qTVPQxiIR+wChqIUgQZtaBy0MCiqCoIUR9GliECFFH0aEREQgaRHT9OjD1+LdaIjXzD3j6H1nOnB3cy/3N+fcd//3nBOjvKwGmGtGDeABL4BR7WAzgd1AD/AG8EPGN2C9VsA40AG8/wfc32OVRshaoN8S0AfOaoScBwwJIJ8DCY3n8aEA8hOwVBtkDLgkgPwJtGgM2S4BpA8c0Qi5Qwh5WSNkE/BFAPlE48dnDvBaADkKLNIGWQH0CiB/AJs0hmy38Fwe0gjZAowLIM9rhFxozpot5CMjJFTZdOCBAHLE/DHq7LQA8juwQSPkVuHHp10j5HzhuVSpfCqAOwLIV0C1RtDjAkgPaNYIudYoGlvQVo2Q1cCwAPKC1uTWOQHkEJDUCLlNAJkFGrUmtyRXyR6NkDHghgCyR+u53C+AfAbM0gi5GMhYQmaA5VrVzz2BN9NaQ/YgZV4+AFgGfBXo2KTWkB0QvC9X/w8he8z1ZhMEZbpivrK2ied+oNIFXBI4AAzyJxt3E6gTCIPblpCfgQYXkDtN0ilsU1cs19grCNldUw0YNymKQhtbUWCdBcZLNpAXXXjyquXmThVY55rlOm8JaitTapsFofbOXBthtt1yjXFgowtvHkWWagwr5szGvkPkpKsrZJ8QNKzWccZy7iBQ5Qp0jRDUA+pz5q/DriiUBVIuRUEVsqqyD5wwc2cQtKDZzGmLglzrLcKraeC65e9vGSHh3NqFoJKRcaV+wqxhEkHbiJg9ngTIu1EJ2dxXQ32JL/IssAUYi5pHUyX2ZkeUH8tPSwR5P49UdB66ELRoTzR8PROyH6Ls0SUl8OZhLbmevglADkQtZPNZukhID2UZ9rjgyZU7Oss9VekTtIBXagSNAy+x711Podia8mQEf48+YKUGmEI6NGGA6wiaC6cRlA8+EnQ7j2jx2i/IriW8lwdpbQAAAABJRU5ErkJggg==";
+const CHECKMARK_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAA8CAYAAAA34qk1AAACxUlEQVR42u2bS2gUQRCGPzeYVbPEV8ghaiAaRCMG8SIiIoIezMWTejEKXhSUEB8gCHoQRPCiZ8FDBAUVQfAQEXzGECFIUHxEREREhOAjiFlX1KyH7YVlmemaZBdmqmLBf+xmPqq6u6q6pwZ7NhtYALQCv4CfACn+mxqbCewGeoD3QL5EFywApoFu4FMZXFEvgTrtkPOA/hDAPDAKLNUO2QQMeyD/Ah0W1uOgBzIPHNMOOQ24KkBes7D5nBQgn1nYfHYIkF+Axdoh24ExD+QfYJN2yLnAW8Gbh7VDpoBeAfKShc3nlAD5xB03qq0DGPdAjgDN2iGb3S4aBvkb2KAdcjrwWAjZLgvr8txUyHy2CpBvgHrtkAuFdZkDVlk4L+8L3txrIWRPCJCXLUCuc7lqGOQwkNEOWQ+880BmgZUWvHlRCNk9FiC3CZA9FiCbhKPkBTDLQt/ntgfyB7Dcgjf3CyHbaQFyifNYGKSJ64MU8FDIYzMWQA8J9eUaC5DLKNxRhoEetxKyAx7IfqDGesh+B1qs7LK+xvOuJHxkBjgIDAF3gIZJJAb3PJBXkgC5k0I7sfTDrk9wjn0eyA8UOvCxWZpC8ynsA1dEnGeRW39Bc4wDG+P25A0hPTsbcZ6bnjnOxAm42Skv6CPyc53tnvFDQG2coGud8hHku56bQ/gLkSzQFnfI1jqNRQD13V6d94w7kKRzrzcCaA5oDBi7nvBLobvuuEmMdUUM39Nl42YArzyFdOKyn5aIoDlXIBd1S0vIltrTiLBR9CBJIVteOTRW6UDPAluAr0n1aFuVvNmtoep4XiHkIxL4Djio6J1fQfjmXMh+1uDR1gq8eURb0dw3CcgBFD5d75wgZA6lHfa0J0EP0lGrja1SDWrv5KWB1wLkaBLKr2pYe0D/qKg+YLUWkCi5aJ0DbnCVyjcKr51HNHlsyvzJ9A8swzSzWiJgZAAAAABJRU5ErkJggg==";
 
 /*
  * ความกว้างรวม 289 มม.
@@ -574,7 +574,7 @@ export default function ExportInspectionPdf({
                 16: Number(row?.unnecessaryQty || 0) > 0,
               };
               if (!selected[data.column.index]) return;
-              // ใช้รูปอักขระ ✓ จริงจากฟอนต์ ไม่วาดด้วย doc.line
+              // ใช้รูปอักขระ ✓ เดิม โดยลดความหนาของเส้นจาก alpha mask (ไม่เปลี่ยนรูปทรง)
               const markWidth = Math.min(3.8, data.cell.width * 0.36);
               const markHeight = markWidth * 1.0344827586206897;
               const x = data.cell.x + (data.cell.width - markWidth) / 2;
