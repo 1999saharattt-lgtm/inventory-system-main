@@ -6,6 +6,7 @@ import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
 import ExportInspectionPdf from "../../inspection/ExportInspectionPdf";
+import ExportInspectionExcel from "../../inspection/ExportInspectionExcel";
 
 type Material = {
   materialId: number; code: string; name: string; unit: string; category: string;
@@ -39,10 +40,6 @@ const headerClass = "border border-black bg-gradient-to-r from-slate-800 to-slat
 const cellClass = "h-[23.25px] border border-black px-1 py-0 text-center text-[15px] font-normal leading-none tabular-nums !text-black";
 const formatStock = (value: number) => Number.isFinite(value) && value !== 0 ? value.toLocaleString("th-TH") : "-";
 const formatCurrent = (value: number) => Number.isFinite(value) ? value.toLocaleString("th-TH") : "0";
-const hasSelectedValue = (value: string | number | null | undefined) => {
-  const text = String(value ?? "").trim();
-  return text !== "" && text !== "0" && !/^0+(?:\.0+)?$/.test(text);
-};
 const dateText = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "-";
   const [y,m,d] = value.split("-").map(Number);
@@ -74,6 +71,14 @@ export default function InspectionHistoryView(props: Props) {
   const groups = CATEGORY_ORDER.map(category => ({
     category, name: CATEGORY_NAME[category], materials: filtered.filter(m => m.category === category),
   })).filter(group => group.materials.length);
+  // Read-only historical rows do not store an independent in-use checkbox.
+  // Derive the usable quantity from the saved row and closing balance.
+  const inUseChecks = useMemo(() => Object.fromEntries(materials.map(material => {
+    const row = rowMap.get(material.materialId);
+    const usable = material.closingBalance - Number(row?.damagedQty || 0)
+      - Number(row?.deterioratedQty || 0) - Number(row?.unnecessaryQty || 0);
+    return [material.materialId, Boolean(row && usable > 0)];
+  })), [materials, rowMap]);
   const officerMap = new Map(officers.map(officer => [String(officer.id), officer]));
   const categories = [{ value: "ALL", label: "ทุกหมวด" }, ...CATEGORY_ORDER.map(category => ({
     value: category, label: CATEGORY_NAME[category],
@@ -107,7 +112,19 @@ export default function InspectionHistoryView(props: Props) {
       </div>
       <AppTableCard title="รายการตรวจสอบบัญชีพัสดุ"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
-        badge={`${filtered.length.toLocaleString("th-TH")} รายการ`} className="relative z-0 w-full min-w-0 !max-w-full">
+        headerAction={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <ExportInspectionPdf fiscalYear={fiscalYear} startShortYear={startShortYear}
+              endShortYear={endShortYear} materials={filtered} rows={rows}
+              inspectionStartDate={inspectionStartDate} inspectionEndDate={inspectionEndDate}
+              inspectorIds={inspectorIds} officers={officers} inUseChecks={inUseChecks} />
+            <ExportInspectionExcel fiscalYear={fiscalYear} startShortYear={startShortYear}
+              endShortYear={endShortYear} materials={filtered} rows={rows}
+              inspectionStartDate={inspectionStartDate} inspectionEndDate={inspectionEndDate}
+              inspectorIds={inspectorIds} officers={officers} inUseChecks={inUseChecks} />
+          </div>
+        }
+        className="relative z-0 w-full min-w-0 !max-w-full">
         <div className="border-b border-slate-200 bg-white px-3 pb-2 pt-0">
           <div className="flex flex-col gap-2 xl:flex-row xl:items-end xl:justify-between">
             <div className="relative z-30 w-full sm:max-w-[360px]">
@@ -115,10 +132,7 @@ export default function InspectionHistoryView(props: Props) {
               <AppSearchableSelect value={selectedCategory} options={categories} placeholder="เลือกหมวด"
                 searchPlaceholder="พิมพ์ค้นหาหมวด..." emptyText="ไม่พบหมวด" onChange={setSelectedCategory} />
             </div>
-            <ExportInspectionPdf fiscalYear={fiscalYear} startShortYear={startShortYear}
-              endShortYear={endShortYear} materials={filtered} rows={rows}
-              inspectionStartDate={inspectionStartDate} inspectionEndDate={inspectionEndDate}
-              inspectorIds={inspectorIds} officers={officers} />
+
           </div>
         </div>
         <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
@@ -162,15 +176,15 @@ export default function InspectionHistoryView(props: Props) {
                     <td className={cellClass}>{material.unit || "-"}</td>
                     <td className={cellClass}>{material.latestPrice == null ? "-" : material.latestPrice.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     {cells.map((value,i) => <td key={i} className={cellClass}>{value}</td>)}
-                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? "✓" : ""}</td>
-                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? "✓" : ""}</td>
-                    {(["shortageQty", "excessQty"] as const).map(key =>
-                      <td key={key} className={cellClass}>{hasSelectedValue(row?.[key]) ? "✓" : ""}</td>)}
-                    <td className={cellClass}>{hasSelectedValue(row?.baht) || hasSelectedValue(row?.satang) ? "✓" : ""}</td>
-                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? "✓" : ""}</td>
-                    {(["damagedQty", "deterioratedQty", "unnecessaryQty"] as const).map(key =>
-                      <td key={key} className={cellClass}>{hasSelectedValue(row?.[key]) ? "✓" : ""}</td>)}
-                    <td className={`${cellClass} px-2 text-center`}>{hasSelectedValue(row?.remark) ? "✓" : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "CORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
+                    <td className={cellClass}>{row?.accuracy === "INCORRECT" ? <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-emerald-600 text-[13px] font-bold text-white">✓</span> : ""}</td>
+                    {(["shortageQty","excessQty"] as const).map(key =>
+                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
+                    <td className={cellClass}>{row?.baht || row?.satang ? `${row?.baht || "0"}.${String(row?.satang || "0").padStart(2, "0")}` : ""}</td>
+                    <td className={cellClass}>{row ? Math.max(0, material.closingBalance - Number(row.damagedQty || 0) - Number(row.deterioratedQty || 0) - Number(row.unnecessaryQty || 0)).toLocaleString("th-TH") : ""}</td>
+                    {(["damagedQty","deterioratedQty","unnecessaryQty"] as const).map(key =>
+                      <td key={key} className={cellClass}>{row?.[key] ?? ""}</td>)}
+                    <td className={`${cellClass} px-2 text-left`}>{row?.remark ?? ""}</td>
                   </tr>;
                 })}
               </Fragment>)}
