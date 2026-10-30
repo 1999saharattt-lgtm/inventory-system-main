@@ -72,6 +72,9 @@ const DOCUMENT_FONT_SIZE = 15;
 const SIGNATURE_FONT_SIZE = 12;
 const BODY_ROW_HEIGHT = 6.1515625;
 const ROWS_PER_PAGE = 15;
+// ภาพอักขระ Unicode ✓ ที่เรนเดอร์จากฟอนต์จริง (ไม่ใช่เส้นเวกเตอร์วาดเอง)
+const CHECKMARK_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADoAAAA8CAYAAAA34qk1AAAC4ElEQVR42uWaTUhUURTHf6PlVDNombiICqyImlCkFhFREdQiN62qTVPQxiIR+wChqIUgQZtaBy0MCiqCoIUR9GliECFFH0aEREQgaRHT9OjD1+LdaIjXzD3j6H1nOnB3cy/3N+fcd//3nBOjvKwGmGtGDeABL4BR7WAzgd1AD/AG8EPGN2C9VsA40AG8/wfc32OVRshaoN8S0AfOaoScBwwJIJ8DCY3n8aEA8hOwVBtkDLgkgPwJtGgM2S4BpA8c0Qi5Qwh5WSNkE/BFAPlE48dnDvBaADkKLNIGWQH0CiB/AJs0hmy38Fwe0gjZAowLIM9rhFxozpot5CMjJFTZdOCBAHLE/DHq7LQA8juwQSPkVuHHp10j5HzhuVSpfCqAOwLIV0C1RtDjAkgPaNYIudYoGlvQVo2Q1cCwAPKC1uTWOQHkEJDUCLlNAJkFGrUmtyRXyR6NkDHghgCyR+u53C+AfAbM0gi5GMhYQmaA5VrVzz2BN9NaQ/YgZV4+AFgGfBXo2KTWkB0QvC9X/w8he8z1ZhMEZbpivrK2ied+oNIFXBI4AAzyJxt3E6gTCIPblpCfgQYXkDtN0ilsU1cs19grCNldUw0YNymKQhtbUWCdBcZLNpAXXXjyquXmThVY55rlOm8JaitTapsFofbOXBthtt1yjXFgowtvHkWWagwr5szGvkPkpKsrZJ8QNKzWccZy7iBQ5Qp0jRDUA+pz5q/DriiUBVIuRUEVsqqyD5wwc2cQtKDZzGmLglzrLcKraeC65e9vGSHh3NqFoJKRcaV+wqxhEkHbiJg9ngTIu1EJ2dxXQ32JL/IssAUYi5pHUyX2ZkeUH8tPSwR5P49UdB66ELRoTzR8PROyH6Ls0SUl8OZhLbmevglADkQtZPNZukhID2UZ9rjgyZU7Oss9VekTtIBXagSNAy+x711Podia8mQEf48+YKUGmEI6NGGA6wiaC6cRlA8+EnQ7j2jx2i/IriW8lwdpbQAAAABJRU5ErkJggg==";
+
 /*
  * ความกว้างรวม 289 มม.
  * ตรงกับตาราง 18 คอลัมน์ในหน้า InspectionForm
@@ -571,20 +574,12 @@ export default function ExportInspectionPdf({
                 16: Number(row?.unnecessaryQty || 0) > 0,
               };
               if (!selected[data.column.index]) return;
-              // เครื่องหมาย ✓ ทรงเดียวกับตัวอย่าง Excel: เส้นบาง ปลายแหลม ไม่มีวงกลม
-              // วาดเป็นเส้นเวกเตอร์ เพื่อให้ PDF แสดงผลเหมือนกันทุกเครื่อง
-              const cx = data.cell.x + data.cell.width / 2;
-              const cy = data.cell.y + data.cell.height / 2;
-              const w = Math.min(3.0, data.cell.width * 0.27);
-              const h = Math.min(2.6, data.cell.height * 0.39);
-              doc.setDrawColor(0, 0, 0);
-              doc.setLineWidth(0.32);
-              doc.setLineCap("butt");
-              doc.setLineJoin("miter");
-              // ขาซ้ายสั้น ขาขวายาวชัน ให้คล้ายตัว ✓ ที่แสดงใน Excel
-              doc.line(cx - w, cy - h * 0.02, cx - w * 0.22, cy + h * 0.72);
-              doc.line(cx - w * 0.22, cy + h * 0.72, cx + w, cy - h);
-              doc.setLineWidth(0.25);
+              // ใช้รูปอักขระ ✓ จริงจากฟอนต์ ไม่วาดด้วย doc.line
+              const markWidth = Math.min(3.8, data.cell.width * 0.36);
+              const markHeight = markWidth * 1.0344827586206897;
+              const x = data.cell.x + (data.cell.width - markWidth) / 2;
+              const y = data.cell.y + (data.cell.height - markHeight) / 2;
+              doc.addImage(CHECKMARK_PNG, "PNG", x, y, markWidth, markHeight);
             },
             didParseCell: (data: any) => {
               if (data.section === "body" && [8, 9, 13, 14, 15, 16].includes(data.column.index)) {
