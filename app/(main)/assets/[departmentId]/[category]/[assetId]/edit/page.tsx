@@ -639,6 +639,25 @@ export default async function EditAssetPage({
               />
             </AppInfoCard>
 
+            {/* UNIT PRICE */}
+
+            <AppInfoCard>
+              <label htmlFor="price" className={labelClassName}>
+                ราคาต่อหน่วย (บาท)
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                defaultValue={asset.price ?? ""}
+                placeholder="กรอกราคาต่อหน่วย"
+                className={inputClassName}
+              />
+            </AppInfoCard>
+
             {/* UNIT */}
 
             <AppInfoCard>
