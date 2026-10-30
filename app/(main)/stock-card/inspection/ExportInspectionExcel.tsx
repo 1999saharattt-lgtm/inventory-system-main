@@ -13,7 +13,7 @@ type Material = {
   receiveQty: number;
   issueQty: number;
   closingBalance: number;
-  latestPrice: number | null;
+  latestPrice?: number | null;
 };
 
 type InspectionRow = {
