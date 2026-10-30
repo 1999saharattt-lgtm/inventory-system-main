@@ -3141,7 +3141,7 @@ export default function InspectionForm({
                 {[
                   "สถานที่ใช้งาน",
                   "ผู้รับผิดชอบ",
-                  "หมวด/ชนิด",
+                  "ราคาต่อหน่วย (บาท)",
                   "ชื่อเรียก/คุณลักษณะครุภัณฑ์",
                   "ยี่ห้อ/รุ่น",
                   "หน่วยนับ",
@@ -3394,8 +3394,8 @@ export default function InspectionForm({
                         <td className="border border-black px-2 py-2.5 text-center align-middle break-words">
                           {getResponsibleName(asset, department, officers)}
                         </td>
-                        <td className="border border-black px-2 py-2.5 text-center align-middle break-words min-w-[240px]">
-                          {displayCategoryDetail(asset)}
+                        <td className="border border-black px-2 py-2.5 text-center align-middle whitespace-nowrap">
+                          {asset.price == null ? "-" : Number(asset.price).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="border border-black px-2 py-2.5 align-middle break-words min-w-[220px]">
                           {asset.name || ""}

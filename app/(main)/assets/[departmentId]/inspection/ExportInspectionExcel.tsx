@@ -6,7 +6,7 @@ import AppButton from "@/components/AppButton";
 type Department = { id: number; name: string };
 type Asset = {
   id: number; name: string; category: string; categoryDetail?: string | null;
-  quantity?: number; unit?: string | null; brand: string | null; model: string | null;
+  quantity?: number; unit?: string | null; price: number | null; brand: string | null; model: string | null;
   governmentAssetNo: string | null; officeAssetNo: string | null;
   responsibleName?: string | null; departmentId: number; remark: string | null;
   officer: { firstName: string; lastName: string } | null;
@@ -70,7 +70,7 @@ function sourceOrder(a: Asset, index: number) {
   const match = a.remark?.match(/SOURCE:DEPARTMENT_1:(\d+)/);
   return match ? Number(match[1]) : index + 1;
 }
-// ความกว้างคอลัมน์สำหรับ A4 แนวนอน: คงหมวด/ชนิด และรายการเคลื่อนไหวเดิม
+// ความกว้างคอลัมน์สำหรับ A4 แนวนอน: คงรายการเคลื่อนไหวเดิม
 const COLS = [6, 17, 19, 24, 21, 18, 34, 16, 9, 15, 8, 8, 15, 12, 9, 11, 10, 9, 11, 13];
 const MAX_COLUMN_WIDTHS = [7, 20, 25, 26, 24, 18, 34, 19, 9, 15, 8, 8, 15, 12, 9, 11, 10, 9, 11, 13];
 const WIDTH_EXCEPTIONS = new Set([5, 10, 11]);
@@ -170,7 +170,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
         outline(h, h + 1);
         const h1: Array<[number, number, string, boolean]> = [
           [1, 1, "ลำดับ", true], [2, 2, "รหัส GFMIS", true], [3, 3, "รหัสครุภัณฑ์", true],
-          [4, 4, "สถานที่ใช้งาน", true], [5, 5, "ผู้รับผิดชอบ", true], [6, 6, "หมวด/ชนิด", true],
+          [4, 4, "สถานที่ใช้งาน", true], [5, 5, "ผู้รับผิดชอบ", true], [6, 6, "ราคาต่อหน่วย", true],
           [7, 7, "ชื่อเรียก/คุณลักษณะ\nครุภัณฑ์", true], [8, 8, "ยี่ห้อ/รุ่น", true],
           [9, 9, "หน่วย\nนับ", true], [10, 10, `ยอดคงเหลือ\nตามบัญชี\nณ วันที่ ${thaiDate(start, true)}`, true],
           [11, 12, `รายการเคลื่อนไหว\nระหว่างปีงบประมาณ\nพ.ศ. ${movementFiscalYear}`, false],
@@ -196,7 +196,7 @@ export default function ExportInspectionExcel({ department, assets, rows, inspec
           const owner = a.responsibleName?.trim() || (a.officer ? `${a.officer.firstName} ${a.officer.lastName}`.trim() : "");
           const values: Array<string | number> = [
             sourceOrder(a, i), a.governmentAssetNo?.trim() ?? "", a.officeAssetNo?.trim() ?? "",
-            department.name, owner, categoryName(a), a.name ?? "", [a.brand, a.model].filter(Boolean).join(" / "),
+            department.name, owner, a.price == null ? "-" : Number(a.price).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), a.name ?? "", [a.brand, a.model].filter(Boolean).join(" / "),
             unitName(a), a.quantity ?? 1, "", "", a.quantity ?? 1,
             !r.countedQty.trim() || Number(r.countedQty) === 0 ? "" : Number(r.countedQty),
             r.accuracy === "CORRECT" ? "✓" : "", r.accuracy === "INCORRECT" ? "✓" : "",

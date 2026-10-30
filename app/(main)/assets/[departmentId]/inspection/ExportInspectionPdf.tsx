@@ -1022,7 +1022,7 @@ export default function ExportInspectionPdf({
 
                 department.name,
                 responsibleName,
-                getDisplayCategory(asset),
+                asset.price == null ? "-" : Number(asset.price).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                 assetName,
                 brandModel,
 
@@ -1113,7 +1113,7 @@ export default function ExportInspectionPdf({
           2: ["รหัสครุภัณฑ์"],
           3: ["สถานที่ใช้งาน"],
           4: ["ผู้รับผิดชอบ"],
-          5: ["หมวด/ชนิด"],
+          5: ["ราคาต่อหน่วย"],
           6: ["ชื่อเรียก/คุณลักษณะ", "ครุภัณฑ์"],
           7: ["ยี่ห้อ/รุ่น"],
           8: ["หน่วย", "นับ"],
@@ -1149,7 +1149,7 @@ export default function ExportInspectionPdf({
               { content: "รหัสครุภัณฑ์", rowSpan: 2 },
               { content: "สถานที่ใช้งาน", rowSpan: 2 },
               { content: "ผู้รับผิดชอบ", rowSpan: 2 },
-              { content: "หมวด/ชนิด", rowSpan: 2 },
+              { content: "ราคาต่อหน่วย", rowSpan: 2 },
               { content: "ชื่อเรียก/คุณลักษณะครุภัณฑ์", rowSpan: 2 },
               { content: "ยี่ห้อ/รุ่น", rowSpan: 2 },
               { content: "หน่วย\nนับ", rowSpan: 2 },
