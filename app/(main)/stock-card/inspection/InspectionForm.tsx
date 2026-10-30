@@ -13,6 +13,7 @@ import AppSearchInput from "@/components/AppSearchInput";
 import AppSearchableSelect from "@/components/AppSearchableSelect";
 import AppTableCard from "@/components/AppTableCard";
 import ExportInspectionPdf from "./ExportInspectionPdf";
+import ExportInspectionExcel from "./ExportInspectionExcel";
 /* =========================================================
    TYPES
 \========================================================= */
@@ -1078,9 +1079,34 @@ export default function InspectionForm({
       <AppTableCard
         title="รายการตรวจสอบบัญชีพัสดุ"
         subtitle={`ประจำปีงบประมาณ พ.ศ. ${fiscalYear}`}
-        badge={`${filteredMaterials.length.toLocaleString(
-          "th-TH"
-        )} รายการ`}
+        headerAction={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <ExportInspectionPdf
+            fiscalYear={fiscalYear}
+            startShortYear={startShortYear}
+            endShortYear={endShortYear}
+            materials={filteredMaterials}
+            rows={rows}
+            inspectionStartDate={inspectionStartDate}
+            inspectionEndDate={inspectionEndDate}
+            inspectorIds={inspectorIds}
+            officers={officers}
+            inUseChecks={inUseChecks}
+            />
+            <ExportInspectionExcel
+              fiscalYear={fiscalYear}
+              startShortYear={startShortYear}
+              endShortYear={endShortYear}
+              materials={filteredMaterials}
+              rows={rows}
+              inspectionStartDate={inspectionStartDate}
+              inspectionEndDate={inspectionEndDate}
+              inspectorIds={inspectorIds}
+              officers={officers}
+              inUseChecks={inUseChecks}
+            />
+          </div>
+        }
         className="relative z-0 w-full min-w-0"
       >
         {/* CATEGORY / ACTIONS */}
@@ -1130,18 +1156,7 @@ export default function InspectionForm({
               <AppButton type="button" variant="warning" size="sm" onClick={() => updateVisibleStatus("damagedQty")}>ชำรุดทั้งหมด</AppButton>
               <AppButton type="button" variant="warning" size="sm" onClick={() => updateVisibleStatus("deterioratedQty")}>เสื่อมสภาพทั้งหมด</AppButton>
               <AppButton type="button" variant="danger" size="sm" onClick={() => updateVisibleStatus("unnecessaryQty")}>สูญไปหรือไม่จำเป็นต้องใช้ในหน่วยงานทั้งหมด</AppButton>
-              <ExportInspectionPdf
-                fiscalYear={fiscalYear}
-                startShortYear={startShortYear}
-                endShortYear={endShortYear}
-                materials={filteredMaterials}
-                rows={rows}
-                inspectionStartDate={inspectionStartDate}
-                inspectionEndDate={inspectionEndDate}
-                inspectorIds={inspectorIds}
-                officers={officers}
-                inUseChecks={inUseChecks}
-              />
+
             </div>
           </div>
         </div>
